@@ -6,6 +6,20 @@
 # Visual Studio Code project configuration
 .vscode/
 
+## Node, JavaScript and TypeScript client
+
+# Dependencies of the module
+node_modules/
+
+# Webpack bundle
+#
+# Notice how it is inside of the Python package, this is so that
+# it can locate it regardless of the operating system.
+/diogenet_py/static/bundle.js
+/diogenet_py/static/bundle.js.map
+/diogenet_py/static/bundle.min.js
+/diogenet_py/static/bundle.min.js.map
+
 ## Python:
 
 # Byte-compiled / optimized / DLL files
