@@ -1,0 +1,4 @@
+include README.md requirements.txt
+include docs/Makefile docs/make.bat docs/conf.py docs/*.rst docs/_static/* docs/_templates/*
+global-exclude *.py[cod]
+global-exclude *~
