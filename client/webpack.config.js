@@ -2,17 +2,22 @@ const path = require("path");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
-const DIST = path.resolve(__dirname, "../diogenet_py/static");
+const DIST = path.resolve(__dirname, "../diogenet_py/static/client");
 
 const POLYFILLS = [];
 
-const ENTRIES = [
-    "src/main.ts"
-].map(file => path.resolve(__dirname, file));
+function appendPolyfills(entries) {
+    return entries.map(file => path.resolve(__dirname, file));
+}
+
+const ENTRIES = {
+    map: appendPolyfills(["src/map.ts"]),
+    horus: appendPolyfills(["src/horus.ts"]),
+};
 
 module.exports = {
     mode: "development",
-    entry: POLYFILLS.concat(ENTRIES),
+    entry: ENTRIES,
     module: {
         rules: [
             {
@@ -40,7 +45,7 @@ module.exports = {
     },
     devtool: "source-map",
     output: {
-        filename: "bundle.js",
+        filename: "[name].bundle.js",
         path: DIST,
     },
     plugins: [
