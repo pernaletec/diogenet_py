@@ -110,3 +110,8 @@ To build the documentation first enter the `docs/` directory and execute
 `make html` (in \*NIX systems) or `make.bat` (in Microsoft Windows systems).
 That will build the HTML documentation. You can additionally just execute
 `make` without any argument to see the available commands.
+
+## Running the server ##
+
+The [`RUNNING.md`](RUNNING.md) file contains instructions on how to execute the
+server once built.
