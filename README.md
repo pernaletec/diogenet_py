@@ -11,3 +11,7 @@ the different parts of the application.
 
 See the [`COMPILING.md`](COMPILING.md) file for instructions on how to compile
 this program.
+
+## Running the server ##
+
+See the [`RUNNING.md`](RUNNING.md) file for instructions on how to execute the server.
