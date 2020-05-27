@@ -1,15 +1,15 @@
 # Running the server #
 
-**Note**: This document assumes that you have already built the server.
-See the [`COMPILING.md`](COMPILING.md) file for instructions on how to
+**Note**: At this point you must have already built the server.
+Check [`COMPILING.md`](COMPILING.md) for detailed instructions about how to
 build it.
 
 ## Running from the source ##
 
-This method doesn't require you to package the application but the commands
-described here **need*** to be run from the project's top-level directory.
+This method does not require you to package the application. However, the commands
+described in this document **need*** to be run from the top-level directory of the project.
 
-For POSIX systems, execute the following commands on a shell:
+For POSIX systems execute the following commands on a shell:
 
 ```sh
 export FLASK_APP="diogenet_py.app"
@@ -17,29 +17,28 @@ export FLASK_ENV="development"
 flask run
 ```
 
-In Windows the following commands can be used instead (they must be
-executed in PowerShell, not in Windows' CMD):
+In Windows the following commands can be used instead. This must be
+executed in PowerShell, not in Windows' CMD. 
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable("FLASK_APP", "diogenet_py.app")
 [System.Environment]::SetEnvironmentVariable("FLASK_ENV", "development")
 flask run
 ```
+At this point the service should be available at the defined `http` site.  
 
-Changing the `FLASK_ENV` variable from `development` to `production` will
-instead run the server in production mode (but see the "Running in
-production" section for details).
+Changing the `FLASK_ENV` variable from `development` to `production` will run the 
+server in production mode (See the "Running in production" section for details).
 
-If the server is started on development mode, Flask will re-render any
-required templates on each HTTP call and will not cache files. This combined
-with the fact that the client's compiled files go into `diogenet_py/static/`
-means that executing the server from the source in development mode allows
-you to make almost any change to both the client and the server and see the
-effects instantly.
+If the server is started in development mode, Flask will re-render any
+required templates on each HTTP call and will not cache files. Since the compiled 
+files of the client go into `diogenet_py/static/`, executing the server from the source 
+in development mode allows you to make changes in the source and inmediatly have the changes 
+available in the deployment. Changes can be made to both the client and the server.   
 
 ## Running from a package ##
 
-If you have packaged the application into a Wheel (`.whl`) or an sdist and
+If you have packaged the application into a Wheel (`.whl`) or an sdist, and
 installed it, then any of the following two options can be used to run the
 server:
 
@@ -50,7 +49,7 @@ to run the server using this command just execute `diogenet-py`.
 
 Changes made to the source will only be visible if the package was installed
 on development mode (see [`COMPILING.md`](COMPILING.md) for more information
-about installing a package in development mode**.
+about installing a package in development mode**).
 
 **Warning**: The command `diogenet-py` is currently unimplemented.
 
