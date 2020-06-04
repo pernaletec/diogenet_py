@@ -1,6 +1,7 @@
 const path = require("path");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const DIST = path.resolve(__dirname, "../diogenet_py/static/client");
 
@@ -13,6 +14,8 @@ function appendPolyfills(entries) {
 const ENTRIES = {
     map: appendPolyfills(["src/map.ts"]),
     horus: appendPolyfills(["src/horus.ts"]),
+
+    styles: path.resolve(__dirname, "src/styles.js"),
 };
 
 module.exports = {
@@ -38,10 +41,35 @@ module.exports = {
                 use: "babel-loader",
                 exclude: /node_modules/,
             },
+            {
+                test: /\.(sass|scss)$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    "css-loader",
+                    "sass-loader",
+                ],
+                exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    "css-loader",
+                ],
+                exclude: /node_modules/,
+            },
         ],
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".jsx", ".js"],
+        extensions: [
+            ".tsx",
+            ".ts",
+            ".jsx",
+            ".js",
+            ".sass",
+            ".scss",
+            ".css",
+        ],
     },
     devtool: "source-map",
     output: {
@@ -51,6 +79,9 @@ module.exports = {
     plugins: [
         new ForkTsCheckerWebpackPlugin(),
         new CleanWebpackPlugin(),
+        new MiniCssExtractPlugin({
+            filename: "[name].bundle.css",
+        }),
     ],
     devServer: {
         contentBase: DIST,
