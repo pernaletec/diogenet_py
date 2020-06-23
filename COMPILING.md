@@ -2,7 +2,9 @@
 
 ## Compiling the Client ##
 
-First the client needs to be compiled. For this enter to the `client/` directory and execute `npm install` to locally install all the required dependencies. After that executing `npm run build` should build the client:
+First the client needs to be compiled. For this enter to the `client/`
+directory and execute `npm install` to locally install all the required
+dependencies. After that executing `npm run build` should build the client:
 
 ```sh
 cd client/
@@ -10,23 +12,39 @@ npm install
 npm run build
 ```
 
-While working on the client this edit-compile-run cycle can get a bit slow (webpack isn't the fastest while compiling typescript). To address this issue a "dev server" is provided that automatically detect any change in the source, compilet it and then place the compiled client into `diogenet_py/static/bundle.js`. To run this dev server the following command must be used instead of `npm build`:
+While working on the client this edit-compile-run cycle can get a bit slow
+(webpack isn't the fastest while compiling typescript). To address this issue
+a "dev server" is provided that automatically detect any change in the
+source, compilet it and then place the compiled client into
+`diogenet_py/static/client/`. To run this dev server the following command
+must be used instead of `npm build`:
 
 ```sh
 npm run start
 ```
 
-Compiling the client will create the compiled source and a sourcemap in the `diogenet_py/static/bundle.js` and `diogenet_py/static/bundle.js.map** files respectively. Now that they are compiled the Flash application can make use of them.
+Compiling the client will put all the compiled resources (with their respective
+sourcemap) in the `diogenet_py/static/client` directory. All resources,
+including SASS/SCSS and dependencies of the program (like images or icons)
+will also go to that directory. Now that they are compiled the Flash
+application can make use of them.
 
-**Note**: It is required to build the client before using the `diogenet_py` package. Once the server is built, it does not need to be rebuilt when changes are made only over `diogenet_py`.
+**Note**: It is required to build the client before using the `diogenet_py`
+package. Once the server is built, it does not need to be rebuilt when changes
+are made only over `diogenet_py`.
 
 ## Installing the Python Package ##
 
-The python package itself does not needs to be compiled, but to run it outside of the toplevel directory it needs to be installed.
+The python package itself does not needs to be compiled, but to run it outside
+of the toplevel directory it needs to be installed.
 
 ### Creating a Virtual Environment ###
 
-For safety reasons a virtual environment is recommended to be used. If virtualenvwrapper is being used then the following command should create a virtual environment with the name `diogenet_py`. That specific name is not required but if you use a different one remember to change it throught the rest of the installation instructions:
+For safety reasons a virtual environment is recommended to be used. If
+virtualenvwrapper is being used then the following command should create a
+virtual environment with the name `diogenet_py`. That specific name is not
+required but if you use a different one remember to change it throught the rest
+of the installation instructions:
 
 ```sh
 mkvirtualenv diogenet_py
@@ -76,7 +94,9 @@ reinstall).
 
 #### Installing for production ####
 
-The application can be packaged as described in the next section.  That will automatically install the package and its dependencies as a `whl` file, under `dist/`, and in the current virtual environment. 
+The application can be packaged as described in the next section.  That will
+automatically install the package and its dependencies as a `whl` file, under
+`dist/`, and in the current virtual environment.
 
 ### Packaging ###
 
