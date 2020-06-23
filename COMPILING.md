@@ -15,7 +15,7 @@ npm run build
 While working on the client this edit-compile-run cycle can get a bit slow
 (webpack isn't the fastest while compiling typescript). To address this issue
 a "dev server" is provided that automatically detect any change in the
-source, compilet it and then place the compiled client into
+source, compile it and then place the compiled client into
 `diogenet_py/static/client/`. To run this dev server the following command
 must be used instead of `npm build`:
 
