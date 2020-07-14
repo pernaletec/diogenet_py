@@ -16,7 +16,8 @@ const ENTRIES = {
     map: appendPolyfills(["src/map.ts"]),
     horus: appendPolyfills(["src/horus.ts"]),
 
-    styles: path.resolve(__dirname, "src/styles.ts"),
+    main_styles: path.resolve(__dirname, "src/styles/main.ts"),
+    map_styles: path.resolve(__dirname, "src/styles/map.ts"),
 };
 
 const AutoprefixerLoader = {
@@ -69,6 +70,12 @@ module.exports = {
                     AutoprefixerLoader,
                 ],
                 exclude: /node_modules/,
+            },
+            {
+                test: /\.(png|jpg|ico|jpeg|gif)$/,
+                use: [
+                    "file-loader",
+                ],
             },
         ],
     },

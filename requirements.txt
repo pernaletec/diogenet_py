@@ -17,7 +17,9 @@ Jinja2==2.11.2
 MarkupSafe==1.1.1
 mccabe==0.6.1
 more-itertools==8.2.0
+numpy==1.19.0
 packaging==20.3
+pandas==1.0.5
 pathspec==0.8.0
 pluggy==0.13.1
 py==1.8.1
@@ -26,6 +28,8 @@ pyflakes==2.2.0
 Pygments==2.6.1
 pyparsing==2.4.7
 pytest==5.4.2
+python-dateutil==2.8.1
+python-igraph==0.8.2
 pytz==2020.1
 regex==2020.5.14
 requests==2.23.0
@@ -38,6 +42,7 @@ sphinxcontrib-htmlhelp==1.0.3
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
+texttable==1.6.2
 toml==0.10.1
 typed-ast==1.4.1
 urllib3==1.25.9
