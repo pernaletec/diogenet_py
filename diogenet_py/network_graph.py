@@ -16,5 +16,7 @@ class Graph:
     edges: pd.DataFrame
     locations: pd.DataFrame
 
-    def know_locations(self):
+    def know_locations(self, ):
+        
         return pd.DataFrame()
+
