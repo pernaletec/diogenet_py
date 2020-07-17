@@ -6,20 +6,11 @@
 import pandas as pd
 import io
 import requests
-from . import network_graph
-
+#  Not needed. Data is called from the class. .    
+#  from . import network_graph
 
 # VARS to fullfill dataframes
 # Define data access method: local, url or database
-DATA_ACCESS_METHOD = "url"
-
-# In case local or url method define file names
-TRAVELS_BLACK_LIST_FILE = "travels_blacklist.csv"
-LOCATIONS_DATA_FILE = "locations_data.csv"
-
-# In case url define BASE_URL
-BASE_URL = "https://diogenet.ucsd.edu/data"
-
 
 def get_data_entity(entity_name, method):
     """Retrieve a dataset with Complex Network's data.
@@ -31,7 +22,7 @@ def get_data_entity(entity_name, method):
     """
     df = None
     if method == "local":
-        df = pd.read_csv(entity_name, delimiter=",", header=0)
+        df = pd.read_csv("./" + entity_name, delimiter=",", header=0)
     if method == "url":
         url = BASE_URL + "/" + entity_name
         request = requests.get(url).content
@@ -42,14 +33,15 @@ def get_data_entity(entity_name, method):
     return df
 
 
-def get_graph(
-    nodes_entity="new_Nodes.csv",
-    edges_entity="new_Edges.csv",
-    location_entity="locations_data.csv",
-    method="local",
-    url="",
-):
-    nodes = get_data_entity(nodes_entity, method)
-    edges = get_data_entity(edges_entity, method)
-    locations = get_data_entity(location_entity, method)
-    graph = network_graph.Graph()
+# def get_graph(
+#     nodes_entity="new_Nodes.csv",
+#     edges_entity="new_Edges.csv",
+#     location_entity="locations_data.csv",
+#     method="local",
+#     url="",
+# ):
+#  graph = network_graph.Graph()
+
+
+travel_edges =  pd.read_csv("travel_edges_graph.csv", delimiter=',')
+all_places = pd.read_csv("all_places_graph.csv", delimiter=',')
