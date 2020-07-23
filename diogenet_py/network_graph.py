@@ -56,7 +56,22 @@ class map_graph:
     #  edges: pd.DataFrame
     #  locations: pd.DataFrame
     #  The graph must receive the roor files as input.     
+
+
     def __init__(self, nodes, edges, locations):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
+        #:return: 
+        #:rtype: :py:class:`pd.DataFrame`
+        
+        self.know_locations()
+
         self.nodes_file = nodes
         self.edges_file = edges
         self.locations_file = locations
@@ -66,17 +81,38 @@ class map_graph:
         return pd.DataFrame()
 
     # Now all the functions that implement data treatment should be implemented
-    def function_1(self):
+    def set_locations(self):
         return()
 
-    def function_2(self):
+    def set_nodes(self):
         return()
 
-    def function_3(self):
+    def set_edges(self):
         return()
 
-    def function_4(self):
+    def validate_nodes_edges(self):
         return()
+
+    def validate_nodes_locations(self):
+        return()    
+
+    def update_graph(self):
+        return()    
+
+    def calculate_degree(self):
+        return()    
+
+    def calculate_closeness(self):
+        return()            
+
+    def calculate_betweenness(self):
+        return()    
+
+    def calculate_eigenvectos(self):
+        return()            
+
+    def set_colour_scale(self):
+        return()            
 
 grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE)
 
