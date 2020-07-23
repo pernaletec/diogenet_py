@@ -59,8 +59,6 @@ list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 #print("list_of_rows_all_places")
 #print(list_of_rows_all_places)
 
-
-
 @dataclass
 class map_graph:
     #  nodes: pd.DataFrame
@@ -87,54 +85,145 @@ class map_graph:
         self.nodes_raw_data = None
         self.edges_raw_data = None
         self.location_raw_data = None
+        self.igraph_map = None       
+        self.nodes_graph_data = None
+        self.edges_graph_data = None
+        self.locations_graph_data = None
 
-        self.igraph_map = None        
+
+
+
+
         self.know_locations()
         self.set_locations("local")
         self.set_nodes("local")
         self.set_edges("local")
 
     def know_locations(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return pd.DataFrame()
 
     # Now all the functions that implement data treatment should be implemented
     def set_locations(self, method):
+        """Retrieve and store locations data in the graph object 
+        :param method: Declare the source of data  ('local'/'url')
+          
+        """
         self.location_raw_data = da.get_data_entity(self.locations_file, method)
         print("self.location_raw_data")
         print(self.location_raw_data)
 
     def set_nodes(self, method):
+        """Retrieve and store nodes data in the graph object 
+        :param method: Declare the source of data  ('local'/'url')
+          
+        """
         self.nodes_raw_data = da.get_data_entity(self.nodes_file, method)
         print("self.nodes_raw_data")
         print(self.nodes_raw_data)
         
     def set_edges(self, method):
+        """Retrieve and store edges data in the graph object 
+        :param method: Declare the source of data  ('local'/'url')
+          
+        """
         self.edges_raw_data = da.get_data_entity(self.edges_file, method)
         print("self.edges_raw_data")
         print(self.edges_raw_data)
 
     def validate_nodes_edges(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()
 
     def validate_nodes_locations(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()    
 
     def update_graph(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         self.igraph_map = igraph.Graph.TupleList(list_of_rows_travel_edges, directed=True, edge_attrs = ['edge_name'])
 
     def calculate_degree(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """        
         return()    
 
     def calculate_closeness(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()            
 
     def calculate_betweenness(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()    
 
     def calculate_eigenvectos(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()            
 
     def set_colour_scale(self):
+        """Create parameters for the class graph 
+
+        :param nodes_file: File with the full list of nodes name/group (.csv)
+        :param edges_file: File with full list of edges (.csv)
+        :param locations_file: File with list of nodees/localization (.csv).
+        :param igraph_map: Python igraph graph object
+          
+        """
         return()            
 
 grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE)
