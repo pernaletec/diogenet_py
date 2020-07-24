@@ -29,8 +29,8 @@ import data_access as da
 # In case local or url method define file names
 TRAVELS_BLACK_LIST_FILE = "travels_blacklist.csv"
 LOCATIONS_DATA_FILE = "locations_data.csv"
-NODES_DATA_FILE = "new_nodes.csv"
-EDGES_DATA_FILE = "new_edges.csv"
+NODES_DATA_FILE = "new_Nodes.csv"
+EDGES_DATA_FILE = "new_Edges.csv"
 # These are the files already processed. Must be created "on the fly"
 TRAVEL_EDGES_FILE = "travel_edges_graph.csv"
 ALL_PLACES_FILE = "all_places_graph.csv"
@@ -66,7 +66,7 @@ class map_graph:
     #  locations: pd.DataFrame
     #  The graph must receive the roor files as input.     
 
-    def __init__(self, nodes_file, edges_file, locations_file):
+    def __init__(self, nodes_file, edges_file, locations_file, blacklist_file):
         """Create parameters for the class graph 
 
         :param nodes_file: File with the full list of nodes name/group (.csv)
@@ -81,23 +81,31 @@ class map_graph:
         self.nodes_file = nodes_file
         self.edges_file = edges_file
         self.locations_file = locations_file
+        self.blacklist_file = blacklist_file
 
         self.nodes_raw_data = None
         self.edges_raw_data = None
         self.location_raw_data = None
-        self.igraph_map = None       
+        self.blacklist_raw_data = None
+        self.igraph_map = None
+
+        self.phylosophers_known_origin = None  
+        
         self.nodes_graph_data = None
         self.edges_graph_data = None
         self.locations_graph_data = None
 
-
-
-
+        self.located_nodes = None
 
         self.know_locations()
         self.set_locations("local")
         self.set_nodes("local")
         self.set_edges("local")
+        self.set_blacklist("local")
+
+        self.validate_nodes_locations()
+        self.validate_phylosopher_origin()
+        self.validate_travels_locations()
 
     def know_locations(self):
         """Create parameters for the class graph 
@@ -117,8 +125,8 @@ class map_graph:
           
         """
         self.location_raw_data = da.get_data_entity(self.locations_file, method)
-        print("self.location_raw_data")
-        print(self.location_raw_data)
+        #print("self.location_raw_data")
+        #print(self.location_raw_data)
 
     def set_nodes(self, method):
         """Retrieve and store nodes data in the graph object 
@@ -126,17 +134,134 @@ class map_graph:
           
         """
         self.nodes_raw_data = da.get_data_entity(self.nodes_file, method)
-        print("self.nodes_raw_data")
-        print(self.nodes_raw_data)
+        #print("self.nodes_raw_data")
+        #print(self.nodes_raw_data)
         
     def set_edges(self, method):
         """Retrieve and store edges data in the graph object 
+
         :param method: Declare the source of data  ('local'/'url')
-          
+
         """
         self.edges_raw_data = da.get_data_entity(self.edges_file, method)
-        print("self.edges_raw_data")
-        print(self.edges_raw_data)
+        #print("self.edges_raw_data")
+        #print(self.edges_raw_data)
+
+    def set_blacklist(self, method):
+        """Retrieve and store blacklist of travelers (impossible travelers!) 
+
+        :param method: Declare the source of data  ('local'/'url')
+
+        """
+        self.blacklist_raw_data = da.get_data_entity(self.blacklist_file, method)
+        #print(self.blacklist_raw_data)
+
+    def validate_nodes_locations(self):
+        """Determine if places in nodes have the corresponding location and update located nodes           
+
+        """
+        node_place = self.nodes_raw_data['Groups'] == 'Place' 
+        self.located_nodes = self.nodes_raw_data.loc[node_place,]
+        located_nodes_bool = self.located_nodes.Name.isin(self.location_raw_data.name)
+        self.located_nodes = self.located_nodes.loc[located_nodes_bool,] 
+
+        #print(node_place)
+        #print(self.located_nodes)
+        #print(located_places)
+        #located_nodes = node_place.name.isin(located_places.name).astype(bool)
+        #print(located_nodes)
+
+    def validate_travels_locations(self):
+        """Filter edges where travelers have unidentified origin (no coordinates)
+        """
+        traveled_to_edges = self.edges_raw_data.Relation == 'traveled to' 
+        print("traveled_to_edges")
+        print(traveled_to_edges)
+
+        names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges,'Source']
+        destiny_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges,'Target']
+        print("names_in_traveled_to")
+        print(names_in_traveled_to)
+
+        print("destiny_in_traveled_to")
+        print(destiny_in_traveled_to)
+
+        names_in_traveled_to_blacklisted =  names_in_traveled_to.isin(self.blacklist_raw_data)
+        print("names_in_traveled_to_blacklisted")
+        print(names_in_traveled_to_blacklisted)
+        
+        names_in_traveled_to = names_in_traveled_to[-names_in_traveled_to_blacklisted]
+        destiny_in_traveled_to = destiny_in_traveled_to[-names_in_traveled_to_blacklisted]
+        print("names_in_traveled_to")
+        print(names_in_traveled_to)
+        print("destiny_in_traveled_to")
+        print(destiny_in_traveled_to)
+
+        print("self.phylosophers_known_origin")
+        print(self.phylosophers_known_origin)
+
+
+        print("len(self.phylosophers_known_origin)")
+        print(len(self.phylosophers_known_origin))
+
+        print("len(names_in_traveled_to)")
+        print(len(names_in_traveled_to))
+        
+
+        #located_names_in_traveled_to_ = any(True for x in self.phylosophers_known_origin if x in names_in_traveled_to)
+
+        #print("located_names_in_traveled_to_")
+        #print(located_names_in_traveled_to_)
+
+        pko = np.array(self.phylosophers_known_origin)
+
+        print("pko")
+        print(pko)
+
+        ntt = np.array(names_in_traveled_to)
+        print("ntt")
+        print(ntt)    
+
+        located_names_in_traveled_to = names_in_traveled_to.isin(pko)
+        
+        print("located_names_in_traveled_to")
+        print(located_names_in_traveled_to)
+
+        names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
+        destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
+
+        print("names_in_traveled_to")
+        print(names_in_traveled_to)
+        print("destiny_in_traveled_to")
+        print(destiny_in_traveled_to)
+
+
+        located_destiny_in_traveled_to = destiny_in_traveled_to.isin(self.located_nodes.Name)
+        print("located_destiny_in_traveled_to")
+        print(located_destiny_in_traveled_to)
+        
+        names_in_traveled_to = names_in_traveled_to[located_destiny_in_traveled_to]
+        destiny_in_traveled_to = destiny_in_traveled_to[located_destiny_in_traveled_to]
+        list_of_tuples = list(zip(names_in_traveled_to, destiny_in_traveled_to))  
+        #print(list_of_tuples)
+        self.edges_graph_data = pd.DataFrame(list_of_tuples,columns = ['Source','Target'])
+        print("self.edges_graph_data")
+        print(self.edges_graph_data)
+
+    def validate_phylosopher_origin(self):
+        """Filter "is from" edges where the target (place) is unidentified (no coordinates)
+        
+        """ 
+        is_from_edges = self.edges_raw_data.Relation == 'is from' 
+        names_in_is_from = self.edges_raw_data.loc[is_from_edges,'Source']
+        origin_in_is_from = self.edges_raw_data.loc[is_from_edges,'Target']
+        located_origin_in_is_from = origin_in_is_from.isin(self.located_nodes.Name)        
+        origin_in_is_from = origin_in_is_from[located_origin_in_is_from]
+        names_in_is_from = names_in_is_from[located_origin_in_is_from]
+        self.phylosophers_known_origin = names_in_is_from 
+
+        #print(type(origin_in_is_from))
+        #self.located_edges_raw_data[]
 
     def validate_nodes_edges(self):
         """Create parameters for the class graph 
@@ -149,16 +274,6 @@ class map_graph:
         """
         return()
 
-    def validate_nodes_locations(self):
-        """Create parameters for the class graph 
-
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
-          
-        """
-        return()    
 
     def update_graph(self):
         """Create parameters for the class graph 
@@ -226,7 +341,7 @@ class map_graph:
         """
         return()            
 
-grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE)
+grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE)
 
 #print(grafo.nodes_raw_data)
 #print(grafo.edges_raw_data)
