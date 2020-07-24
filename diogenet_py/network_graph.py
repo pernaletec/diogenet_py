@@ -10,7 +10,6 @@ import numpy as np
 from dataclasses import dataclass
 import data_access as da
 
-
 #  This module must create a graph given a set of nodes and edges
 #  The set of nodes and edges will be pandas data frames
 #  I need to see how to handle the locations
@@ -53,6 +52,7 @@ all_places = da.get_data_entity(ALL_PLACES_FILE, "local")
 list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
+
 # Print list of lists i.e. rows
 #print("list_of_rows_travel_edges")
 #print(list_of_rows_travel_edges)
@@ -89,11 +89,13 @@ class map_graph:
         self.blacklist_raw_data = None
         self.igraph_map = None
 
-        self.phylosophers_known_origin = None  
+        self.phylosophers_known_origin = None
+        self.multi_origin_phylosophers = None  
         
         self.nodes_graph_data = None
         self.edges_graph_data = None
         self.locations_graph_data = None
+        self.travels_graph_data = None
 
         self.located_nodes = None
 
@@ -106,6 +108,7 @@ class map_graph:
         self.validate_nodes_locations()
         self.validate_phylosopher_origin()
         self.validate_travels_locations()
+        self.create_edges_for_graph()
 
     def know_locations(self):
         """Create parameters for the class graph 
@@ -175,78 +178,77 @@ class map_graph:
         """Filter edges where travelers have unidentified origin (no coordinates)
         """
         traveled_to_edges = self.edges_raw_data.Relation == 'traveled to' 
-        print("traveled_to_edges")
-        print(traveled_to_edges)
+        #print("traveled_to_edges")
+        #print(traveled_to_edges)
+
+        #print("self.edges_raw_data[traveled_to_edges,")
+        #print(self.edges_raw_data[traveled_to_edges])
 
         names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges,'Source']
         destiny_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges,'Target']
-        print("names_in_traveled_to")
-        print(names_in_traveled_to)
+        #print("names_in_traveled_to")
+        #print(names_in_traveled_to)
 
-        print("destiny_in_traveled_to")
-        print(destiny_in_traveled_to)
+        #print("destiny_in_traveled_to")
+        #print(destiny_in_traveled_to)
 
         names_in_traveled_to_blacklisted =  names_in_traveled_to.isin(self.blacklist_raw_data)
-        print("names_in_traveled_to_blacklisted")
-        print(names_in_traveled_to_blacklisted)
+        #print("names_in_traveled_to_blacklisted")
+        #print(names_in_traveled_to_blacklisted)
         
         names_in_traveled_to = names_in_traveled_to[-names_in_traveled_to_blacklisted]
         destiny_in_traveled_to = destiny_in_traveled_to[-names_in_traveled_to_blacklisted]
-        print("names_in_traveled_to")
-        print(names_in_traveled_to)
-        print("destiny_in_traveled_to")
-        print(destiny_in_traveled_to)
+        #print("names_in_traveled_to")
+        #print(names_in_traveled_to)
+        #print("destiny_in_traveled_to")
+        #print(destiny_in_traveled_to)
 
-        print("self.phylosophers_known_origin")
-        print(self.phylosophers_known_origin)
+        #print("self.phylosophers_known_origin")
+        #print(self.phylosophers_known_origin)
 
+        #print("len(self.phylosophers_known_origin)")
+        #print(len(self.phylosophers_known_origin))
 
-        print("len(self.phylosophers_known_origin)")
-        print(len(self.phylosophers_known_origin))
-
-        print("len(names_in_traveled_to)")
-        print(len(names_in_traveled_to))
+        #print("len(names_in_traveled_to)")
+        #print(len(names_in_traveled_to))
         
-
         #located_names_in_traveled_to_ = any(True for x in self.phylosophers_known_origin if x in names_in_traveled_to)
 
         #print("located_names_in_traveled_to_")
         #print(located_names_in_traveled_to_)
 
-        pko = np.array(self.phylosophers_known_origin)
-
-        print("pko")
-        print(pko)
+        pko = np.array(self.phylosophers_known_origin.name)
+        #print("pko")
+        #print(pko)
 
         ntt = np.array(names_in_traveled_to)
-        print("ntt")
-        print(ntt)    
+        #print("ntt")
+        #print(ntt)    
 
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         
-        print("located_names_in_traveled_to")
-        print(located_names_in_traveled_to)
+        #print("located_names_in_traveled_to")
+        #print(located_names_in_traveled_to)
 
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
 
-        print("names_in_traveled_to")
-        print(names_in_traveled_to)
-        print("destiny_in_traveled_to")
-        print(destiny_in_traveled_to)
-
-
+        #print("names_in_traveled_to")
+        #print(names_in_traveled_to)
+        #print("destiny_in_traveled_to")
+        #print(destiny_in_traveled_to)
+ 
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(self.located_nodes.Name)
-        print("located_destiny_in_traveled_to")
-        print(located_destiny_in_traveled_to)
+        #print("located_destiny_in_traveled_to")
+        #print(located_destiny_in_traveled_to)
         
         names_in_traveled_to = names_in_traveled_to[located_destiny_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_destiny_in_traveled_to]
         list_of_tuples = list(zip(names_in_traveled_to, destiny_in_traveled_to))  
         #print(list_of_tuples)
-        self.edges_graph_data = pd.DataFrame(list_of_tuples,columns = ['Source','Target'])
-        print("self.edges_graph_data")
-        print(self.edges_graph_data)
+        self.travels_graph_data = pd.DataFrame(list_of_tuples,columns = ['Source','Target'])
+        #print("self.edges_graph_data")
+        #print(self.edges_graph_data)
 
     def validate_phylosopher_origin(self):
         """Filter "is from" edges where the target (place) is unidentified (no coordinates)
@@ -258,11 +260,133 @@ class map_graph:
         located_origin_in_is_from = origin_in_is_from.isin(self.located_nodes.Name)        
         origin_in_is_from = origin_in_is_from[located_origin_in_is_from]
         names_in_is_from = names_in_is_from[located_origin_in_is_from]
-        self.phylosophers_known_origin = names_in_is_from 
+
+        list_of_tuples = list(zip(names_in_is_from, origin_in_is_from))  
+        #print(list_of_tuples)
+        self.phylosophers_known_origin = pd.DataFrame(list_of_tuples,columns = ['name','origin'])
+
+        #print("self.phylosophers_known_origin")
+        #print(self.phylosophers_known_origin)
 
         #print(type(origin_in_is_from))
         #self.located_edges_raw_data[]
 
+    def create_edges_for_graph(self):
+        """Create Data Frame with all edge's data for graph construction  
+
+        :param XXX: XXX
+        :param YYY: YYY
+          
+        """
+        traveler_origin = []
+        lat_source = []
+        lon_source = []
+        lat_target = []
+        lat_target = []
+        multi_origin = [] # Phylosopher with more than one origin city
+ 
+        #print("self.location_raw_data.name")
+        #print(self.location_raw_data.name)
+
+        for idx, cell in enumerate(self.travels_graph_data.Source):
+            #print(pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
+            #current_origin = 
+            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])            
+
+            #print(pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
+            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
+            #print(type(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
+            
+            current_origin = pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
+
+            current_destiny = self.travels_graph_data.Target[idx]
+            
+            if len(current_origin) > 1:
+                current_origin = current_origin[0]
+                multi_origin.append(cell)
+            traveler_origin.append(current_origin) 
+            
+            #print("type(current_origin)")
+            #print(type(current_origin))
+            #print("current_origin")
+            #print(current_origin)            
+            #print('"".join(current_origin)')
+            #print("".join(current_origin)) 
+            #print("type(current_destiny)")
+            #print(type(current_destiny))
+            #print("current_destiny")
+            #print(current_destiny)   
+
+            current_origin = "".join(current_origin) 
+
+            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
+            #print(self.location_raw_data.lat[self.location_raw_data.name==traveler_origin[idx]])
+
+            #print("self.location_raw_data.name")
+            #print(self.location_raw_data.name)
+            #print("current_origin")
+            #print(current_origin)
+
+            self.multi_origin_phylosophers = multi_origin
+            
+            #print(type(pd.Series.to_list(self.location_raw_data.name)))
+            
+            #print(pd.Series.to_list(self.location_raw_data.name)==current_origin)
+            
+            #pd.Series.to_list()
+
+            #self.location_raw_data.lat[]
+
+            #print("self.location_raw_data.name == current_origin")
+            #print(type(self.location_raw_data.name))
+            #print(current_origin)
+
+            #resp = self.location_raw_data.name.isin(list(current_origin))
+            #print("resp")
+            #print(resp)
+
+            #print(list(current_destiny))
+            #print(current_origin)
+            #print(current_destiny)
+            #print(list(current_destiny))
+            #print("self.location_raw_data.name[self.location_raw_data.name.isin(list(current_origin))]")
+            
+            #print(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_origin])]))
+            #print(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_origin])]))
+            #print(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_destiny])]))
+            #print(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_destiny])]))
+
+            #self.travels_graph_data.Source
+            #self.location_raw_data.name==current_origin
+
+            lat_source.append(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_origin])]))
+            lon_source.append(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_origin])]))
+            lat_target.append(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_destiny])]))
+            lat_target.append(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_destiny])]))
+        
+        #print("traveler_origin")
+        #print(traveler_origin)
+
+        #print("multi_origin")
+        #print(multi_origin)
+
+        #print("traveler_origin")
+        #print(traveler_origin)
+       
+        #print("lat_source")
+        #print(lat_source)
+
+        source = traveler_origin
+        target = self.travels_graph_data.Target
+        name = self.travels_graph_data.Source
+
+        list_of_tuples = list(zip(source, target, name, lat_source, lon_source, lat_target, lon_source))  
+        #print(list_of_tuples)
+        self.travels_graph_data = pd.DataFrame(list_of_tuples,columns = ['source','target','name','lat_source','lon_source','lat_target','lon_target'])
+
+        print("self.travels_graph_data")
+        print(self.travels_graph_data)
+    
     def validate_nodes_edges(self):
         """Create parameters for the class graph 
 
@@ -342,6 +466,8 @@ class map_graph:
         return()            
 
 grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE)
+
+#print(grafo.travels_graph_data)
 
 #print(grafo.nodes_raw_data)
 #print(grafo.edges_raw_data)
