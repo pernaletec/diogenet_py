@@ -23,4 +23,4 @@ Accesing Nodes and Edges Data
 -----------------------------
 
 .. automodule:: diogenet_py.data_access
-   :members:
+   :members:cd..

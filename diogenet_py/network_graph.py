@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 import data_access as da
+# import cairocffi
 
 #  This module must create a graph given a set of nodes and edges
 #  The set of nodes and edges will be pandas data frames
@@ -40,22 +41,22 @@ BASE_URL = "https://diogenet.ucsd.edu/data"
 
 ## This is referential these structures must be created departing from the root files
 #  Create a dataframe from csv
-#travel_edges =  pd.read_csv("travel_edges_graph.csv", delimiter=',')
+travel_edges =  pd.read_csv("travel_edges_graph.csv", delimiter=',')
 travel_edges = da.get_data_entity(TRAVEL_EDGES_FILE, "local")
 #all_places = pd.read_csv("all_places_graph.csv", delimiter=',')
-all_places = da.get_data_entity(ALL_PLACES_FILE, "local")
+#all_places = da.get_data_entity(ALL_PLACES_FILE, "local")
 
 #print("travel_edges")
 #print(travel_edges)
 
 # User list comprehension to create a list of lists from Dataframe rows
 list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
-list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
+#list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
 
 # Print list of lists i.e. rows
-#print("list_of_rows_travel_edges")
-#print(list_of_rows_travel_edges)
+print("list_of_rows_travel_edges")
+print(list_of_rows_travel_edges)
 #print("list_of_rows_all_places")
 #print(list_of_rows_all_places)
 
@@ -72,8 +73,25 @@ class map_graph:
         :param nodes_file: File with the full list of nodes name/group (.csv)
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
+        :param blacklist_file: File with list of blacklisted places (.csv)
+        
+        :param nodes_raw_data: Raw data for nodes
+        :param edges_raw_data: Raw data for edges
+        :param location_raw_data: Raw data for locations
+        :param blacklist_raw_data: Raw data for blacklisted places 
+
         :param igraph_map: Python igraph graph object
-          
+
+        :param phylosophers_known_origin: Data for phylosophers and their origin
+        :param multi_origin_phylosophers: List of phylosophers with more than one origin "is from"  
+        
+        :param nodes_graph_data: Nodes data processed for graph 
+        :param edges_graph_data: Edges data processed for graph
+        :param locations_graph_data: Locations data processed for graph
+        :param travels_graph_data: Full data for graph including edges names, phylosopher name and coordinates 
+
+        :param located_nodes: Nodes with an identified location in locations data
+
         """
         #:return: 
         #:rtype: :py:class:`pd.DataFrame`
@@ -110,6 +128,8 @@ class map_graph:
         self.validate_travels_locations()
         self.create_edges_for_graph()
 
+        self.update_graph()
+
     def know_locations(self):
         """Create parameters for the class graph 
 
@@ -119,6 +139,7 @@ class map_graph:
         :param igraph_map: Python igraph graph object
           
         """
+        print("def know_locations(self): Not implemented")
         return pd.DataFrame()
 
     # Now all the functions that implement data treatment should be implemented
@@ -142,7 +163,6 @@ class map_graph:
         
     def set_edges(self, method):
         """Retrieve and store edges data in the graph object 
-
         :param method: Declare the source of data  ('local'/'url')
 
         """
@@ -152,11 +172,11 @@ class map_graph:
 
     def set_blacklist(self, method):
         """Retrieve and store blacklist of travelers (impossible travelers!) 
-
         :param method: Declare the source of data  ('local'/'url')
 
         """
         self.blacklist_raw_data = da.get_data_entity(self.blacklist_file, method)
+        #print("self.blacklist_raw_data")
         #print(self.blacklist_raw_data)
 
     def validate_nodes_locations(self):
@@ -175,7 +195,8 @@ class map_graph:
         #print(located_nodes)
 
     def validate_travels_locations(self):
-        """Filter edges where travelers have unidentified origin (no coordinates)
+        """Filter edges (travels) where travelers have unidentified origin (no coordinates)
+        
         """
         traveled_to_edges = self.edges_raw_data.Relation == 'traveled to' 
         #print("traveled_to_edges")
@@ -263,6 +284,7 @@ class map_graph:
 
         list_of_tuples = list(zip(names_in_is_from, origin_in_is_from))  
         #print(list_of_tuples)
+
         self.phylosophers_known_origin = pd.DataFrame(list_of_tuples,columns = ['name','origin'])
 
         #print("self.phylosophers_known_origin")
@@ -273,29 +295,19 @@ class map_graph:
 
     def create_edges_for_graph(self):
         """Create Data Frame with all edge's data for graph construction  
-
-        :param XXX: XXX
-        :param YYY: YYY
           
         """
         traveler_origin = []
         lat_source = []
         lon_source = []
         lat_target = []
-        lat_target = []
+        lon_target = []
         multi_origin = [] # Phylosopher with more than one origin city
  
         #print("self.location_raw_data.name")
         #print(self.location_raw_data.name)
 
         for idx, cell in enumerate(self.travels_graph_data.Source):
-            #print(pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
-            #current_origin = 
-            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])            
-
-            #print(pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
-            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
-            #print(type(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell]))
             
             current_origin = pd.Series.to_list(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
 
@@ -306,109 +318,55 @@ class map_graph:
                 multi_origin.append(cell)
             traveler_origin.append(current_origin) 
             
-            #print("type(current_origin)")
-            #print(type(current_origin))
-            #print("current_origin")
-            #print(current_origin)            
-            #print('"".join(current_origin)')
-            #print("".join(current_origin)) 
-            #print("type(current_destiny)")
-            #print(type(current_destiny))
-            #print("current_destiny")
-            #print(current_destiny)   
-
             current_origin = "".join(current_origin) 
-
-            #print(self.phylosophers_known_origin.origin[self.phylosophers_known_origin.name == cell])
-            #print(self.location_raw_data.lat[self.location_raw_data.name==traveler_origin[idx]])
-
-            #print("self.location_raw_data.name")
-            #print(self.location_raw_data.name)
-            #print("current_origin")
-            #print(current_origin)
 
             self.multi_origin_phylosophers = multi_origin
             
-            #print(type(pd.Series.to_list(self.location_raw_data.name)))
-            
-            #print(pd.Series.to_list(self.location_raw_data.name)==current_origin)
-            
-            #pd.Series.to_list()
-
-            #self.location_raw_data.lat[]
-
-            #print("self.location_raw_data.name == current_origin")
-            #print(type(self.location_raw_data.name))
-            #print(current_origin)
-
-            #resp = self.location_raw_data.name.isin(list(current_origin))
-            #print("resp")
-            #print(resp)
-
-            #print(list(current_destiny))
-            #print(current_origin)
-            #print(current_destiny)
-            #print(list(current_destiny))
-            #print("self.location_raw_data.name[self.location_raw_data.name.isin(list(current_origin))]")
-            
-            #print(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_origin])]))
-            #print(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_origin])]))
-            #print(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_destiny])]))
-            #print(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_destiny])]))
-
-            #self.travels_graph_data.Source
-            #self.location_raw_data.name==current_origin
-
             lat_source.append(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_origin])]))
             lon_source.append(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_origin])]))
             lat_target.append(pd.Series.to_list(self.location_raw_data.lat[self.location_raw_data.name.isin([current_destiny])]))
-            lat_target.append(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_destiny])]))
-        
-        #print("traveler_origin")
-        #print(traveler_origin)
-
-        #print("multi_origin")
-        #print(multi_origin)
-
-        #print("traveler_origin")
-        #print(traveler_origin)
-       
-        #print("lat_source")
-        #print(lat_source)
+            lon_target.append(pd.Series.to_list(self.location_raw_data.lon[self.location_raw_data.name.isin([current_destiny])]))
 
         source = traveler_origin
-        target = self.travels_graph_data.Target
-        name = self.travels_graph_data.Source
+        target = pd.Series.to_list(self.travels_graph_data.Target)
+        name = pd.Series.to_list(self.travels_graph_data.Source)
+
+        print(type(source))
+        print(type(target))
+        print(type(name))
+        print(type(lat_source))
+        print(type(lon_source))
+        print(type(lat_target))
+        print(type(lon_target))
+        
 
         list_of_tuples = list(zip(source, target, name, lat_source, lon_source, lat_target, lon_source))  
-        #print(list_of_tuples)
-        self.travels_graph_data = pd.DataFrame(list_of_tuples,columns = ['source','target','name','lat_source','lon_source','lat_target','lon_target'])
 
-        print("self.travels_graph_data")
-        print(self.travels_graph_data)
+        list_of_tuples_ = [list(row[1:]) for row in list_of_tuples]
+
+        print("list_of_tuples_")
+        print(list_of_tuples_)
+        self.travels_graph_data = list_of_tuples_
+        #self.travels_graph_data = pd.DataFrame(list_of_tuples,columns = ['source','target','name','lat_source','lon_source','lat_target','lon_target'])
+
+        #print("self.travels_graph_data")
+        #print(self.travels_graph_data)
     
-    def validate_nodes_edges(self):
-        """Create parameters for the class graph 
-
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
-          
-        """
-        return()
-
-
     def update_graph(self):
-        """Create parameters for the class graph 
-
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        """Create graph once defined source data  
           
         """
-        self.igraph_map = igraph.Graph.TupleList(list_of_rows_travel_edges, directed=True, edge_attrs = ['edge_name'])
+        self.igraph_map = igraph.Graph.TupleList(self.travels_graph_data, directed=True, edge_attrs = ['edge_name'])
+        #self.igraph_map = igraph.Graph.TupleList(list_of_rows_travel_edges, directed=True, edge_attrs = ['edge_name'])
+        print(self.igraph_map)
+
+        #for a in self.igraph_map.vs:
+        #    print(a)
+        layout = self.igraph_map.layout("kk")
+        #self.igraph_map.plot(self.igraph_map, layout = layout)
+        
+        #self.igraph_map.plot(layout = layout)
+        # Not being able to plot. Something with cairo
 
     def calculate_degree(self):
         """Create parameters for the class graph 
