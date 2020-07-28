@@ -54,8 +54,8 @@ list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 #list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
 # Print list of lists i.e. rows
-print("list_of_rows_travel_edges")
-print(list_of_rows_travel_edges)
+#print("list_of_rows_travel_edges")
+#print(list_of_rows_travel_edges)
 #print("list_of_rows_all_places")
 #print(list_of_rows_all_places)
 
