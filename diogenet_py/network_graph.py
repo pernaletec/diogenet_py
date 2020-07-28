@@ -53,7 +53,6 @@ travel_edges = da.get_data_entity(TRAVEL_EDGES_FILE, "local")
 list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 #list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
-
 # Print list of lists i.e. rows
 print("list_of_rows_travel_edges")
 print(list_of_rows_travel_edges)
@@ -117,7 +116,8 @@ class map_graph:
 
         self.located_nodes = None
 
-        self.know_locations()
+        #self.know_locations()
+        
         self.set_locations("local")
         self.set_nodes("local")
         self.set_edges("local")
@@ -129,6 +129,11 @@ class map_graph:
         self.create_edges_for_graph()
 
         self.update_graph()
+
+        self.calculate_degree()
+        self.calculate_betweenness()
+        self.calculate_closeness()
+        self.calculate_eigenvector()
 
     def know_locations(self):
         """Create parameters for the class graph 
@@ -331,21 +336,21 @@ class map_graph:
         target = pd.Series.to_list(self.travels_graph_data.Target)
         name = pd.Series.to_list(self.travels_graph_data.Source)
 
-        print(type(source))
-        print(type(target))
-        print(type(name))
-        print(type(lat_source))
-        print(type(lon_source))
-        print(type(lat_target))
-        print(type(lon_target))
+        #print(type(source))
+        #print(type(target))
+        #print(type(name))
+        #print(type(lat_source))
+        #print(type(lon_source))
+        #print(type(lat_target))
+        #print(type(lon_target))
         
 
         list_of_tuples = list(zip(source, target, name, lat_source, lon_source, lat_target, lon_source))  
 
         list_of_tuples_ = [list(row[1:]) for row in list_of_tuples]
 
-        print("list_of_tuples_")
-        print(list_of_tuples_)
+        #print("list_of_tuples_")
+        #print(list_of_tuples_)
         self.travels_graph_data = list_of_tuples_
         #self.travels_graph_data = pd.DataFrame(list_of_tuples,columns = ['source','target','name','lat_source','lon_source','lat_target','lon_target'])
 
@@ -356,9 +361,9 @@ class map_graph:
         """Create graph once defined source data  
           
         """
-        self.igraph_map = igraph.Graph.TupleList(self.travels_graph_data, directed=True, edge_attrs = ['edge_name'])
+        self.igraph_map = igraph.Graph.TupleList(self.travels_graph_data, directed=False, edge_attrs = ['edge_name'])
         #self.igraph_map = igraph.Graph.TupleList(list_of_rows_travel_edges, directed=True, edge_attrs = ['edge_name'])
-        print(self.igraph_map)
+        #print(self.igraph_map)
 
         #for a in self.igraph_map.vs:
         #    print(a)
@@ -369,48 +374,48 @@ class map_graph:
         # Not being able to plot. Something with cairo
 
     def calculate_degree(self):
-        """Create parameters for the class graph 
+        """Calculate degree for the graph 
 
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        :param self: The graph object
           
         """        
-        return()    
+
+        degree = self.igraph_map.degree()
+        #print("degree")
+        #print(degree)
+        # degree   betweenness(weights='weight')    
 
     def calculate_closeness(self):
-        """Create parameters for the class graph 
+        """Create closeness for the graph 
 
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        :param self: The graph object
           
-        """
-        return()            
+        """        
+
+        closeness = self.igraph_map.closeness()
+        #print("closeness")
+        #print(closeness)
 
     def calculate_betweenness(self):
-        """Create parameters for the class graph 
+        """Calculate betweenness for the graph 
 
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        :param self: The graph object
           
-        """
-        return()    
+        """        
 
-    def calculate_eigenvectos(self):
-        """Create parameters for the class graph 
+        betweenness = self.igraph_map.betweenness()
+        #print("betweenness")
+        #print(betweenness)
 
-        :param nodes_file: File with the full list of nodes name/group (.csv)
-        :param edges_file: File with full list of edges (.csv)
-        :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+    def calculate_eigenvector(self):
+        """Create degree for the graph 
+
+        :param self: The graph object
           
-        """
-        return()            
+        """        
+        eigenvector = self.igraph_map.evcent()
+        #print("eigenvector")
+        #print(eigenvector)
 
     def set_colour_scale(self):
         """Create parameters for the class graph 
@@ -424,6 +429,7 @@ class map_graph:
         return()            
 
 grafo = map_graph(NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE)
+
 
 #print(grafo.travels_graph_data)
 
