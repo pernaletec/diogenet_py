@@ -18,9 +18,8 @@ installing). This package has two special directories in it: `static/` and
 `templates/` contains the Jinja templates.
 
 There is an special file in `diogenet_py/static/`: When the client is compiled
-(see [`COMPILING.md`](COMPILING.md)) two files named `bundle.js` and
-`bundle.js.map` are put into `diogenet_py/static/`. Those files are the compiled
-source for the client and the sourcemap of it.
+(see [`COMPILING.md`](COMPILING.md)) a directory `client/` inside
+`diogenet_py/static/` will contain all the compiled resources.
 
 ## The Documentation ##
 
@@ -39,9 +38,15 @@ under `tests/` which filename starts with `test_` is a test.
 
 ## The Client ##
 
-The `client/` directory contains the source for the javascript client, it has
-a very simple structure consisting only of a `src/` subdirectory with the
-TypeScript source of the client, and a few configuration files for the different
-linters and compilers. In particular, ESLint with the TypeScript plugin is used
-as a linter and Babel+Webpack are used to compile and bundle the source code to
-a single file.
+The `client/` directory contains the source for the Javascript client. It has
+a very simple structure:
+
+- `src/` contains the typescript/javascript sources. Generally one main file
+  per page (so `map.ts` for the map page and `horus.ts` for the horus).
+- `styles/` contains any SASS/SCSS to be compiled.
+
+Typescript is compiled to Javascript which is later passed to Babel. The
+SASS/SCSS files are compiled too via a dummy `styles.ts` file that imports
+them. All of the compiled files are then bundled with Webpack and the
+compiled output (plus any additional sourcemap) is put into
+`diogenet_py/static/client/` where the server can load it.
