@@ -1,7 +1,6 @@
 """Main flask application entry point."""
 from flask import Flask, render_template
 
-
 app = Flask(__name__)
 
 
@@ -13,6 +12,12 @@ def index():
 @app.route("/map")
 def map():
     return render_template("map.html")
+
+
+@app.route("map/get_graph")
+def get_graph():
+
+    return
 
 
 @app.route("/horus")
