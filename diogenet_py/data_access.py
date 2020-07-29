@@ -25,7 +25,7 @@ def get_data_entity(entity_name, method):
         df = pd.read_csv("./" + entity_name, delimiter=",", header=0)
     if method == "url":
         url = BASE_URL + "/" + entity_name
-        request = requests.get(url).content
+        request = requests.get(url).contents
         df = pd.read_csv(io.StringIO(request.decode("utf-8")), delimiter=",", header=0)
     if method == "database":
         # Define methods for access node from database
