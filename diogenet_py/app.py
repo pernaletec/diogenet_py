@@ -4,8 +4,6 @@ from . import network_graph as ng
 
 app = Flask(__name__)
 
-print(repr(map))
-
 
 @app.route("/")
 def index():
@@ -25,7 +23,7 @@ def get_travels_graph_data():
         "new_Nodes.csv", "new_Edges.csv", "locations_data.csv", "travels_blacklist.csv"
     )
     headers = {"Content-Type": "application/json"}
-    return make_response(jsonify(print(repr(map.get_travels_graph_data))), 200, headers)
+    return make_response(jsonify(map), 200, headers)
 
 
 # @app.route("/map/get_travelers_data", methods=["GET"])

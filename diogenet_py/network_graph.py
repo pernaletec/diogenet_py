@@ -53,11 +53,27 @@ list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 
 
 @dataclass
-class map_graph:
-    #  nodes: pd.DataFrame
-    #  edges: pd.DataFrame
-    #  locations: pd.DataFrame
-    #  The graph must receive the root files as input.
+class MapGraph:
+    nodes_file = None
+    edges_file = None
+    locations_file = None
+    blacklist_file = None
+
+    nodes_raw_data = None
+    edges_raw_data = None
+    location_raw_data = None
+    blacklist_raw_data = None
+    igraph_map = None
+
+    phylosophers_known_origin = None
+    multi_origin_phylosophers = None
+
+    nodes_graph_data = None
+    edges_graph_data = None
+    locations_graph_data = None
+    travels_graph_data = None
+
+    located_nodes = None
 
     def __init__(self, nodes_file, edges_file, locations_file, blacklist_file):
         """Create parameters for the class graph
@@ -92,22 +108,6 @@ class map_graph:
         self.edges_file = edges_file
         self.locations_file = locations_file
         self.blacklist_file = blacklist_file
-
-        self.nodes_raw_data = None
-        self.edges_raw_data = None
-        self.location_raw_data = None
-        self.blacklist_raw_data = None
-        self.igraph_map = None
-
-        self.phylosophers_known_origin = None
-        self.multi_origin_phylosophers = None
-
-        self.nodes_graph_data = None
-        self.edges_graph_data = None
-        self.locations_graph_data = None
-        self.travels_graph_data = None
-
-        self.located_nodes = None
 
         # self.know_locations()
 
@@ -293,6 +293,7 @@ class map_graph:
         )
         list_of_tuples_ = [list(row[1:]) for row in list_of_tuples]
         self.travels_graph_data = list_of_tuples_
+        return self.travels_graph_data
 
     def update_graph(self):
         """Create graph once defined source data  
@@ -301,7 +302,7 @@ class map_graph:
         self.igraph_map = igraph.Graph.TupleList(
             self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
         )
-        layout = self.igraph_map.layout("kk")
+        self.igraph_map.layout("kk")
 
     def calculate_degree(self):
         """Calculate degree for the graph 
@@ -310,7 +311,7 @@ class map_graph:
 
         """
 
-        degree = self.igraph_map.degree()
+        return self.igraph_map.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph 
@@ -319,7 +320,7 @@ class map_graph:
 
         """
 
-        closeness = self.igraph_map.closeness()
+        return self.igraph_map.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph 
@@ -328,15 +329,15 @@ class map_graph:
 
         """
 
-        betweenness = self.igraph_map.betweenness()
+        return self.igraph_map.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph 
 
         :param self: The graph object
-          
+
         """
-        eigenvector = self.igraph_map.evcent()
+        return self.igraph_map.evcent()
 
     def set_colour_scale(self):
         """Create parameters for the class graph 
@@ -350,6 +351,6 @@ class map_graph:
         return ()
 
 
-grafo = map_graph(
+grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
