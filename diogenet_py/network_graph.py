@@ -217,7 +217,7 @@ class map_graph:
 
     def validate_phylosopher_origin(self):
         """Filter "is from" edges where the target (place) is unidentified (no coordinates)
-
+ 
         """
         is_from_edges = self.edges_raw_data.Relation == "is from"
         names_in_is_from = self.edges_raw_data.loc[is_from_edges, "Source"]
@@ -289,7 +289,7 @@ class map_graph:
         name = pd.Series.to_list(self.travels_graph_data.Source)
 
         list_of_tuples = list(
-            zip(source, target, name, lat_source, lon_source, lat_target, lon_source)
+            zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
         )
         list_of_tuples_ = [list(row[1:]) for row in list_of_tuples]
         self.travels_graph_data = list_of_tuples_
