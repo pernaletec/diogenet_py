@@ -12,7 +12,7 @@ import igraph
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-import data_access as da
+from . import data_access as da
 
 # import cairocffi
 
