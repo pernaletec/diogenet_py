@@ -354,4 +354,4 @@ class MapGraph:
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
-print(repr(grafo.travels_graph_data.Source))
+print(repr(grafo.travels_graph_data))
