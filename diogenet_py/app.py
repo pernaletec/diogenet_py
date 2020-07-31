@@ -1,6 +1,7 @@
 """Main flask application entry point."""
 from flask import Flask, render_template, make_response, request, jsonify
 from . import network_graph as ng
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -19,11 +20,12 @@ def map():
 def get_travels_graph_data():
     if request.method != "GET":
         return make_response("Malformed request", 400)
-    map = ng.map_graph(
-        "new_Nodes.csv", "new_Edges.csv", "locations_data.csv", "travels_blacklist.csv"
-    )
+    map = ng.grafo.travels_graph_data.to_json() if ng.grafo.travels_graph_data else None
     headers = {"Content-Type": "application/json"}
-    return make_response(jsonify(map), 200, headers)
+    if map:
+        return make_response(jsonify(map), 200, headers)
+    else:
+        return make_response("Error accessing MapGraph Object", 400)
 
 
 # @app.route("/map/get_travelers_data", methods=["GET"])

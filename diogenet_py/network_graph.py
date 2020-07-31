@@ -68,10 +68,10 @@ class MapGraph:
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
 
-    nodes_graph_data = None
-    edges_graph_data = None
-    locations_graph_data = None
-    travels_graph_data = None
+    nodes_graph_data = pd.DataFrame()
+    edges_graph_data = pd.DataFrame()
+    locations_graph_data = pd.DataFrame()
+    travels_graph_data = pd.DataFrame()
 
     located_nodes = None
 
@@ -121,12 +121,12 @@ class MapGraph:
         self.validate_travels_locations()
         self.create_edges_for_graph()
 
-        self.update_graph()
+        # self.update_graph()
 
-        self.calculate_degree()
-        self.calculate_betweenness()
-        self.calculate_closeness()
-        self.calculate_eigenvector()
+        # self.calculate_degree()
+        # self.calculate_betweenness()
+        # self.calculate_closeness()
+        # self.calculate_eigenvector()
 
     def know_locations(self):
         """Create parameters for the class graph
@@ -185,7 +185,7 @@ class MapGraph:
 
     def validate_travels_locations(self):
         """Filter edges (travels) where travelers have unidentified origin (no coordinates)
-        
+
         """
         traveled_to_edges = self.edges_raw_data.Relation == "traveled to"
         names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Source"]
@@ -217,7 +217,7 @@ class MapGraph:
 
     def validate_phylosopher_origin(self):
         """Filter "is from" edges where the target (place) is unidentified (no coordinates)
- 
+
         """
         is_from_edges = self.edges_raw_data.Relation == "is from"
         names_in_is_from = self.edges_raw_data.loc[is_from_edges, "Source"]
@@ -232,7 +232,7 @@ class MapGraph:
         )
 
     def create_edges_for_graph(self):
-        """Create Data Frame with all edge's data for graph construction  
+        """Create Data Frame with all edge's data for graph construction
 
         """
         traveler_origin = []
@@ -296,7 +296,7 @@ class MapGraph:
         return self.travels_graph_data
 
     def update_graph(self):
-        """Create graph once defined source data  
+        """Create graph once defined source data
 
         """
         self.igraph_map = igraph.Graph.TupleList(
@@ -305,7 +305,7 @@ class MapGraph:
         self.igraph_map.layout("kk")
 
     def calculate_degree(self):
-        """Calculate degree for the graph 
+        """Calculate degree for the graph
 
         :param self: The graph object
 
@@ -314,7 +314,7 @@ class MapGraph:
         return self.igraph_map.degree()
 
     def calculate_closeness(self):
-        """Create closeness for the graph 
+        """Create closeness for the graph
 
         :param self: The graph object
 
@@ -323,7 +323,7 @@ class MapGraph:
         return self.igraph_map.closeness()
 
     def calculate_betweenness(self):
-        """Calculate betweenness for the graph 
+        """Calculate betweenness for the graph
 
         :param self: The graph object
 
@@ -332,7 +332,7 @@ class MapGraph:
         return self.igraph_map.betweenness()
 
     def calculate_eigenvector(self):
-        """Create degree for the graph 
+        """Create degree for the graph
 
         :param self: The graph object
 
@@ -340,7 +340,7 @@ class MapGraph:
         return self.igraph_map.evcent()
 
     def set_colour_scale(self):
-        """Create parameters for the class graph 
+        """Create parameters for the class graph
 
         :param nodes_file: File with the full list of nodes name/group (.csv)
         :param edges_file: File with full list of edges (.csv)
@@ -354,3 +354,4 @@ class MapGraph:
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
+print(repr(grafo.travels_graph_data.Source))
