@@ -20,7 +20,28 @@ def map():
 def get_travels_graph_data():
     if request.method != "GET":
         return make_response("Malformed request", 400)
-    map = ng.grafo.travels_graph_data.to_json() if ng.grafo.travels_graph_data else None
+    map = []
+    map_dict_strings = [
+        "Source",
+        "Destination",
+        "Philosopher",
+        "SourceLatitude",
+        "SourceLongitude",
+        "DestLatitude",
+        "DestLongitude",
+    ]
+    if ng.grafo.travels_graph_data:
+        for record in ng.grafo.travels_graph_data:
+            index = 0
+            map_record = {}
+            for item in record:
+                tmp_value = item
+                if isinstance(item, list):
+                    if len(item) == 1:
+                        tmp_value = item[0]
+                map_record[map_dict_strings[index]] = tmp_value
+                index = index + 1
+            map.append(map_record)
     headers = {"Content-Type": "application/json"}
     if map:
         return make_response(jsonify(map), 200, headers)
