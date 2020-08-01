@@ -291,7 +291,7 @@ class MapGraph:
         list_of_tuples = list(
             zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
         )
-        list_of_tuples_ = [list(row[1:]) for row in list_of_tuples]
+        list_of_tuples_ = [list(row[0:]) for row in list_of_tuples]
         self.travels_graph_data = list_of_tuples_
         return self.travels_graph_data
 
