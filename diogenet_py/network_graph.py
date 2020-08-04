@@ -121,12 +121,7 @@ class MapGraph:
         self.validate_travels_locations()
         self.create_edges_for_graph()
 
-        # self.update_graph()
-
-        # self.calculate_degree()
-        # self.calculate_betweenness()
-        # self.calculate_closeness()
-        # self.calculate_eigenvector()
+        self.update_graph()
 
     def know_locations(self):
         """Create parameters for the class graph
@@ -249,8 +244,9 @@ class MapGraph:
                 ]
             )
             current_destiny = self.travels_graph_data.Target[idx]
+            current_origin = current_origin[0]
             if len(current_origin) > 1:
-                current_origin = current_origin[0]
+                # If the traveler shows multiple origins by default the 
                 multi_origin.append(cell)
             traveler_origin.append(current_origin)
             current_origin = "".join(current_origin)
@@ -291,7 +287,7 @@ class MapGraph:
         list_of_tuples = list(
             zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
         )
-        list_of_tuples_ = [list(row[0:]) for row in list_of_tuples]
+        list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
         self.travels_graph_data = list_of_tuples_
         return self.travels_graph_data
 
@@ -302,7 +298,6 @@ class MapGraph:
         self.igraph_map = igraph.Graph.TupleList(
             self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
         )
-        self.igraph_map.layout("kk")
 
     def calculate_degree(self):
         """Calculate degree for the graph
@@ -310,7 +305,6 @@ class MapGraph:
         :param self: The graph object
 
         """
-
         return self.igraph_map.degree()
 
     def calculate_closeness(self):
@@ -339,6 +333,18 @@ class MapGraph:
         """
         return self.igraph_map.evcent()
 
+    def get_vertex_names(self):
+        """Return names for each vertex of the graph
+
+        :param self: The graph object
+
+        """
+
+        vertex_names = []
+        for vertex in self.igraph_map.vs:
+            vertex_names.append(vertex['name'])
+        return(vertex_names)
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 
@@ -350,7 +356,8 @@ class MapGraph:
         """
         return ()
 
-
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
+
+print(grafo.get_vertex_names())
