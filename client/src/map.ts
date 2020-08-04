@@ -56,6 +56,10 @@ $(() => {
         poliLine.addTo(baseMap);
     }
 
+    function plotNodes(traveler: string, travelData: TravelsMapData[]) {
+        
+    }
+
     L.tileLayer(MAIN_TILE_LAYER, {
         maxZoom: 19,
         attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
