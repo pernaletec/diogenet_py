@@ -333,6 +333,18 @@ class MapGraph:
         """
         return self.igraph_map.evcent()
 
+    def get_vertex_names(self):
+        """Return names for each vertex of the graph
+
+        :param self: The graph object
+
+        """
+
+        vertex_names = []
+        for vertex in self.igraph_map.vs:
+            vertex_names.append(vertex['name'])
+        return(vertex_names)
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 
@@ -347,3 +359,5 @@ class MapGraph:
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
+
+print(grafo.get_vertex_names())
