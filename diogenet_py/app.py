@@ -31,6 +31,7 @@ def get_travels_graph_data():
         "DestLongitude",
     ]
     if ng.grafo.travels_graph_data:
+        print(repr(ng.grafo))
         for record in ng.grafo.travels_graph_data:
             index = 0
             map_record = {}

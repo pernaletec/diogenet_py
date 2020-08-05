@@ -9,6 +9,7 @@
 """
 
 import igraph
+import pyvis
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
@@ -246,7 +247,7 @@ class MapGraph:
             current_destiny = self.travels_graph_data.Target[idx]
             current_origin = current_origin[0]
             if len(current_origin) > 1:
-                # If the traveler shows multiple origins by default the 
+                # If the traveler shows multiple origins by default the
                 multi_origin.append(cell)
             traveler_origin.append(current_origin)
             current_origin = "".join(current_origin)
@@ -293,7 +294,6 @@ class MapGraph:
 
     def update_graph(self):
         """Create graph once defined source data
-
         """
         self.igraph_map = igraph.Graph.TupleList(
             self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
@@ -301,49 +301,45 @@ class MapGraph:
 
     def calculate_degree(self):
         """Calculate degree for the graph
-
-        :param self: The graph object
-
         """
         return self.igraph_map.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph
-
-        :param self: The graph object
-
         """
 
         return self.igraph_map.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
-
-        :param self: The graph object
-
         """
 
         return self.igraph_map.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph
-
-        :param self: The graph object
-
         """
         return self.igraph_map.evcent()
 
     def get_vertex_names(self):
         """Return names for each vertex of the graph
-
-        :param self: The graph object
-
         """
 
         vertex_names = []
         for vertex in self.igraph_map.vs:
-            vertex_names.append(vertex['name'])
-        return(vertex_names)
+            vertex_names.append(vertex["name"])
+        return vertex_names
+
+    def get_pyvis(self):
+        # pv_graph = None
+        # if self.igraph_map:
+        #     pv_graph = pyvis.network.Network("500px", "500px")
+        #     # Add Nodes
+        #     for node in self.igraph_map.vs:
+        #         pv_graph.add_node(node.index, label=node)
+        #     for edge in self.igraph_map.es:
+        #         pv_graph.add_edge()
+        return
 
     def set_colour_scale(self):
         """Create parameters for the class graph
@@ -356,8 +352,7 @@ class MapGraph:
         """
         return ()
 
+
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
-
-print(grafo.get_vertex_names())
