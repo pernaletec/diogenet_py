@@ -331,15 +331,22 @@ class MapGraph:
         return vertex_names
 
     def get_pyvis(self):
-        # pv_graph = None
-        # if self.igraph_map:
-        #     pv_graph = pyvis.network.Network("500px", "500px")
-        #     # Add Nodes
-        #     for node in self.igraph_map.vs:
-        #         pv_graph.add_node(node.index, label=node)
-        #     for edge in self.igraph_map.es:
-        #         pv_graph.add_edge()
-        return
+        pv_graph = None
+        if self.igraph_map:
+            pv_graph = pyvis.network.Network("500px", "500px")
+            # Add Nodes
+            for node in self.igraph_map.vs:
+                pv_graph.add_node(node.index, label=node["name"])
+            for edge in self.igraph_map.es:
+                title = (
+                    edge["edge_name"]
+                    + " travels from: "
+                    + self.igraph_map.vs[edge.source]["name"]
+                    + " to: "
+                    + self.igraph_map.vs[edge.target]["name"]
+                )
+                pv_graph.add_edge(edge.source, edge.target, title=title)
+        return pv_graph
 
     def set_colour_scale(self):
         """Create parameters for the class graph
