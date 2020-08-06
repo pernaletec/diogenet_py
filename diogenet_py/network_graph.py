@@ -52,6 +52,19 @@ travel_edges = da.get_data_entity(TRAVEL_EDGES_FILE, "local")
 list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 # list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
+VIRIDIS_COLORMAP = [
+    {"r": 68, "g": 1, "b": 84},
+    {"r": 72, "g": 40, "b": 120},
+    {"r": 62, "g": 74, "b": 137},
+    {"r": 49, "g": 104, "b": 142},
+    {"r": 38, "g": 130, "b": 142},
+    {"r": 31, "g": 158, "b": 137},
+    {"r": 53, "g": 183, "b": 121},
+    {"r": 109, "g": 205, "b": 89},
+    {"r": 180, "g": 222, "b": 44},
+    {"r": 253, "g": 231, "b": 37},
+]
+
 
 @dataclass
 class MapGraph:
@@ -59,7 +72,6 @@ class MapGraph:
     edges_file = None
     locations_file = None
     blacklist_file = None
-    vertex_filter = None
 
     nodes_raw_data = None
     edges_raw_data = None
@@ -69,6 +81,16 @@ class MapGraph:
 
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
+
+    # Estetic's attributes (plot attribs)
+    node_min_size = 4
+    node_max_size = 6
+    label_min_size = 4
+    label_max_size = 6
+    current_centrality_index = "Degree"
+    graph_color_map = VIRIDIS_COLORMAP
+    vertex_filter = None
+    pyvis_map_hash = None
 
     nodes_graph_data = pd.DataFrame()
     edges_graph_data = pd.DataFrame()
@@ -334,10 +356,38 @@ class MapGraph:
             vertex_names.append(vertex["name"])
         return vertex_names
 
+    def get_irterpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=10):
+        """Get an interpolated integer from range [r1_min, r1_max] to [r2_min..r2_max]
+        """
+        index = None
+        if r1_max > r1_min:
+            index = round(
+                (
+                    r1_min
+                    + ((r1_value, r2_min, r2_max - r2_min) / (r2_max - r2_min))
+                    * (r1_max - r1_min)
+                ),
+                0,
+            )
+        return index
+
     def get_pyvis(self):
         """Create pyvis object
         """
+        centrality_indexes = []
+        if self.current_centrality_index == "Degree":
+            centrality_indexes = self.calculate_degree()
+        elif self.current_centrality_index == "Betweeness":
+            centrality_indexes = self.calculate_betweenness()
+        elif self.current_centrality_index == "Closeness":
+            centrality_indexes = self.calculate_closeness()
+        else:
+            centrality_indexes = self.calculate_eigenvector()
+
+        centrality_indexes_min = min(centrality_indexes)
+        centrality_indexes_max = max(centrality_indexes)
         pv_graph = None
+
         if self.igraph_map:
             pv_graph = pyvis.network.Network("500px", "500px")
             # Add Nodes
@@ -366,11 +416,13 @@ class MapGraph:
             subgraph = self.igraph_map
         else:
             edges = self.igraph_map.es
-            edge_names = self.igraph_map.es['edge_name']
+            edge_names = self.igraph_map.es["edge_name"]
             travellers = self.edges_filter
-            edge_indexes = [j.index for i,j in zip(edge_names, edges) if i in travellers]
+            edge_indexes = [
+                j.index for i, j in zip(edge_names, edges) if i in travellers
+            ]
             subgraph = self.igraph_map.subgraph_edges(edge_indexes)
-        return(subgraph)
+        return subgraph
 
     def set_colour_scale(self):
         """Create parameters for the class graph
@@ -388,6 +440,6 @@ grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
 
-grafo.set_edges_filter('Aristotle')
-grafo.set_edges_filter('Pythagoras')
+grafo.set_edges_filter("Aristotle")
+grafo.set_edges_filter("Pythagoras")
 print(grafo.create_subgraph())
