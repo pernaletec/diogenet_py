@@ -59,6 +59,7 @@ class MapGraph:
     edges_file = None
     locations_file = None
     blacklist_file = None
+    vertex_filter = None
 
     nodes_raw_data = None
     edges_raw_data = None
@@ -83,6 +84,7 @@ class MapGraph:
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
         :param blacklist_file: File with list of blacklisted places (.csv)
+        :param vertex_filter: Array with the vertex that will  be used to create the subgraph
 
         :param nodes_raw_data: Raw data for nodes
         :param edges_raw_data: Raw data for edges
@@ -109,6 +111,7 @@ class MapGraph:
         self.edges_file = edges_file
         self.locations_file = locations_file
         self.blacklist_file = blacklist_file
+        self.edges_filter = []
 
         # self.know_locations()
 
@@ -123,6 +126,7 @@ class MapGraph:
         self.create_edges_for_graph()
 
         self.update_graph()
+        self.create_subgraph()
 
     def know_locations(self):
         """Create parameters for the class graph
@@ -331,6 +335,8 @@ class MapGraph:
         return vertex_names
 
     def get_pyvis(self):
+        """Create pyvis object
+        """
         pv_graph = None
         if self.igraph_map:
             pv_graph = pyvis.network.Network("500px", "500px")
@@ -348,6 +354,24 @@ class MapGraph:
                 pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
 
+    def set_edges_filter(self, edges_filter):
+        """Create subgraph depending on vertex selected
+        """
+        self.edges_filter.append(edges_filter)
+
+    def create_subgraph(self):
+        """Create subgraph depending on edges selected (i.e travellers)
+        """
+        if not self.edges_filter:
+            subgraph = self.igraph_map
+        else:
+            edges = self.igraph_map.es
+            edge_names = self.igraph_map.es['edge_name']
+            travellers = self.edges_filter
+            edge_indexes = [j.index for i,j in zip(edge_names, edges) if i in travellers]
+            subgraph = self.igraph_map.subgraph_edges(edge_indexes)
+        return(subgraph)
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 
@@ -363,3 +387,7 @@ class MapGraph:
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
+
+grafo.set_edges_filter('Aristotle')
+grafo.set_edges_filter('Pythagoras')
+print(grafo.create_subgraph())
