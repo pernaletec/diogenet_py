@@ -5,7 +5,11 @@ import * as L from "leaflet";
 
 interface TravelsMapData {
     Source: string,
+    SourceColor: string,
+    SourceSize: number,
     Destination: string,
+    DestinationColor: string,
+    DestinationSize: number,
     Philosopher: string,
     SourceLatitude: number,
     SourceLongitude: number,
@@ -29,13 +33,16 @@ $(() => {
     let markers_list: TravelsMapData[];
     const baseMap = L.map("map").setView(MAP_CENTER, 5);
     
-    function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string) {
+    function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number) {
         if (!mColor) {
             mColor = "#959595";
         }
+        if (!mSize) {
+            mSize = 3;
+        } 
         const mark = L.circleMarker({ lat: latitude, lng: longitude },
             { 
-                radius: 10,
+                radius: (mSize + 3),
                 color: mColor
             });
         mark.bindPopup(popupText, { closeButton: true });
@@ -66,15 +73,15 @@ $(() => {
     }).addTo(baseMap);
 
     $.ajax({
-        dataType: "json",
+        dataType: "text json",
         url: "http://localhost:5000/map/get_travels_graph_data",
         success: (data) => {
-            markers_list= data;
+            markers_list = data;
             markers_list.forEach((m, index) => {
                 const srcGeoreference = new L.LatLng(m.SourceLatitude, m.SourceLongitude);
                 const dstGeoreference = new L.LatLng(m.DestLatitude, m.DestLongitude);
-                addCircleMarker(m.Source, m.SourceLatitude, m.SourceLongitude, "#0099ff");
-                addCircleMarker(m.Destination, m.DestLatitude, m.DestLongitude, "#00cc00");
+                addCircleMarker(m.Source, m.SourceLatitude, m.SourceLongitude, m.SourceColor, m.SourceSize);
+                addCircleMarker(m.Destination, m.DestLatitude, m.DestLongitude, m.DestinationColor, m.DestinationSize);
                 drawLine(srcGeoreference, dstGeoreference, m.Philosopher + ' traveling from ' + m.Source + ' to ' + m.Destination);
             });
         }

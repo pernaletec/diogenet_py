@@ -10,6 +10,7 @@
 
 import igraph
 import pyvis
+import json
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
@@ -53,16 +54,16 @@ list_of_rows_travel_edges = [list(row[1:]) for row in travel_edges.values]
 # list_of_rows_all_places = [list(row[1:2]) for row in all_places.values]
 
 VIRIDIS_COLORMAP = [
-    {"r": 68, "g": 1, "b": 84},
-    {"r": 72, "g": 40, "b": 120},
-    {"r": 62, "g": 74, "b": 137},
-    {"r": 49, "g": 104, "b": 142},
-    {"r": 38, "g": 130, "b": 142},
-    {"r": 31, "g": 158, "b": 137},
-    {"r": 53, "g": 183, "b": 121},
-    {"r": 109, "g": 205, "b": 89},
-    {"r": 180, "g": 222, "b": 44},
-    {"r": 253, "g": 231, "b": 37},
+    (68, 1, 84),
+    (72, 40, 120),
+    (62, 74, 137),
+    (49, 104, 142),
+    (38, 130, 142),
+    (31, 158, 137),
+    (53, 183, 121),
+    (109, 205, 89),
+    (180, 222, 44),
+    (253, 231, 37),
 ]
 
 
@@ -106,7 +107,8 @@ class MapGraph:
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
         :param blacklist_file: File with list of blacklisted places (.csv)
-        :param vertex_filter: Array with the vertex that will  be used to create the subgraph
+        :param vertex_filter: Array with the vertex that will  be used to
+        create the subgraph
 
         :param nodes_raw_data: Raw data for nodes
         :param edges_raw_data: Raw data for edges
@@ -116,12 +118,14 @@ class MapGraph:
         :param igraph_map: Python igraph graph object
 
         :param phylosophers_known_origin: Data for phylosophers and their origin
-        :param multi_origin_phylosophers: List of phylosophers with more than one origin "is from"
+        :param multi_origin_phylosophers: List of phylosophers with more than one
+        origin "is from"
 
         :param nodes_graph_data: Nodes data processed for graph
         :param edges_graph_data: Edges data processed for graph
         :param locations_graph_data: Locations data processed for graph
-        :param travels_graph_data: Full data for graph including edges names, phylosopher name and coordinates
+        :param travels_graph_data: Full data for graph including edges names,
+        phylosopher name and coordinates
 
         :param located_nodes: Nodes with an identified location in locations data
 
@@ -356,24 +360,50 @@ class MapGraph:
             vertex_names.append(vertex["name"])
         return vertex_names
 
-    def get_irterpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=10):
+    def get_interpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=9):
         """Get an interpolated integer from range [r1_min, r1_max] to [r2_min..r2_max]
         """
         index = None
         if r1_max > r1_min:
-            index = round(
-                (
-                    r1_min
-                    + ((r1_value, r2_min, r2_max - r2_min) / (r2_max - r2_min))
-                    * (r1_max - r1_min)
-                ),
-                0,
+            index = int(
+                round(
+                    (
+                        r2_min
+                        + ((r1_value - r1_min) / (r1_max - r1_min)) * (r2_max - r2_min)
+                    ),
+                    0,
+                )
             )
         return index
 
-    def get_pyvis(self):
-        """Create pyvis object
+    def rgb_to_hex(self, rgb):
+        """Converts a triplet (r, g, b) of bytes (0-255) in web color #000000
+        :param url: a Triplet of bites with RGB color info
+        :returns a string with web color format
+        :rtype: :py:str
+
         """
+        return "%02x%02x%02x" % rgb
+
+    def get_pyvis(
+        self,
+        min_weight=4,
+        max_weight=6,
+        min_label_size=4,
+        max_label_size=6,
+        layout="fruchterman_reingold",
+    ):
+        """Create a pyvis object based on current igraph network
+        :param int min_weight: Integer with min node size
+        :param int max_weight: Integer with max node size
+        :param int min_label_size: Integer with min label size
+        :param int max_label_size: Integer with max label size
+        :param str layout: String with a valid iGraph Layout like
+        "fruchterman_reingold", "kamada_kawai" or "circle"
+        :return: A PyVis Object filled with the network's data.
+        :rtype: :py:class:`pyvis`
+        """
+
         centrality_indexes = []
         if self.current_centrality_index == "Degree":
             centrality_indexes = self.calculate_degree()
@@ -389,10 +419,54 @@ class MapGraph:
         pv_graph = None
 
         if self.igraph_map:
-            pv_graph = pyvis.network.Network("500px", "500px")
+            N = len(self.get_vertex_names())
+            factor = 50
+            # EDGES = [e.tuple for e in self.igraph_map.es]
+            layout_graph = self.igraph_map.layout(layout)
+
+            Xn = [layout_graph[k][0] for k in range(N)]
+            Yn = [layout_graph[k][1] for k in range(N)]
+            # Xe = []
+            # Ye = []
+            # for e in EDGES:
+            #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
+            #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
+
+            pv_graph = pyvis.network.Network("100%", "100%")
+            pyvis_map_options = {}
+            pyvis_map_options["nodes"] = {
+                "scaling": {"min": min_weight, "max": max_weight}
+            }
+            pyvis_map_options["edges"] = {
+                "color": {"inherit": True},
+                "smooth": False,
+            }
+            pyvis_map_options["manipulation"] = True
+            pyvis_map_options["physics"] = {"enabled": False}
+            pv_graph.set_options(json.dumps(pyvis_map_options))
             # Add Nodes
             for node in self.igraph_map.vs:
-                pv_graph.add_node(node.index, label=node["name"])
+                color_index = self.get_interpolated_index(
+                    centrality_indexes_min,
+                    centrality_indexes_max,
+                    centrality_indexes[node.index],
+                )
+                color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                size = self.get_interpolated_index(
+                    centrality_indexes_min,
+                    centrality_indexes_max,
+                    centrality_indexes[node.index],
+                    min_weight,
+                    max_weight,
+                )
+                pv_graph.add_node(
+                    node.index,
+                    label=node["name"],
+                    color=color,
+                    value=size,
+                    x=int(Xn[node.index] * factor),
+                    y=int(Yn[node.index] * factor),
+                )
             for edge in self.igraph_map.es:
                 title = (
                     edge["edge_name"]
@@ -403,6 +477,82 @@ class MapGraph:
                 )
                 pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
+
+    def get_map_data(
+        self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
+    ):
+        centrality_indexes = []
+        if self.current_centrality_index == "Degree":
+            centrality_indexes = self.calculate_degree()
+        elif self.current_centrality_index == "Betweeness":
+            centrality_indexes = self.calculate_betweenness()
+        elif self.current_centrality_index == "Closeness":
+            centrality_indexes = self.calculate_closeness()
+        else:
+            centrality_indexes = self.calculate_eigenvector()
+
+        centrality_indexes_min = min(centrality_indexes)
+        centrality_indexes_max = max(centrality_indexes)
+
+        map = []
+        nodes = self.get_vertex_names()
+        map_dict_strings = [
+            "Source",
+            "Destination",
+            "Philosopher",
+            "SourceLatitude",
+            "SourceLongitude",
+            "DestLatitude",
+            "DestLongitude",
+        ]
+        if self.travels_graph_data:
+            for record in self.travels_graph_data:
+                index = 0
+                map_record = {}
+                for item in record:
+                    tmp_value = item
+                    if isinstance(item, list):
+                        if len(item) == 1:
+                            tmp_value = item[0]
+                    map_record[map_dict_strings[index]] = tmp_value
+                    if index == 0:
+                        i = nodes.index(tmp_value)
+                        color_index = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[i],
+                        )
+                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                        map_record["SourceColor"] = color
+                        size = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[i],
+                            min_weight,
+                            max_weight,
+                        )
+                        map_record["SourceSize"] = size
+                    elif index == 1:
+                        i = nodes.index(tmp_value)
+                        color_index = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[i],
+                        )
+                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                        map_record["DestinationColor"] = color
+                        size = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[i],
+                            min_weight,
+                            max_weight,
+                        )
+                        map_record["DestinationSize"] = size
+                    index = index + 1
+                map.append(map_record)
+
+        return json.dumps(map)
 
     def set_edges_filter(self, edges_filter):
         """Create subgraph depending on vertex selected
@@ -440,6 +590,6 @@ grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
 
-grafo.set_edges_filter("Aristotle")
-grafo.set_edges_filter("Pythagoras")
-print(grafo.create_subgraph())
+# grafo.set_edges_filter("Aristotle")
+# grafo.set_edges_filter("Pythagoras")
+# print(grafo.create_subgraph())
