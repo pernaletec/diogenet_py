@@ -157,6 +157,17 @@ function updateMap() {
     });
 }
 
+function updateGraph() {
+    const currentCentrality = getCentralityIndex();
+    const urlBase = "http://localhost:5000/map/get/graph/" + currentCentrality;
+    let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
+    graphiFrame.src = urlBase;
+    if (graphiFrame.contentWindow != null)  {
+        
+        // graphiFrame.contentWindow.location.reload();
+    }
+}
+
 $(() => {
     baseMap = L.map("map").setView(MAP_CENTER, 5);
     L.tileLayer(MAIN_TILE_LAYER, {
@@ -164,9 +175,10 @@ $(() => {
         attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
     }).addTo(baseMap);
     updateMap();
+    updateGraph();
     $("#centrality-index").change(
         (event) => {
             updateMap();
-            // Put updateGraph();
+            updateGraph();
         });
 });

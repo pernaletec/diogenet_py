@@ -1,7 +1,7 @@
 """Main flask application entry point."""
 from flask import Flask, render_template, make_response, request, send_from_directory
 from . import network_graph as ng
-import pandas as pd
+import os
 import tempfile
 
 app = Flask(__name__)
@@ -38,9 +38,11 @@ def get_graph_data(centrality_index):
     pvis_graph = ng.grafo.get_pyvis()
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"
-        pvis_graph.show(temp_file_name)
-        print(repr(temp_file_name))
-        return send_from_directory(".", temp_file_name)
+        full_filename = os.path.join(app.root_path, "temp", temp_file_name)
+        pvis_graph.show(full_filename)
+        print(temp_file_name)
+        print(app.root_path)
+        return send_from_directory("temp", temp_file_name)
     else:
         return make_response("Error accessing MapGraph Object", 400)
 

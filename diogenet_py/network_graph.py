@@ -432,17 +432,23 @@ class MapGraph:
             #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
             #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
 
-            pv_graph = pyvis.network.Network("100%", "100%")
+            pv_graph = pyvis.network.Network(height="97%", width="97%", heading="")
             pyvis_map_options = {}
             pyvis_map_options["nodes"] = {
                 "scaling": {"min": min_weight, "max": max_weight}
             }
             pyvis_map_options["edges"] = {
+                "arrows": {"to": {"enabled": True}},
                 "color": {"inherit": True},
                 "smooth": False,
             }
-            pyvis_map_options["manipulation"] = True
             pyvis_map_options["physics"] = {"enabled": False}
+            pyvis_map_options["interaction"] = {
+                "dragNodes": False,
+                "hover": True,
+                "navigationButtons": True,
+                "selectable": False,
+            }
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # Add Nodes
             for node in self.igraph_map.vs:
