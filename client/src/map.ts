@@ -162,10 +162,6 @@ function updateGraph() {
     const urlBase = "http://localhost:5000/map/get/graph/" + currentCentrality;
     let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
     graphiFrame.src = urlBase;
-    if (graphiFrame.contentWindow != null)  {
-        
-        // graphiFrame.contentWindow.location.reload();
-    }
 }
 
 $(() => {
