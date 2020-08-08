@@ -16,25 +16,18 @@ def map():
     return render_template("map.html")
 
 
-@app.route("/map/get_travels_graph_data", methods=["GET"])
-def get_travels_graph_data():
+@app.route("/map/get/<centrality_index>", methods=["GET"])
+def get_travels_graph_data(centrality_index):
     if request.method != "GET":
         return make_response("Malformed request", 400)
+    if centrality_index:
+        ng.grafo.current_centrality_index = centrality_index
     data = ng.grafo.get_map_data()
     if data:
         headers = {"Content-Type": "application/json"}
         return make_response(data, 200, headers)
     else:
         return make_response("Error accessing MapGraph Object", 400)
-
-
-# @app.route("/map/get_travelers_data", methods=["GET"])
-# def get_travelers_data():
-#     if request.method != "GET":
-#         return make_response("Malformed request", 400)
-#     philosophers = map.phylosophers_known_origin.to_json()
-#     headers = {"Content-Type": "application/json"}
-#     return make_response(jsonify(philosophers), 200, headers)
 
 
 @app.route("/horus")
