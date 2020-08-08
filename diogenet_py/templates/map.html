@@ -3,81 +3,76 @@
 {% block page_name %}Diogenet&apos;s Map{% endblock page_name %}
 
 {% block page_style %}
-    <link rel="stylesheet" href="/static/client/map_styles.bundle.css" type="text/css" />
+<link rel="stylesheet" href="/static/client/map_styles.bundle.css" type="text/css" />
 {% endblock page_style %}
 
 {% block head %}
-  {{ super() }}
-  <script src="/static/client/map.bundle.js" type="text/javascript"></script>
+{{ super() }}
+<script src="/static/client/map.bundle.js" type="text/javascript"></script>
 {% endblock head %}
 
 {% block sidebar %}
-  <div class="form-group my-5">
-    <label class="label" for="traveler">Traveler:</label>
-    <select class="custom-select" name="traveler" id="traveler">
-      <option value="1">All</option>
-    </select>
-  </div>
-  <div class="form-group my-5">
-    <label class="label" for="centrality-index">Centrality index:</label>
-    <select class="custom-select" name="centrality-index" id="centrality-index">
-      <option value="1">Degree</option>
-      <option value="2">Betweeness</option>
-      <option value="3">Closeness</option>
-      <option value="4">Eigenvector</option>
-    </select>
-  </div>
-  <div class="my-5">
-    <h5>Appareance:</h5>
-    <div class="form-group">
-      <label class="label" for="label-size">Label size:</label>
-      <input type="range"
-             name="label-size"
-             id="label-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="label" for="node-size">Node size:</label>
-      <input type="range"
-             name="node-size"
-             id="node-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
-      </div>
+<div class="form-group my-5">
+  <label class="label" for="traveler">Traveler:</label>
+  <select class="custom-select" name="traveler" id="traveler">
+    <option value="1">All</option>
+  </select>
+</div>
+<div class="form-group my-5">
+  <label class="label" for="centrality-index">Centrality index:</label>
+  <select class="custom-select" name="centrality-index" id="centrality-index">
+    <option value="1">Degree</option>
+    <option value="2">Betweeness</option>
+    <option value="3">Closeness</option>
+    <option value="4">Eigenvector</option>
+  </select>
+</div>
+<div class="my-5">
+  <h5>Appareance:</h5>
+  <div class="form-group">
+    <label class="label" for="label-size">Label size:</label>
+    <input type="range" name="label-size" id="label-size" class="custom-range" min="1" max="11" />
+    <div class="row">
+      <div class="col-4 text-left">1</div>
+      <div class="col-4 text-center">6</div>
+      <div class="col-4 text-right">11</div>
     </div>
   </div>
+  <div class="form-group">
+    <label class="label" for="node-size">Node size:</label>
+    <input type="range" name="node-size" id="node-size" class="custom-range" min="1" max="11" />
+    <div class="row">
+      <div class="col-4 text-left">1</div>
+      <div class="col-4 text-center">6</div>
+      <div class="col-4 text-right">11</div>
+    </div>
+  </div>
+</div>
 {% endblock sidebar %}
 
 {% block main %}
-  <div class="main-container">
-    <ul class="nav nav-tabs nav-tabs-square border-top border-left border-right" role="tablist">
-      <li class="nav-item">
-        <!-- Map container -->
-        <a class="nav-link active border-top-0 border-left-0 rounded-0" id="map-tab" href="#map" role="tab" aria-controls="map" aria-selected="true" data-toggle="tab">Map</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" id="metrics-tab" href="#metrics" role="tab" aria-controls="metrics" aria-selected="true" data-toggle="tab">Metrics</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" id="graph-tab" href="#graph" role="tab" aria-controls="graph" aria-selected="true" data-toggle="tab">Graph</a>
-      </li>
-    </ul>
-    <div class="tab-content main-container" id="mapsTabContent">
-        <div class="tab-pane fade show active map-container" id="map" role="tabpanel" aria-labelledby="map-tab">Mapa</div>
-        <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">Metrics</div>
-        <div class="tab-pane fade" id="graph" role="tabpanel" aria-labelledby="graph-tab">Graph</div>
+<div class="main-container">
+  <ul class="nav nav-tabs nav-tabs-square border-top border-left border-right" role="tablist">
+    <li class="nav-item">
+      <!-- Map container -->
+      <a class="nav-link active border-top-0 border-left-0 rounded-0" id="map-tab" href="#map" role="tab"
+        aria-controls="map" aria-selected="true" data-toggle="tab">Map</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link border-top-0 rounded-0" id="metrics-tab" href="#metrics" role="tab" aria-controls="metrics"
+        aria-selected="true" data-toggle="tab">Metrics</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link border-top-0 rounded-0" id="graph-tab" href="#graph" role="tab" aria-controls="graph"
+        aria-selected="true" data-toggle="tab">Graph</a>
+    </li>
+  </ul>
+  <div class="tab-content main-container" id="mapsTabContent">
+    <div class="tab-pane fade show active map-container" id="map" role="tabpanel" aria-labelledby="map-tab">Mapa</div>
+    <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">Metrics</div>
+    <div class="tab-pane fade" id="graph" role="tabpanel" aria-labelledby="graph-tab">
+      <iframe src="http://localhost:5000/map/get/graph/Degree"></iframe>
     </div>
   </div>
+</div>
 {% endblock main %}

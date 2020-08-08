@@ -1,7 +1,8 @@
 """Main flask application entry point."""
-from flask import Flask, render_template, make_response, request, jsonify
+from flask import Flask, render_template, make_response, request, send_from_directory
 from . import network_graph as ng
 import pandas as pd
+import tempfile
 
 app = Flask(__name__)
 
@@ -16,8 +17,8 @@ def map():
     return render_template("map.html")
 
 
-@app.route("/map/get/<centrality_index>", methods=["GET"])
-def get_travels_graph_data(centrality_index):
+@app.route("/map/get/map/<centrality_index>", methods=["GET"])
+def get_map_data(centrality_index):
     if request.method != "GET":
         return make_response("Malformed request", 400)
     if centrality_index:
@@ -26,6 +27,20 @@ def get_travels_graph_data(centrality_index):
     if data:
         headers = {"Content-Type": "application/json"}
         return make_response(data, 200, headers)
+    else:
+        return make_response("Error accessing MapGraph Object", 400)
+
+
+@app.route("/map/get/graph/<centrality_index>")
+def get_graph_data(centrality_index):
+    if centrality_index:
+        ng.grafo.current_centrality_index = centrality_index
+    pvis_graph = ng.grafo.get_pyvis()
+    if pvis_graph:
+        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+        pvis_graph.show(temp_file_name)
+        print(repr(temp_file_name))
+        return send_from_directory(".", temp_file_name)
     else:
         return make_response("Error accessing MapGraph Object", 400)
 

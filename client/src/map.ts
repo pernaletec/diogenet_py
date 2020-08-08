@@ -17,12 +17,12 @@ interface TravelsMapData {
     DestLongitude: number
 }
 
-const MAP_CENTER:L.LatLng = new L.LatLng(35.255, 24.92);
+const MAP_CENTER: L.LatLng = new L.LatLng(35.255, 24.92);
 const MAIN_TILE_LAYER = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
 let markers_list: TravelsMapData[];
 let baseMap: L.Map;
-let allMarkers: L.CircleMarker[] = []; 
+let allMarkers: L.CircleMarker[] = [];
 let allLines: L.Polyline[] = [];
 let degreelayerGroup = new L.LayerGroup();
 let betweenesLayerGroup = new L.LayerGroup();
@@ -35,9 +35,9 @@ function addCircleMarker(popupText: string, latitude: number, longitude: number,
     }
     if (!mSize) {
         mSize = 3;
-    } 
+    }
     const mark = L.circleMarker({ lat: latitude, lng: longitude },
-        { 
+        {
             radius: (mSize + 3),
             opacity: 1,
             color: mColor
@@ -47,7 +47,7 @@ function addCircleMarker(popupText: string, latitude: number, longitude: number,
 }
 
 function drawLine(source: L.LatLng, destination: L.LatLng, popupMsg?: string) {
-    const pointList = [ source, destination ];
+    const pointList = [source, destination];
     const poliLine = new L.Polyline(pointList, {
         color: "#333333",
         weight: 3,
@@ -65,9 +65,9 @@ function getCentralityIndex() {
     let centralityIndex = "";
     if (value == 1) {
         centralityIndex = "Degree";
-    } else if (value == 2){
+    } else if (value == 2) {
         centralityIndex = "Betweeness";
-    } else if (value == 3){
+    } else if (value == 3) {
         centralityIndex = "Closeness";
     } else {
         centralityIndex = "Eigenvector";
@@ -96,7 +96,7 @@ function clearMap() {
 
 function updateMap() {
     const currentCentrality = getCentralityIndex();
-    const urlBase = "http://localhost:5000/map/get/" + currentCentrality;
+    const urlBase = "http://localhost:5000/map/get/map/" + currentCentrality;
     clearMap();
     $.ajax({
         dataType: "text json",
@@ -167,5 +167,6 @@ $(() => {
     $("#centrality-index").change(
         (event) => {
             updateMap();
-    });
+            // Put updateGraph();
+        });
 });
