@@ -469,7 +469,7 @@ class MapGraph:
                     node.index,
                     label=node["name"],
                     color=color,
-                    value=size,
+                    value=int(size * 2),
                     x=int(Xn[node.index] * factor),
                     y=int(Yn[node.index] * factor),
                 )

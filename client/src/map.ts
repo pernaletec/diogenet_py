@@ -1,7 +1,11 @@
+/// <reference path="jquery-range.d.ts"/>
 import "bootstrap";
 import $ from "jquery";
+import "jquery-range";
 import "!style-loader!css-loader!leaflet/dist/leaflet.css"
+import "!style-loader!css-loader!jquery-range/jquery.range.css"
 import * as L from "leaflet";
+
 
 interface TravelsMapData {
     Source: string,
@@ -96,7 +100,13 @@ function clearMap() {
 
 function updateMap() {
     const currentCentrality = getCentralityIndex();
-    const urlBase = "http://localhost:5000/map/get/map/" + currentCentrality;
+    const nodeSizes = $(".node-range-slider").val() as string;
+    const urlBase = (
+        "http://localhost:5000/map/get/map/" 
+        + currentCentrality 
+        + "/" 
+        + nodeSizes
+    );
     clearMap();
     $.ajax({
         dataType: "text json",
@@ -113,44 +123,36 @@ function updateMap() {
                 drawLine(srcGeoreference, dstGeoreference, m.Philosopher + " traveling from " + m.Source + " to " + m.Destination);
             });
             if (currentCentrality == "Degree") {
-                if (degreelayerGroup.getLayers().length < 1) {
-                    allLines.forEach(line => {
-                        degreelayerGroup.addLayer(line);
-                    });
-                    allMarkers.forEach(marker => {
-                        degreelayerGroup.addLayer(marker);
-                    });
-                }
+                allLines.forEach(line => {
+                    degreelayerGroup.addLayer(line);
+                });
+                allMarkers.forEach(marker => {
+                    degreelayerGroup.addLayer(marker);
+                });
                 degreelayerGroup.addTo(baseMap);
             } else if (currentCentrality == "Betweeness") {
-                if (betweenesLayerGroup.getLayers().length < 1) {
-                    allLines.forEach(line => {
-                        betweenesLayerGroup.addLayer(line);
-                    });
-                    allMarkers.forEach(marker => {
-                        betweenesLayerGroup.addLayer(marker);
-                    });
-                }
+                allLines.forEach(line => {
+                    betweenesLayerGroup.addLayer(line);
+                });
+                allMarkers.forEach(marker => {
+                    betweenesLayerGroup.addLayer(marker);
+                });
                 betweenesLayerGroup.addTo(baseMap);
             } else if (currentCentrality == "Closeness") {
-                if (closenessLayerGroup.getLayers().length < 1) {
-                    allLines.forEach(line => {
-                        closenessLayerGroup.addLayer(line);
-                    });
-                    allMarkers.forEach(marker => {
-                        closenessLayerGroup.addLayer(marker);
-                    });
-                }
+                allLines.forEach(line => {
+                    closenessLayerGroup.addLayer(line);
+                });
+                allMarkers.forEach(marker => {
+                    closenessLayerGroup.addLayer(marker);
+                });
                 closenessLayerGroup.addTo(baseMap);
             } else {
-                if (eigenVectorLayerGroup.getLayers().length < 1) {
-                    allLines.forEach(line => {
-                        eigenVectorLayerGroup.addLayer(line);
-                    });
-                    allMarkers.forEach(marker => {
-                        eigenVectorLayerGroup.addLayer(marker);
-                    });
-                }
+                allLines.forEach(line => {
+                    eigenVectorLayerGroup.addLayer(line);
+                });
+                allMarkers.forEach(marker => {
+                    eigenVectorLayerGroup.addLayer(marker);
+                });
                 eigenVectorLayerGroup.addTo(baseMap);
             }
         }
@@ -159,22 +161,73 @@ function updateMap() {
 
 function updateGraph() {
     const currentCentrality = getCentralityIndex();
-    const urlBase = "http://localhost:5000/map/get/graph/" + currentCentrality;
+    const nodeSizes = $(".node-range-slider").val() as string;
+    const urlBase = (
+        "http://localhost:5000/map/get/graph/" 
+        + currentCentrality 
+        + "/" 
+        + nodeSizes
+    );
     let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
     graphiFrame.src = urlBase;
 }
 
+function debounce<Params extends any[]>(
+    func: (...args: Params) => any,
+    timeout: number,
+  ): (...args: Params) => void {
+    let timer: NodeJS.Timeout
+    return (...args: Params) => {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+        func(...args)
+        }, timeout)
+    }
+}
+
+function updateAll() {
+    updateMap();
+    updateGraph();
+}
+
 $(() => {
+    // Setup multirange slider
+    $(".node-range-slider").jRange({
+        from: 1,
+        to: 10,
+        step: 1,
+        scale: [1,2,3,4,5,6,7,8,9,10],
+        format: '%s',
+        width: 200,
+        showLabels: true,
+        isRange : true,
+        snap: true,
+        theme: "theme-blue"
+    });
+    $(".label-range-slider").jRange({
+        from: 1,
+        to: 10,
+        step: 1,
+        scale: [1,2,3,4,5,6,7,8,9,10],
+        format: '%s',
+        width: 200,
+        showLabels: true,
+        isRange : true,
+        snap: true,
+        theme: "theme-blue"
+    });
     baseMap = L.map("map").setView(MAP_CENTER, 5);
     L.tileLayer(MAIN_TILE_LAYER, {
         maxZoom: 19,
         attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
     }).addTo(baseMap);
-    updateMap();
-    updateGraph();
+    updateAll();
     $("#centrality-index").change(
         (event) => {
-            updateMap();
-            updateGraph();
+            updateAll();
         });
+    const debouncedUpdateGraph = debounce(updateAll, 4000);
+    $(".node-range-slider").change((event) => {
+        debouncedUpdateGraph();
+    });
 });

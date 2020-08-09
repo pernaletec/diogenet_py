@@ -17,13 +17,17 @@ def map():
     return render_template("map.html")
 
 
-@app.route("/map/get/map/<centrality_index>", methods=["GET"])
-def get_map_data(centrality_index):
+@app.route("/map/get/map/<centrality_index>/<min_max>", methods=["GET"])
+def get_map_data(centrality_index, min_max="4,6"):
     if request.method != "GET":
         return make_response("Malformed request", 400)
     if centrality_index:
         ng.grafo.current_centrality_index = centrality_index
-    data = ng.grafo.get_map_data()
+
+    min_node_size = int(min_max.split(",")[0])
+    max_node_size = int(min_max.split(",")[1])
+
+    data = ng.grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
     if data:
         headers = {"Content-Type": "application/json"}
         return make_response(data, 200, headers)
@@ -31,11 +35,15 @@ def get_map_data(centrality_index):
         return make_response("Error accessing MapGraph Object", 400)
 
 
-@app.route("/map/get/graph/<centrality_index>")
-def get_graph_data(centrality_index):
+@app.route("/map/get/graph/<centrality_index>/<min_max>")
+def get_graph_data(centrality_index, min_max="4,6"):
     if centrality_index:
         ng.grafo.current_centrality_index = centrality_index
-    pvis_graph = ng.grafo.get_pyvis()
+
+    min_node_size = int(min_max.split(",")[0])
+    max_node_size = int(min_max.split(",")[1])
+
+    pvis_graph = ng.grafo.get_pyvis(min_weight=min_node_size, max_weight=max_node_size)
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
