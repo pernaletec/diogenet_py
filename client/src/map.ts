@@ -1,10 +1,14 @@
 /// <reference path="jquery-range.d.ts"/>
+/// <reference path="leaflet-html-legend.d.ts"/>
 import "bootstrap";
 import $ from "jquery";
 import "jquery-range";
 import "!style-loader!css-loader!leaflet/dist/leaflet.css"
-import "!style-loader!css-loader!jquery-range/jquery.range.css"
+import "!style-loader!css-loader!leaflet/dist/leaflet.css"
+import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
 import * as L from "leaflet";
+import "leaflet-html-legend"
+
 
 
 interface TravelsMapData {
@@ -32,6 +36,8 @@ let degreelayerGroup = new L.LayerGroup();
 let betweenesLayerGroup = new L.LayerGroup();
 let closenessLayerGroup = new L.LayerGroup();
 let eigenVectorLayerGroup = new L.LayerGroup();
+
+let activeTab = "#map";
 
 function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number) {
     if (!mColor) {
@@ -102,9 +108,9 @@ function updateMap() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
     const urlBase = (
-        "http://localhost:5000/map/get/map/" 
-        + currentCentrality 
-        + "/" 
+        "http://localhost:5000/map/get/map/"
+        + currentCentrality
+        + "/"
         + nodeSizes
     );
     clearMap();
@@ -163,9 +169,9 @@ function updateGraph() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
     const urlBase = (
-        "http://localhost:5000/map/get/graph/" 
-        + currentCentrality 
-        + "/" 
+        "http://localhost:5000/map/get/graph/"
+        + currentCentrality
+        + "/"
         + nodeSizes
     );
     let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
@@ -175,19 +181,27 @@ function updateGraph() {
 function debounce<Params extends any[]>(
     func: (...args: Params) => any,
     timeout: number,
-  ): (...args: Params) => void {
+): (...args: Params) => void {
     let timer: NodeJS.Timeout
     return (...args: Params) => {
         clearTimeout(timer)
         timer = setTimeout(() => {
-        func(...args)
+            func(...args)
         }, timeout)
     }
 }
 
 function updateAll() {
-    updateMap();
-    updateGraph();
+    switch (activeTab) {
+        case "#map":
+            updateMap();
+            break;
+        case "#metrics":
+            break;
+        case "#graph":
+            updateGraph();
+            break;
+    }
 }
 
 $(() => {
@@ -196,11 +210,11 @@ $(() => {
         from: 1,
         to: 10,
         step: 1,
-        scale: [1,2,3,4,5,6,7,8,9,10],
+        scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         format: '%s',
         width: 200,
         showLabels: true,
-        isRange : true,
+        isRange: true,
         snap: true,
         theme: "theme-blue"
     });
@@ -208,11 +222,11 @@ $(() => {
         from: 1,
         to: 10,
         step: 1,
-        scale: [1,2,3,4,5,6,7,8,9,10],
+        scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         format: '%s',
         width: 200,
         showLabels: true,
-        isRange : true,
+        isRange: true,
         snap: true,
         theme: "theme-blue"
     });
@@ -221,6 +235,8 @@ $(() => {
         maxZoom: 19,
         attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
     }).addTo(baseMap);
+    const htmlLegend = new L.control.htmllegend();
+    activeTab = "#map";
     updateAll();
     $("#centrality-index").change(
         (event) => {
@@ -230,4 +246,10 @@ $(() => {
     $(".node-range-slider").change((event) => {
         debouncedUpdateGraph();
     });
+    $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
+        const activedTab = <HTMLAnchorElement>e.target;
+        const leavedTab = <HTMLAnchorElement>e.relatedTarget;
+        activeTab = activedTab.hash;
+        updateAll();
+    })
 });
