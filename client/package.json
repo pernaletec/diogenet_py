@@ -45,8 +45,11 @@
         "webpack-dev-server": "^3.11.0"
     },
     "dependencies": {
+        "@types/datatables.net": "^1.10.19",
         "bootstrap": "^4.5.0",
         "core-js": "^3.6.5",
+        "datatables.net": "^1.10.21",
+        "datatables.net-dt": "^1.10.21",
         "jquery": "^3.5.1",
         "jquery-range": "^1.0.0",
         "leaflet": "^1.6.0",

@@ -28,20 +28,20 @@
   </select>
 </div>
 <div class="my-5">
-  <h5>Appareance:</h5>
-  <div class="form-group">
-    <label class="label" for="label-size" style="padding-bottom: 15px;">Label size:</label>
-    <div class="d-flex">
-        <div class="m-auto pb-10">
-            <input type="hidden" name="label-size" id="label-size" class="label-range-slider" value="4,6" />
-        </div>
-    </div>
-    </div>
-    <div class="form-group">
+    <h5 id="appareance-label">Appareance:</h5>
+    <div class="form-group" id="node-size-div">
         <label class="label" for="node-size" style="padding-bottom: 15px;">Node size:</label>
         <div class="d-flex">
             <div class="m-auto pb-10">
                 <input type="hidden" name="node-size" id="node-size" class="node-range-slider" value="4,6" />
+            </div>
+        </div>
+    </div>
+    <div class="form-group" id="label-size-div">
+        <label class="label" for="label-size" style="padding-bottom: 15px;">Label size:</label>
+        <div class="d-flex">
+            <div class="m-auto pb-10">
+                <input type="hidden" name="label-size" id="label-size" class="label-range-slider" value="4,6" />
             </div>
         </div>
     </div>
@@ -67,7 +67,12 @@
   </ul>
   <div class="tab-content main-container" id="mapsTabContent">
     <div class="tab-pane fade show active tab-container" id="map" role="tabpanel" aria-labelledby="map-tab"></div>
-    <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">Metrics</div>
+    <div class="tab-pane fade" id="metrics" role="tabpanel" aria-labelledby="metrics-tab">
+        <table id="metrics-table" class="display" style="width:100%">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
     <div class="tab-pane fade tab-container" id="graph" role="tabpanel" aria-labelledby="graph-tab">
       <iframe id="map-graph" src="http://localhost:5000/map/get/graph/Degree" width="98%" height="97%" style="border: 0px;"></iframe>
     </div>

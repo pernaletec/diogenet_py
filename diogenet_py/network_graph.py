@@ -360,6 +360,22 @@ class MapGraph:
             vertex_names.append(vertex["name"])
         return vertex_names
 
+    def get_max_min(self):
+        centrality_indexes = []
+        ret_val = {}
+        if self.current_centrality_index == "Degree":
+            centrality_indexes = self.calculate_degree()
+        elif self.current_centrality_index == "Betweeness":
+            centrality_indexes = self.calculate_betweenness()
+        elif self.current_centrality_index == "Closeness":
+            centrality_indexes = self.calculate_closeness()
+        else:
+            centrality_indexes = self.calculate_eigenvector()
+        ret_val["min"] = min(centrality_indexes)
+        ret_val["max"] = max(centrality_indexes)
+
+        return ret_val
+
     def get_interpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=9):
         """Get an interpolated integer from range [r1_min, r1_max] to [r2_min..r2_max]
         """
@@ -558,7 +574,7 @@ class MapGraph:
                     index = index + 1
                 map.append(map_record)
 
-        return json.dumps(map)
+        return map
 
     def set_edges_filter(self, edges_filter):
         """Create subgraph depending on vertex selected

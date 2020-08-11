@@ -3,12 +3,14 @@
 import "bootstrap";
 import $ from "jquery";
 import "jquery-range";
-import "!style-loader!css-loader!leaflet/dist/leaflet.css"
-import "!style-loader!css-loader!leaflet/dist/leaflet.css"
-import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
+import "!style-loader!css-loader!jquery-range/jquery.range.css"
+import "datatables.net";
+import "datatables.net-dt"
+import "!style-loader!css-loader!datatables.net-dt/css/jquery.dataTables.min.css"
 import * as L from "leaflet";
 import "leaflet-html-legend"
-
+import "!style-loader!css-loader!leaflet/dist/leaflet.css"
+import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
 
 
 interface TravelsMapData {
@@ -24,20 +26,53 @@ interface TravelsMapData {
     DestLatitude: number,
     DestLongitude: number
 }
+interface AllMapData {
+    min: number,
+    max: number,
+    data: TravelsMapData[]
+}
 
 const MAP_CENTER: L.LatLng = new L.LatLng(35.255, 24.92);
 const MAIN_TILE_LAYER = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
+const VIRIDIS_COLORMAP = [
+    {r: 68, g: 1, b: 84},
+    {r: 72, g: 40, b: 120},
+    {r: 62, g: 74, b: 137},
+    {r: 49, g: 104, b: 142},
+    {r: 38, g: 130, b: 142},
+    {r: 31, g: 158, b: 137},
+    {r: 53, g: 183, b: 121},
+    {r: 109, g: 205, b: 89},
+    {r: 180, g: 222, b: 44},
+    {r: 253, g: 231, b: 37}
+];
+
+let localMapInfo: AllMapData;
 let markers_list: TravelsMapData[];
 let baseMap: L.Map;
 let allMarkers: L.CircleMarker[] = [];
 let allLines: L.Polyline[] = [];
+let legendLayer = new L.Layer();
 let degreelayerGroup = new L.LayerGroup();
 let betweenesLayerGroup = new L.LayerGroup();
 let closenessLayerGroup = new L.LayerGroup();
 let eigenVectorLayerGroup = new L.LayerGroup();
-
 let activeTab = "#map";
+let htmlLegend: L.HtmlLegend | undefined = undefined;
+
+function componentToHex(c: number) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+};
+
+function rgbToHex(r: number, g: number, b: number) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+};
+
+function interpolateValue(minVal: number, maxVal: number, value: number): string {
+    return (((maxVal - minVal) / 10) * value).toFixed(2);
+}
 
 function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number) {
     if (!mColor) {
@@ -87,21 +122,54 @@ function getCentralityIndex() {
 
 function clearMap() {
     if (degreelayerGroup.getLayers().length > 0) {
-        console.log('Clearing degree');
         baseMap.removeLayer(degreelayerGroup);
     }
     if (betweenesLayerGroup.getLayers().length > 0) {
-        console.log('Clearing betweeness');
         baseMap.removeLayer(betweenesLayerGroup);
     }
     if (closenessLayerGroup.getLayers().length > 0) {
-        console.log('Clearing closeness');
         baseMap.removeLayer(closenessLayerGroup);
     }
     if (eigenVectorLayerGroup.getLayers().length > 0) {
-        console.log('Clearing eigenvector');
         baseMap.removeLayer(eigenVectorLayerGroup);
     }
+}
+
+function updateMapLegend(title: string) {
+    if(htmlLegend != undefined) {
+        baseMap.removeControl(htmlLegend);
+    }
+    type LegendHTMLElement = {
+        label: string,
+        html: string,
+        style: {[key: string]: string}
+    };
+    let legendElements: LegendHTMLElement[] = [];
+
+    for (let i = 0; i < 10; i++) {
+        legendElements.push({
+            label: interpolateValue(localMapInfo.min, localMapInfo.max, (i + 1)),
+            html: '',
+            style: {
+                'background-color': rgbToHex(VIRIDIS_COLORMAP[i].r, VIRIDIS_COLORMAP[i].g, VIRIDIS_COLORMAP[i].b),
+                'width': '15px',
+                'height': '10px'
+            }
+        });
+    }
+    htmlLegend = L.control.htmllegend({
+        position: 'bottomright',
+        legends: [{
+            name: title,
+            elements: legendElements
+        }],
+        collapseSimple: true,
+        detectStretched: false,
+        collapsedOnInit: false,
+        defaultOpacity: 0.7,
+        disableVisibilityControls: true,
+    });
+    baseMap.addControl(htmlLegend);
 }
 
 function updateMap() {
@@ -120,7 +188,8 @@ function updateMap() {
         success: (data) => {
             allMarkers = [];
             allLines = [];
-            markers_list = data;
+            localMapInfo = data; 
+            markers_list = localMapInfo.data;
             markers_list.forEach((m) => {
                 const srcGeoreference = new L.LatLng(m.SourceLatitude, m.SourceLongitude);
                 const dstGeoreference = new L.LatLng(m.DestLatitude, m.DestLongitude);
@@ -136,6 +205,7 @@ function updateMap() {
                     degreelayerGroup.addLayer(marker);
                 });
                 degreelayerGroup.addTo(baseMap);
+                updateMapLegend("Degree");
             } else if (currentCentrality == "Betweeness") {
                 allLines.forEach(line => {
                     betweenesLayerGroup.addLayer(line);
@@ -144,6 +214,7 @@ function updateMap() {
                     betweenesLayerGroup.addLayer(marker);
                 });
                 betweenesLayerGroup.addTo(baseMap);
+                updateMapLegend("Betweeness");
             } else if (currentCentrality == "Closeness") {
                 allLines.forEach(line => {
                     closenessLayerGroup.addLayer(line);
@@ -152,6 +223,7 @@ function updateMap() {
                     closenessLayerGroup.addLayer(marker);
                 });
                 closenessLayerGroup.addTo(baseMap);
+                updateMapLegend("Closeness");
             } else {
                 allLines.forEach(line => {
                     eigenVectorLayerGroup.addLayer(line);
@@ -160,14 +232,49 @@ function updateMap() {
                     eigenVectorLayerGroup.addLayer(marker);
                 });
                 eigenVectorLayerGroup.addTo(baseMap);
+                updateMapLegend("Eigenvector");
             }
         }
     });
 }
 
+function updateMetricsTable(){
+    type MeticsTableData = {
+        City: string,
+        Degree: number,
+        Betweenness: number,
+        Closeness: number,
+        Eigenvector: number
+    };
+    const currentPhilosopher = "1";
+    const urlBase = (
+        "http://localhost:5000/map/get/table/"
+        + currentPhilosopher
+    );
+    $.ajax({
+        dataType: "text json",
+        url: urlBase,
+        success: (data: MeticsTableData[]) => {
+            const tableData = data.map(el => [el.City, el.Degree, el.Betweenness, el.Closeness, el.Eigenvector]);
+            $("#metrics-table").DataTable({
+                data: tableData,
+                columns: [
+                    { title: "City" },
+                    { title: "Degree" },
+                    { title: "Betweenness" },
+                    { title: "Closeness" },
+                    { title: "Eigenvector" },
+                ]
+            });
+        }
+    });
+    //
+}
+
 function updateGraph() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
+    const labelSizes = $(".label-range-slider").val() as string;
     const urlBase = (
         "http://localhost:5000/map/get/graph/"
         + currentCentrality
@@ -194,11 +301,21 @@ function debounce<Params extends any[]>(
 function updateAll() {
     switch (activeTab) {
         case "#map":
+            $("#appareance-label").show();
+            $("#node-size-div").show();
+            $("#label-size-div").hide();
             updateMap();
             break;
         case "#metrics":
+            $("#appareance-label").hide();
+            $("#node-size-div").hide();
+            $("#label-size-div").hide();
+            updateMetricsTable();
             break;
         case "#graph":
+            $("#appareance-label").show();
+            $("#node-size-div").show();
+            $("#label-size-div").show();
             updateGraph();
             break;
     }
@@ -235,9 +352,9 @@ $(() => {
         maxZoom: 19,
         attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
     }).addTo(baseMap);
-    const htmlLegend = new L.control.htmllegend();
     activeTab = "#map";
     updateAll();
+
     $("#centrality-index").change(
         (event) => {
             updateAll();
