@@ -36,16 +36,16 @@ const MAP_CENTER: L.LatLng = new L.LatLng(35.255, 24.92);
 const MAIN_TILE_LAYER = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
 const VIRIDIS_COLORMAP = [
-    {r: 68, g: 1, b: 84},
-    {r: 72, g: 40, b: 120},
-    {r: 62, g: 74, b: 137},
-    {r: 49, g: 104, b: 142},
-    {r: 38, g: 130, b: 142},
-    {r: 31, g: 158, b: 137},
-    {r: 53, g: 183, b: 121},
-    {r: 109, g: 205, b: 89},
-    {r: 180, g: 222, b: 44},
-    {r: 253, g: 231, b: 37}
+    { r: 68, g: 1, b: 84 },
+    { r: 72, g: 40, b: 120 },
+    { r: 62, g: 74, b: 137 },
+    { r: 49, g: 104, b: 142 },
+    { r: 38, g: 130, b: 142 },
+    { r: 31, g: 158, b: 137 },
+    { r: 53, g: 183, b: 121 },
+    { r: 109, g: 205, b: 89 },
+    { r: 180, g: 222, b: 44 },
+    { r: 253, g: 231, b: 37 }
 ];
 
 let localMapInfo: AllMapData;
@@ -53,7 +53,7 @@ let markers_list: TravelsMapData[];
 let baseMap: L.Map;
 let allMarkers: L.CircleMarker[] = [];
 let allLines: L.Polyline[] = [];
-let legendLayer = new L.Layer();
+let dataTableInitialized = false;
 let degreelayerGroup = new L.LayerGroup();
 let betweenesLayerGroup = new L.LayerGroup();
 let closenessLayerGroup = new L.LayerGroup();
@@ -136,13 +136,13 @@ function clearMap() {
 }
 
 function updateMapLegend(title: string) {
-    if(htmlLegend != undefined) {
+    if (htmlLegend != undefined) {
         baseMap.removeControl(htmlLegend);
     }
     type LegendHTMLElement = {
         label: string,
         html: string,
-        style: {[key: string]: string}
+        style: { [key: string]: string }
     };
     let legendElements: LegendHTMLElement[] = [];
 
@@ -188,7 +188,7 @@ function updateMap() {
         success: (data) => {
             allMarkers = [];
             allLines = [];
-            localMapInfo = data; 
+            localMapInfo = data;
             markers_list = localMapInfo.data;
             markers_list.forEach((m) => {
                 const srcGeoreference = new L.LatLng(m.SourceLatitude, m.SourceLongitude);
@@ -238,7 +238,7 @@ function updateMap() {
     });
 }
 
-function updateMetricsTable(){
+function updateMetricsTable() {
     type MeticsTableData = {
         City: string,
         Degree: number,
@@ -246,7 +246,7 @@ function updateMetricsTable(){
         Closeness: number,
         Eigenvector: number
     };
-    const currentPhilosopher = "1";
+    const currentPhilosopher = "All";
     const urlBase = (
         "http://localhost:5000/map/get/table/"
         + currentPhilosopher
@@ -258,6 +258,7 @@ function updateMetricsTable(){
             const tableData = data.map(el => [el.City, el.Degree, el.Betweenness, el.Closeness, el.Eigenvector]);
             $("#metrics-table").DataTable({
                 data: tableData,
+                retrieve: true,
                 columns: [
                     { title: "City" },
                     { title: "Degree" },
