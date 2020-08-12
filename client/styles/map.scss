@@ -17,3 +17,27 @@ body {}
 .leaflet-html-legend {
     width: 130px !important;
 }
+
+#map {
+    padding: 10px;
+    border: thin;
+}
+
+#graph {
+    padding: 10px;
+    border: thin;
+}
+
+#graph iframe {
+    border: 0px;
+}
+
+#metrics {
+    padding: 10px;
+    margin-top: 10px;
+    border: thin;
+}
+
+#metrics table thead {
+    color: white;
+}

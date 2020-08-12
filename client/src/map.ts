@@ -13,6 +13,7 @@ import "!style-loader!css-loader!leaflet/dist/leaflet.css"
 import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
 
 
+
 interface TravelsMapData {
     Source: string,
     SourceColor: string,
