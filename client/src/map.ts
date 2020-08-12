@@ -12,6 +12,7 @@ import "leaflet-html-legend"
 import "!style-loader!css-loader!leaflet/dist/leaflet.css"
 import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
 
+const BASE_URL = "http://54.202.119.187:5000"
 
 
 interface TravelsMapData {
@@ -177,7 +178,8 @@ function updateMap() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
     const urlBase = (
-        "http://localhost:5000/map/get/map/"
+        BASE_URL
+        + "/map/get/map/"
         + currentCentrality
         + "/"
         + nodeSizes
@@ -249,7 +251,8 @@ function updateMetricsTable() {
     };
     const currentPhilosopher = "All";
     const urlBase = (
-        "http://localhost:5000/map/get/table/"
+        BASE_URL
+        + "/map/get/table/"
         + currentPhilosopher
     );
     $.ajax({
@@ -278,7 +281,8 @@ function updateGraph() {
     const nodeSizes = $(".node-range-slider").val() as string;
     const labelSizes = $(".label-range-slider").val() as string;
     const urlBase = (
-        "http://localhost:5000/map/get/graph/"
+        BASE_URL
+        + "/map/get/graph/"
         + currentCentrality
         + "/"
         + nodeSizes
