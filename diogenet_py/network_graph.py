@@ -486,7 +486,7 @@ class MapGraph:
             #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
             #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
 
-            pv_graph = pyvis.network.Network(height="97%", width="97%", heading="")
+            pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
             pyvis_map_options = {}
             pyvis_map_options["nodes"] = {
                 "scaling": {"min": min_weight, "max": max_weight}

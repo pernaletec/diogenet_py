@@ -89,9 +89,7 @@ def get_graph_data(centrality_index, min_max="4,6"):
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
-        pvis_graph.show(full_filename)
-        print(temp_file_name)
-        print(app.root_path)
+        pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
     else:
         return make_response("Error accessing MapGraph Object", 400)
