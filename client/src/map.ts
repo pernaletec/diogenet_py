@@ -122,6 +122,36 @@ function getCentralityIndex() {
     return centralityIndex;
 }
 
+function highligthFeature(e: any) {
+    var layer = e.target;
+
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+}
+
+function resetHighlight(e: any) {
+    var layer = e.target;
+
+    layer.setStyle({
+        color: "#333333",
+        weight: 3,
+        opacity: 0.4,
+        smoothFactor: 1
+    });
+}
+
+function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+}
+
 function clearMap() {
     if (degreelayerGroup.getLayers().length > 0) {
         baseMap.removeLayer(degreelayerGroup);
