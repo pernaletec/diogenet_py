@@ -77,7 +77,7 @@ function interpolateValue(minVal: number, maxVal: number, value: number): string
     return (((maxVal - minVal) / 10) * value).toFixed(2);
 }
 
-function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number) {
+function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number): L.CircleMarker{
     if (!mColor) {
         mColor = "#959595";
     }
@@ -88,13 +88,13 @@ function addCircleMarker(popupText: string, latitude: number, longitude: number,
         {
             radius: (mSize + 3),
             opacity: 1,
-            color: mColor
+            color: mColor,
         });
     mark.bindPopup(popupText, { closeButton: true });
-    allMarkers.push(mark);
+    return mark;
 }
 
-function drawLine(source: L.LatLng, destination: L.LatLng, popupMsg?: string) {
+function drawLine(source: L.LatLng, destination: L.LatLng, popupMsg?: string): L.Polyline {
     const pointList = [source, destination];
     const poliLine = new L.Polyline(pointList, {
         color: "#333333",
@@ -105,7 +105,7 @@ function drawLine(source: L.LatLng, destination: L.LatLng, popupMsg?: string) {
     if (popupMsg) {
         poliLine.bindPopup(popupMsg, { closeButton: true });
     }
-    allLines.push(poliLine);
+    return poliLine;
 }
 
 function getCentralityIndex() {
@@ -123,14 +123,12 @@ function getCentralityIndex() {
     return centralityIndex;
 }
 
-function highlightFeature(e: any) {
-    var layer = e.target;
-
+function highlightFeature(e: any, color?: string) {
+    var layer = e.target as L.GeoJSON;
     layer.setStyle({
-        weight: 5,
-        color: '#666',
+        weight: 8,
         dashArray: '',
-        fillOpacity: 0.7
+        fillOpacity: 1
     });
 
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
@@ -139,26 +137,42 @@ function highlightFeature(e: any) {
 }
 
 function resetHighlight(e: any) {
-    var layer = e.target;
-
+    var layer = e.target as L.GeoJSON;
     layer.setStyle({
-        color: "#333333",
         weight: 3,
-        opacity: 0.4,
-        smoothFactor: 1
+        dashArray: '',
+        opacity: 0.5,
     });
 }
 
-function zoomToFeature(e) {
+function zoomToFeature(e: any) {
     baseMap.fitBounds(e.target.getBounds());
+    e.target.bringToFront();
 }
 
-function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
+function onEachFeatureFn(feature: any, layer: L.GeoJSON): any {
+    layer.on( {
         click: zoomToFeature
     });
+    if (feature.geometry.type == "LineString") {
+        let strPopUp = (
+            feature.properties.name
+            + " travels from "
+            + feature.properties.travelsFrom
+            + " to "
+            + feature.properties.travelsTo
+        )
+        layer.bindPopup(strPopUp)
+        .setStyle({
+            weight: 3,
+            dashArray: '',
+            opacity: 0.5,
+            color: "#333"
+        });
+    } else {
+        layer.bindTooltip(feature.properties.name);
+        layer.bindPopup(feature.properties.name);
+    };
 }
 
 
@@ -229,53 +243,121 @@ function updateMap() {
         dataType: "text json",
         url: urlBase,
         success: (data) => {
-            allMarkers = [];
-            allLines = [];
             localMapInfo = data;
             markers_list = localMapInfo.data;
             markers_list.forEach((m) => {
-                const srcGeoreference = new L.LatLng(m.SourceLatitude, m.SourceLongitude);
-                const dstGeoreference = new L.LatLng(m.DestLatitude, m.DestLongitude);
-                addCircleMarker(m.Source, m.SourceLatitude, m.SourceLongitude, m.SourceColor, m.SourceSize);
-                addCircleMarker(m.Destination, m.DestLatitude, m.DestLongitude, m.DestinationColor, m.DestinationSize);
-                drawLine(srcGeoreference, dstGeoreference, m.Philosopher + " traveling from " + m.Source + " to " + m.Destination);
+                const metaGeoJSON = JSON.stringify({
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": 
+                                [
+                                    [m.SourceLongitude, m.SourceLatitude],
+                                    [m.DestLongitude, m.DestLatitude]
+                                ]
+                            },
+                            "properties": {
+                                "type": "edge",
+                                "name": m.Philosopher,
+                                "travelsFrom": m.Source,
+                                "travelsTo": m.Destination,
+                                "sourceColor": m.SourceColor,
+                                "destinationColor": m.DestinationColor,
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [m.SourceLongitude, m.SourceLatitude]
+                            },
+                            "properties": {
+                                "type": "source",
+                                "name": m.Source,
+                                "color": m.SourceColor,
+                                "size": m.SourceSize
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [m.DestLongitude, m.DestLatitude]
+                            },
+                            "properties": {
+                                "type": "destination",
+                                "name": m.Destination,
+                                "color": m.DestinationColor,
+                                "size": m.DestinationSize
+                            }
+                        },
+                    ],
+                });
+                const geoJson = new L.GeoJSON(JSON.parse(metaGeoJSON), {
+                    pointToLayer: (feature: any, latlng: L.LatLng) => {
+                        let marker: L.CircleMarker;
+                        if (feature.properties.type == "source") {
+                            marker = addCircleMarker(
+                                m.Source,
+                                m.SourceLatitude,
+                                m.SourceLongitude,
+                                m.SourceColor,
+                                m.SourceSize
+                            );
+                        } else {
+                            marker = addCircleMarker(
+                                m.Destination,
+                                m.DestLatitude,
+                                m.DestLongitude,
+                                m.DestinationColor,
+                                m.DestinationSize
+                            );
+                        }
+                        return marker;
+                    },
+                    onEachFeature: onEachFeatureFn,
+                });
+                geoJson.bindTooltip(m.Philosopher + " travels from " + m.Source + " to " + m.Destination);
+                let featureLayerGroup = new L.FeatureGroup([geoJson]);
+                featureLayerGroup.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                })
+                switch (currentCentrality) {
+                    case "Degree":
+                        degreelayerGroup.addLayer(featureLayerGroup);
+                        break;
+                    case "Betweeness":
+                        betweenesLayerGroup.addLayer(featureLayerGroup);
+                        break;
+                    case "Closeness":
+                        closenessLayerGroup.addLayer(featureLayerGroup);
+                        break;
+                    case "Eigenvector":
+                        eigenVectorLayerGroup.addLayer(featureLayerGroup);
+                        break;
+                }
             });
-            if (currentCentrality == "Degree") {
-                allLines.forEach(line => {
-                    degreelayerGroup.addLayer(line);
-                });
-                allMarkers.forEach(marker => {
-                    degreelayerGroup.addLayer(marker);
-                });
-                degreelayerGroup.addTo(baseMap);
-                updateMapLegend("Degree");
-            } else if (currentCentrality == "Betweeness") {
-                allLines.forEach(line => {
-                    betweenesLayerGroup.addLayer(line);
-                });
-                allMarkers.forEach(marker => {
-                    betweenesLayerGroup.addLayer(marker);
-                });
-                betweenesLayerGroup.addTo(baseMap);
-                updateMapLegend("Betweeness");
-            } else if (currentCentrality == "Closeness") {
-                allLines.forEach(line => {
-                    closenessLayerGroup.addLayer(line);
-                });
-                allMarkers.forEach(marker => {
-                    closenessLayerGroup.addLayer(marker);
-                });
-                closenessLayerGroup.addTo(baseMap);
-                updateMapLegend("Closeness");
-            } else {
-                allLines.forEach(line => {
-                    eigenVectorLayerGroup.addLayer(line);
-                });
-                allMarkers.forEach(marker => {
-                    eigenVectorLayerGroup.addLayer(marker);
-                });
-                eigenVectorLayerGroup.addTo(baseMap);
-                updateMapLegend("Eigenvector");
+            switch (currentCentrality) {
+                case "Degree":
+                    degreelayerGroup.addTo(baseMap);
+                    updateMapLegend("Degree");
+                    break;
+                case "Betweeness":
+                    betweenesLayerGroup.addTo(baseMap);
+                    updateMapLegend("Betweeness");
+                    break;
+                case "Closeness":
+                    closenessLayerGroup.addTo(baseMap);
+                    updateMapLegend("Closeness");
+                    break;
+                case "Eigenvector":
+                    eigenVectorLayerGroup.addTo(baseMap);
+                    updateMapLegend("Eigenvector");
+                    break;
             }
         }
     });
