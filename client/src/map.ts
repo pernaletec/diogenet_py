@@ -123,7 +123,7 @@ function getCentralityIndex() {
     return centralityIndex;
 }
 
-function highligthFeature(e: any) {
+function highlightFeature(e: any) {
     var layer = e.target;
 
     layer.setStyle({
@@ -150,8 +150,17 @@ function resetHighlight(e: any) {
 }
 
 function zoomToFeature(e) {
-    map.fitBounds(e.target.getBounds());
+    baseMap.fitBounds(e.target.getBounds());
 }
+
+function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+}
+
 
 function clearMap() {
     if (degreelayerGroup.getLayers().length > 0) {
@@ -238,6 +247,7 @@ function updateMap() {
                 allMarkers.forEach(marker => {
                     degreelayerGroup.addLayer(marker);
                 });
+                degreelayerGroup.o
                 degreelayerGroup.addTo(baseMap);
                 updateMapLegend("Degree");
             } else if (currentCentrality == "Betweeness") {
