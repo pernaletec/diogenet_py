@@ -343,7 +343,6 @@ class MapGraph:
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
         """
-
         return self.igraph_map.betweenness()
 
     def calculate_eigenvector(self):
@@ -351,10 +350,49 @@ class MapGraph:
         """
         return self.igraph_map.evcent()
 
+    def centralization_degree(self):
+        """Calculate unnormalized centralization degree for the graph
+        """
+        degree = self.calculate_degree()
+        max_degree = max(degree)
+        cent_degree = 0
+        for centrality in degree:
+            cent_degree = cent_degree + (max_degree-centrality)
+        return cent_degree
+
+    def centralization_betweenness(self):
+        """Calculate unnormalized centralization betweenness for the graph
+        """
+        betweenness = self.calculate_betweenness()
+        max_betweenness = max(betweenness)
+        cent_betweenness = 0
+        for centrality in betweenness:
+            cent_betweenness = cent_betweenness + (max_betweenness-centrality)
+        return cent_betweenness        
+
+    def centralization_closeness(self):
+        """Calculate unnormalized centralization closeness for the graph
+        """
+        closeness = self.calculate_closeness()
+        max_closeness = max(closeness)
+        cent_closeness = 0
+        for centrality in closeness:
+            cent_closeness = cent_closeness + (max_closeness-centrality)
+        return cent_closeness        
+
+    def centralization_eigenvector(self):
+        """Calculate unnormalized centralization eigen vector for the graph
+        """        
+        eigenvector = self.calculate_eigenvector()
+        max_eigenvector = max(eigenvector)
+        cent_eigenvector = 0
+        for centrality in eigenvector:
+            cent_eigenvector = cent_eigenvector + (max_eigenvector-centrality)
+        return cent_eigenvector
+
     def get_vertex_names(self):
         """Return names for each vertex of the graph
         """
-
         vertex_names = []
         for vertex in self.igraph_map.vs:
             vertex_names.append(vertex["name"])
@@ -611,6 +649,11 @@ class MapGraph:
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
+
+grafo.centralization_degree()
+grafo.centralization_betweenness()
+grafo.centralization_closeness()
+grafo.centralization_eigenvector()
 
 # grafo.set_edges_filter("Aristotle")
 # grafo.set_edges_filter("Pythagoras")
