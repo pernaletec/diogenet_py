@@ -12,7 +12,8 @@ import "leaflet-html-legend"
 import "!style-loader!css-loader!leaflet/dist/leaflet.css"
 import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css"
 
-const BASE_URL = "http://54.202.119.187:5000"
+// const BASE_URL = "http://54.202.119.187:5000"
+const BASE_URL = "http://localhost:5000"
 
 
 interface TravelsMapData {
