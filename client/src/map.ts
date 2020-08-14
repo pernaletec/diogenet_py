@@ -247,7 +247,6 @@ function updateMap() {
                 allMarkers.forEach(marker => {
                     degreelayerGroup.addLayer(marker);
                 });
-                degreelayerGroup.o
                 degreelayerGroup.addTo(baseMap);
                 updateMapLegend("Degree");
             } else if (currentCentrality == "Betweeness") {
