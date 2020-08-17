@@ -54,9 +54,6 @@ const VIRIDIS_COLORMAP = [
 let localMapInfo: AllMapData;
 let markers_list: TravelsMapData[];
 let baseMap: L.Map;
-let allMarkers: L.CircleMarker[] = [];
-let allLines: L.Polyline[] = [];
-let dataTableInitialized = false;
 let degreelayerGroup = new L.LayerGroup();
 let betweenesLayerGroup = new L.LayerGroup();
 let closenessLayerGroup = new L.LayerGroup();
@@ -122,6 +119,17 @@ function getCentralityIndex() {
     }
     return centralityIndex;
 }
+
+function getFilter() {
+    const value = $("#traveler").val();
+    console.log(value);
+    return "All";
+}
+
+function addFilterOption(option: string) {
+    $('#traveler').append(new Option(option, option));
+  }
+
 
 function highlightFeature(e: any, color?: string) {
     var layer = e.target as L.GeoJSON;
@@ -231,12 +239,15 @@ function updateMapLegend(title: string) {
 function updateMap() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
-    const urlBase = (
+    const currentFilter = getFilter();
+    const urlBase = encodeURI(
         BASE_URL
-        + "/map/get/map/"
+        + "/map/get/map?centrality="
         + currentCentrality
-        + "/"
+        + "&min_max="
         + nodeSizes
+        + "&filter="
+        + currentFilter
     );
     clearMap();
     $.ajax({
@@ -340,6 +351,7 @@ function updateMap() {
                         eigenVectorLayerGroup.addLayer(featureLayerGroup);
                         break;
                 }
+                addFilterOption(m.Philosopher);
             });
             switch (currentCentrality) {
                 case "Degree":

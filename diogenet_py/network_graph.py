@@ -91,7 +91,6 @@ class MapGraph:
     current_centrality_index = "Degree"
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
-    pyvis_map_hash = None
 
     nodes_graph_data = pd.DataFrame()
     edges_graph_data = pd.DataFrame()
@@ -357,7 +356,7 @@ class MapGraph:
         max_degree = max(degree)
         cent_degree = 0
         for centrality in degree:
-            cent_degree = cent_degree + (max_degree-centrality)
+            cent_degree = cent_degree + (max_degree - centrality)
         return cent_degree
 
     def centralization_betweenness(self):
@@ -367,8 +366,8 @@ class MapGraph:
         max_betweenness = max(betweenness)
         cent_betweenness = 0
         for centrality in betweenness:
-            cent_betweenness = cent_betweenness + (max_betweenness-centrality)
-        return cent_betweenness        
+            cent_betweenness = cent_betweenness + (max_betweenness - centrality)
+        return cent_betweenness
 
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
@@ -377,17 +376,17 @@ class MapGraph:
         max_closeness = max(closeness)
         cent_closeness = 0
         for centrality in closeness:
-            cent_closeness = cent_closeness + (max_closeness-centrality)
-        return cent_closeness        
+            cent_closeness = cent_closeness + (max_closeness - centrality)
+        return cent_closeness
 
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
-        """        
+        """
         eigenvector = self.calculate_eigenvector()
         max_eigenvector = max(eigenvector)
         cent_eigenvector = 0
         for centrality in eigenvector:
-            cent_eigenvector = cent_eigenvector + (max_eigenvector-centrality)
+            cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
         return cent_eigenvector
 
     def get_vertex_names(self):
@@ -622,12 +621,13 @@ class MapGraph:
     def create_subgraph(self):
         """Create subgraph depending on edges selected (i.e travellers)
         """
+        subgraph = None
         if not self.edges_filter:
             subgraph = self.igraph_map
         else:
             edges = self.igraph_map.es
             edge_names = self.igraph_map.es["edge_name"]
-            travellers = self.edges_filter
+            travellers = self.edges_filter if self.edges_filter else edges_filter
             edge_indexes = [
                 j.index for i, j in zip(edge_names, edges) if i in travellers
             ]
