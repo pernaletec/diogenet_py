@@ -133,7 +133,8 @@ function getFilter() {
             }
         }
     }
-    return values;
+    //return values;
+    return "All";
 }
 
 function addFilterOptions() {
