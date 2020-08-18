@@ -49,7 +49,9 @@ def get_map_data():
         data = ng.grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = ng.grafo.get_max_min()
     else:
-        ng.grafo.set_edges_filter(map_filter)
+        filters = map_filter.split(";")
+        for m_filter in filters:
+            ng.grafo.set_edges_filter(m_filter)
         sub_igraph = ng.grafo.create_subgraph()
         subgraph = ng.grafo
         subgraph.igraph_map = sub_igraph

@@ -60,6 +60,7 @@ let closenessLayerGroup = new L.LayerGroup();
 let eigenVectorLayerGroup = new L.LayerGroup();
 let activeTab = "#map";
 let htmlLegend: L.HtmlLegend | undefined = undefined;
+let travelersListOptions: string[] = [];
 
 function componentToHex(c: number) {
     var hex = c.toString(16);
@@ -121,15 +122,54 @@ function getCentralityIndex() {
 }
 
 function getFilter() {
-    const value = $("#traveler").val();
-    console.log(value);
-    return "All";
+    const travelersFilter = <HTMLSelectElement> document.getElementById("travelers_filter");
+    let values = "";
+    if (travelersFilter !== null) {
+        const trLen = travelersFilter.options.length;
+        for (let i = 0; i < trLen; i++) {
+            values += travelersFilter.options[i].value;
+            if (i !== (trLen - 1)) {
+                values += ";";
+            }
+        }
+    }
+    return values;
 }
 
-function addFilterOption(option: string) {
-    $('#traveler').append(new Option(option, option));
-  }
+function addFilterOptions() {
+    const travelSelect = document.getElementById('traveler');
+    if (travelSelect !== null) {
+        travelSelect.innerHTML = "";
+    }
+    const tempTravelers = travelersListOptions.filter((v, i, a) => a.indexOf(v) === i);
+    travelersListOptions = tempTravelers;
+    travelersListOptions.sort((a, b) => {
+        if (a > b) return 1;
+        if (a < b) return -1;
+        return 0
+    });
+    travelersListOptions.forEach( option => {
+        $("#traveler").append(new Option(option, option));
+    });
+}
 
+function addFilter() {
+    const travelersFilter: HTMLSelectElement = <HTMLSelectElement> document.getElementById("travelers_filter");
+    const filterValue = <string> $("#traveler").val();
+    if (travelersFilter !== null) {
+        const trLen = travelersFilter.options.length;
+        let addFilter2Control = true;
+        for (let i = 0; i < trLen; i++) {
+            if (travelersFilter.options[i].value === filterValue) {
+                addFilter2Control = false;
+                console.log("Exist");
+            }
+        }
+        if (addFilter2Control) {
+            $("#travelers_filter").append(new Option(filterValue, filterValue));
+        }
+    }
+}
 
 function highlightFeature(e: any, color?: string) {
     var layer = e.target as L.GeoJSON;
@@ -254,6 +294,7 @@ function updateMap() {
         dataType: "text json",
         url: urlBase,
         success: (data) => {
+            travelersListOptions = [];
             localMapInfo = data;
             markers_list = localMapInfo.data;
             markers_list.forEach((m) => {
@@ -351,8 +392,10 @@ function updateMap() {
                         eigenVectorLayerGroup.addLayer(featureLayerGroup);
                         break;
                 }
-                addFilterOption(m.Philosopher);
+                // addFilterOption(m.Philosopher);
+                travelersListOptions.push(m.Philosopher);
             });
+            addFilterOptions();
             switch (currentCentrality) {
                 case "Degree":
                     degreelayerGroup.addTo(baseMap);
@@ -502,6 +545,12 @@ $(() => {
     const debouncedUpdateGraph = debounce(updateAll, 4000);
     $(".node-range-slider").change((event) => {
         debouncedUpdateGraph();
+    });
+
+    const debouncedUpdateMap = debounce(updateMap, 4000);
+    $("#filter_add").click((e) => {
+        addFilter();
+        debouncedUpdateMap()
     });
     $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
         const activedTab = <HTMLAnchorElement>e.target;
