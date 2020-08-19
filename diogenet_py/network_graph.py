@@ -79,6 +79,7 @@ class MapGraph:
     location_raw_data = None
     blacklist_raw_data = None
     igraph_map = None
+    igraph_submap = None
 
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
@@ -96,6 +97,7 @@ class MapGraph:
     edges_graph_data = pd.DataFrame()
     locations_graph_data = pd.DataFrame()
     travels_graph_data = pd.DataFrame()
+    travels_subgraph_data = pd.DataFrame()
 
     located_nodes = None
 
@@ -115,6 +117,7 @@ class MapGraph:
         :param blacklist_raw_data: Raw data for blacklisted places
 
         :param igraph_map: Python igraph graph object
+        :param igraph_map: Python igraph sub-graph object
 
         :param phylosophers_known_origin: Data for phylosophers and their origin
         :param multi_origin_phylosophers: List of phylosophers with more than one
@@ -124,6 +127,8 @@ class MapGraph:
         :param edges_graph_data: Edges data processed for graph
         :param locations_graph_data: Locations data processed for graph
         :param travels_graph_data: Full data for graph including edges names,
+        phylosopher name and coordinates
+        :param travels_subgraph_data: Full data for subgraph including edges names,
         phylosopher name and coordinates
 
         :param located_nodes: Nodes with an identified location in locations data
@@ -152,6 +157,7 @@ class MapGraph:
 
         self.update_graph()
         self.create_subgraph()
+        self.tabulate_subgraph_data()
 
     def know_locations(self):
         """Create parameters for the class graph
@@ -623,7 +629,7 @@ class MapGraph:
         """
         subgraph = None
         if not self.edges_filter:
-            subgraph = self.igraph_map
+            subgraph = None
         else:
             edges = self.igraph_map.es
             edge_names = self.igraph_map.es["edge_name"]
@@ -632,7 +638,8 @@ class MapGraph:
                 j.index for i, j in zip(edge_names, edges) if i in travellers
             ]
             subgraph = self.igraph_map.subgraph_edges(edge_indexes)
-        return subgraph
+
+        self.igraph_submap = subgraph
 
     def set_colour_scale(self):
         """Create parameters for the class graph
@@ -645,6 +652,66 @@ class MapGraph:
         """
         return ()
 
+    def tabulate_subgraph_data(self):
+        """Create datatable for subgraph
+        """
+        source = []
+        target = []
+        name = []
+        lat_source = []
+        lon_source = []
+        lat_target = []
+        lon_target = []
+
+        vertex_list = []
+        edges_list = []
+
+        if self.igraph_submap:        
+            for vertex in self.igraph_submap.vs:
+                vertex_list.append(vertex["name"]) 
+
+        if self.igraph_submap:
+            for idx, edges in enumerate(self.igraph_submap.es):
+                source.append(vertex_list[edges.tuple[0]]) 
+                target.append(vertex_list[edges.tuple[1]])
+                name.append(edges["edge_name"])
+                lat_source.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lat[
+                            self.location_raw_data.name.isin([vertex_list[edges.tuple[0]]])
+                        ]
+                    )
+                )
+
+                lon_source.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lon[
+                            self.location_raw_data.name.isin([vertex_list[edges.tuple[0]]])
+                        ]
+                    )
+                )
+
+                lat_target.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lat[
+                            self.location_raw_data.name.isin([vertex_list[edges.tuple[1]]])
+                        ]
+                    )
+                )                
+                
+                lon_target.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lon[
+                            self.location_raw_data.name.isin([vertex_list[edges.tuple[1]]])
+                        ]
+                    )
+                )
+
+        list_of_tuples = list(
+            zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
+        )
+        list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
+        self.travels_subgraph_data = list_of_tuples_
 
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
@@ -654,6 +721,16 @@ grafo.centralization_degree()
 grafo.centralization_betweenness()
 grafo.centralization_closeness()
 grafo.centralization_eigenvector()
+
+grafo.set_edges_filter("Aristotle")
+#grafo.set_edges_filter("Pythagoras")
+grafo.create_subgraph()
+#print(grafo.igraph_submap)
+
+grafo.tabulate_subgraph_data()
+
+#datos_sub_grafo = 
+#print(datos_sub_grafo)
 
 # grafo.set_edges_filter("Aristotle")
 # grafo.set_edges_filter("Pythagoras")
