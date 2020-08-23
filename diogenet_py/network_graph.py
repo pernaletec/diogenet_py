@@ -646,6 +646,17 @@ class MapGraph:
 
         return subgraph
 
+    def get_subgraph(self):
+        subgraph = None
+        if self.edges_filter:
+            sub_igraph = self.create_subgraph()
+            self.tabulate_subgraph_data()
+            sub_travels_map_data = self.travels_subgraph_data
+            subgraph = self
+            subgraph.igraph_map = sub_igraph
+            subgraph.travels_graph_data = sub_travels_map_data
+        return subgraph
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 
