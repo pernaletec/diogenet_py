@@ -743,17 +743,17 @@ grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
 
-grafo.centralization_degree()
-grafo.centralization_betweenness()
-grafo.centralization_closeness()
-grafo.centralization_eigenvector()
+# grafo.centralization_degree()
+# grafo.centralization_betweenness()
+# grafo.centralization_closeness()
+# grafo.centralization_eigenvector()
 
-grafo.set_edges_filter("Aristotle")
-# grafo.set_edges_filter("Pythagoras")
-grafo.create_subgraph()
-# print(grafo.igraph_submap)
+# grafo.set_edges_filter("Aristotle")
+# # grafo.set_edges_filter("Pythagoras")
+# grafo.create_subgraph()
+# # print(grafo.igraph_submap)
 
-grafo.tabulate_subgraph_data()
+# grafo.tabulate_subgraph_data()
 
 # datos_sub_grafo =
 # print(datos_sub_grafo)

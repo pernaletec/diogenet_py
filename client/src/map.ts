@@ -225,17 +225,20 @@ function onEachFeatureFn(feature: any, layer: L.GeoJSON): any {
 
 function clearMap() {
     if (degreelayerGroup.getLayers().length > 0) {
-        console.log("Clear layergroup Degree");
         baseMap.removeLayer(degreelayerGroup);
+        degreelayerGroup = new L.LayerGroup();
     }
     if (betweenesLayerGroup.getLayers().length > 0) {
         baseMap.removeLayer(betweenesLayerGroup);
+        betweenesLayerGroup = new L.LayerGroup();
     }
     if (closenessLayerGroup.getLayers().length > 0) {
         baseMap.removeLayer(closenessLayerGroup);
+        closenessLayerGroup = new L.LayerGroup();
     }
     if (eigenVectorLayerGroup.getLayers().length > 0) {
         baseMap.removeLayer(eigenVectorLayerGroup);
+        eigenVectorLayerGroup = new L.LayerGroup();
     }
 }
 
@@ -292,8 +295,6 @@ function updateMap() {
         + "&filter="
         + currentFilter
     );
-    console.log("Current Filter: " + currentFilter);
-    console.log("Current URL: " + urlBase);
     clearMap();
     $.ajax({
         dataType: "text json",
@@ -302,7 +303,6 @@ function updateMap() {
             travelersListOptions = [];
             localMapInfo = data;
             markers_list = localMapInfo.data;
-            console.log(markers_list.length);
             markers_list.forEach((m) => {
                 const metaGeoJSON = JSON.stringify({
                     "type": "FeatureCollection",
@@ -591,6 +591,11 @@ $(() => {
     $("#filter_add").click((e) => {
         addFilter();
         debouncedUpdateMap()
+    });
+    $("#filter_clear").click((e) => {
+        const travelersFilter: HTMLSelectElement = <HTMLSelectElement>document.getElementById("travelers_filter");
+        travelersFilter.innerHTML = "";
+        updateMap();
     });
     $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
         const activedTab = <HTMLAnchorElement>e.target;
