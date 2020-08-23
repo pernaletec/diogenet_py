@@ -102,23 +102,34 @@ def get_metrics_table(phylosopher="All"):
         return make_response("Error accessing MapGraph Object", 400)
 
 
-@app.route("/map/get/graph/<centrality_index>/<min_max>/<filter>")
-def get_graph_data(centrality_index, min_max="4,6", filter="All"):
+@app.route("/map/get/graph")
+def get_graph_data():
+    if request.method != "GET":
+        return make_response("Malformed request", 400)
+
+    centrality_index = str(request.args.get("centrality"))
+    min_max = str(request.args.get("min_max"))
+    map_filter = str(request.args.get("filter"))
+
     if centrality_index:
         ng.grafo.current_centrality_index = centrality_index
+    if not min_max:
+        min_max = "4,6"
+    if not map_filter:
+        map_filter = "All"
 
     min_node_size = int(min_max.split(",")[0])
     max_node_size = int(min_max.split(",")[1])
 
-    if filter == "All":
+    if map_filter == "All":
         pvis_graph = ng.grafo.get_pyvis(
             min_weight=min_node_size, max_weight=max_node_size
         )
     else:
-        ng.grafo.set_edges_filter(filter)
-        sub_igraph = ng.grafo.create_subgraph()
-        subgraph = ng.grafo
-        subgraph.igraph_map = sub_igraph
+        filters = map_filter.split(";")
+        for m_filter in filters:
+            ng.grafo.set_edges_filter(m_filter)
+        subgraph = ng.grafo.get_subgraph()
         pvis_graph = subgraph.get_pyvis()
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"

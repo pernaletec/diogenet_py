@@ -497,12 +497,18 @@ function updateGraph() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
     const labelSizes = $(".label-range-slider").val() as string;
-    const urlBase = (
+    let currentFilter = getFilter();
+    if (currentFilter === "") {
+        currentFilter = "All";
+    }
+    const urlBase = encodeURI(
         BASE_URL
-        + "/map/get/graph/"
+        + "/map/get/graph?centrality="
         + currentCentrality
-        + "/"
+        + "&min_max="
         + nodeSizes
+        + "&filter="
+        + currentFilter
     );
     let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
     graphiFrame.src = urlBase;
@@ -587,15 +593,15 @@ $(() => {
         debouncedUpdateGraph();
     });
 
-    const debouncedUpdateMap = debounce(updateMap, 4000);
+    const debouncedUpdateAll = debounce(updateAll, 4000);
     $("#filter_add").click((e) => {
         addFilter();
-        debouncedUpdateMap()
+        debouncedUpdateAll()
     });
     $("#filter_clear").click((e) => {
         const travelersFilter: HTMLSelectElement = <HTMLSelectElement>document.getElementById("travelers_filter");
         travelersFilter.innerHTML = "";
-        updateMap();
+        updateAll();
     });
     $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
         const activedTab = <HTMLAnchorElement>e.target;
