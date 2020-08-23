@@ -133,8 +133,7 @@ function getFilter() {
             }
         }
     }
-    //return values;
-    return "All";
+    return values;
 }
 
 function addFilterOptions() {
@@ -427,6 +426,13 @@ function updateMetricsTable() {
         Closeness: number,
         Eigenvector: number
     };
+    type DataMapTable = {
+        CentralizationDegree: number,
+        CentralizationBetweenness: number,
+        CentralizationCloseness: number,
+        CentralizationEigenvector: number,
+        CityData: MeticsTableData[]
+    }
     const currentPhilosopher = "All";
     const urlBase = (
         BASE_URL
@@ -436,7 +442,32 @@ function updateMetricsTable() {
     $.ajax({
         dataType: "text json",
         url: urlBase,
-        success: (data: MeticsTableData[]) => {
+        success: (fullData: DataMapTable) => {
+            const dataCentral = [
+                [ 
+                    "Graph", 
+                    String(fullData.CentralizationDegree),
+                    String(fullData.CentralizationBetweenness),
+                    String(fullData.CentralizationCloseness),
+                    String(fullData.CentralizationEigenvector) 
+                ],
+            ]
+            $("#centralization-table").DataTable({
+                data: dataCentral,
+                retrieve: true,
+                columns: [
+                    { title: "" },
+                    { title: "Degree" },
+                    { title: "Betweenness" },
+                    { title: "Closeness" },
+                    { title: "Eigenvector" },
+                ],
+                "paging": false,
+                "ordering": false,
+                "info": false,
+                "searching": false
+            });
+            const data: MeticsTableData[] = fullData.CityData;
             const tableData = data.map(el => [el.City, el.Degree, el.Betweenness, el.Closeness, el.Eigenvector]);
             $("#metrics-table").DataTable({
                 data: tableData,

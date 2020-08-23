@@ -52,9 +52,14 @@ def get_map_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             ng.grafo.set_edges_filter(m_filter)
+        print(ng.grafo.edges_filter)
         sub_igraph = ng.grafo.create_subgraph()
+        ng.grafo.tabulate_subgraph_data()
+        sub_travelers_data = ng.grafo.travels_subgraph_data
         subgraph = ng.grafo
         subgraph.igraph_map = sub_igraph
+        subgraph.travels_graph_data = sub_travelers_data
+
         data = subgraph.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = subgraph.get_max_min()
     if data:
@@ -89,9 +94,17 @@ def get_metrics_table(phylosopher="All"):
             "Eigenvector": city_eigenvector,
         }
         data.append(record)
+
+    data_table = {}
+    data_table["CentralizationDegree"] = ng.grafo.centralization_degree()
+    data_table["CentralizationBetweenness"] = ng.grafo.centralization_betweenness()
+    data_table["CentralizationCloseness"] = ng.grafo.centralization_closeness()
+    data_table["CentralizationEigenvector"] = ng.grafo.centralization_eigenvector()
+    data_table["CityData"] = data
+
     if data:
         headers = {"Content-Type": "application/json"}
-        return make_response(jsonify(data), 200, headers)
+        return make_response(jsonify(data_table), 200, headers)
     else:
         return make_response("Error accessing MapGraph Object", 400)
 
