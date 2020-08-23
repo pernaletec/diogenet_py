@@ -422,7 +422,7 @@ class MapGraph:
     def get_interpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=9):
         """Get an interpolated integer from range [r1_min, r1_max] to [r2_min..r2_max]
         """
-        index = None
+        index = 0
         if r1_max > r1_min:
             index = int(
                 round(
@@ -433,6 +433,9 @@ class MapGraph:
                     0,
                 )
             )
+        elif r1_max == r1_min:
+            index = r1_min
+
         return index
 
     def rgb_to_hex(self, rgb):
@@ -629,7 +632,7 @@ class MapGraph:
         """
         subgraph = None
         if not self.edges_filter:
-            subgraph = None
+            subgraph = self.igraph_map
         else:
             edges = self.igraph_map.es
             edge_names = self.igraph_map.es["edge_name"]
@@ -640,6 +643,8 @@ class MapGraph:
             subgraph = self.igraph_map.subgraph_edges(edge_indexes)
 
         self.igraph_submap = subgraph
+
+        return subgraph
 
     def set_colour_scale(self):
         """Create parameters for the class graph
@@ -666,19 +671,21 @@ class MapGraph:
         vertex_list = []
         edges_list = []
 
-        if self.igraph_submap:        
+        if self.igraph_submap:
             for vertex in self.igraph_submap.vs:
-                vertex_list.append(vertex["name"]) 
+                vertex_list.append(vertex["name"])
 
         if self.igraph_submap:
             for idx, edges in enumerate(self.igraph_submap.es):
-                source.append(vertex_list[edges.tuple[0]]) 
+                source.append(vertex_list[edges.tuple[0]])
                 target.append(vertex_list[edges.tuple[1]])
                 name.append(edges["edge_name"])
                 lat_source.append(
                     pd.Series.to_list(
                         self.location_raw_data.lat[
-                            self.location_raw_data.name.isin([vertex_list[edges.tuple[0]]])
+                            self.location_raw_data.name.isin(
+                                [vertex_list[edges.tuple[0]]]
+                            )
                         ]
                     )
                 )
@@ -686,7 +693,9 @@ class MapGraph:
                 lon_source.append(
                     pd.Series.to_list(
                         self.location_raw_data.lon[
-                            self.location_raw_data.name.isin([vertex_list[edges.tuple[0]]])
+                            self.location_raw_data.name.isin(
+                                [vertex_list[edges.tuple[0]]]
+                            )
                         ]
                     )
                 )
@@ -694,15 +703,19 @@ class MapGraph:
                 lat_target.append(
                     pd.Series.to_list(
                         self.location_raw_data.lat[
-                            self.location_raw_data.name.isin([vertex_list[edges.tuple[1]]])
+                            self.location_raw_data.name.isin(
+                                [vertex_list[edges.tuple[1]]]
+                            )
                         ]
                     )
-                )                
-                
+                )
+
                 lon_target.append(
                     pd.Series.to_list(
                         self.location_raw_data.lon[
-                            self.location_raw_data.name.isin([vertex_list[edges.tuple[1]]])
+                            self.location_raw_data.name.isin(
+                                [vertex_list[edges.tuple[1]]]
+                            )
                         ]
                     )
                 )
@@ -712,6 +725,7 @@ class MapGraph:
         )
         list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
         self.travels_subgraph_data = list_of_tuples_
+
 
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
@@ -723,14 +737,14 @@ grafo.centralization_closeness()
 grafo.centralization_eigenvector()
 
 grafo.set_edges_filter("Aristotle")
-#grafo.set_edges_filter("Pythagoras")
+# grafo.set_edges_filter("Pythagoras")
 grafo.create_subgraph()
-#print(grafo.igraph_submap)
+# print(grafo.igraph_submap)
 
 grafo.tabulate_subgraph_data()
 
-#datos_sub_grafo = 
-#print(datos_sub_grafo)
+# datos_sub_grafo =
+# print(datos_sub_grafo)
 
 # grafo.set_edges_filter("Aristotle")
 # grafo.set_edges_filter("Pythagoras")
