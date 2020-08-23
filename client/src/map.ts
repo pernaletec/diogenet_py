@@ -75,7 +75,7 @@ function interpolateValue(minVal: number, maxVal: number, value: number): string
     return (((maxVal - minVal) / 10) * value).toFixed(2);
 }
 
-function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number): L.CircleMarker{
+function addCircleMarker(popupText: string, latitude: number, longitude: number, mColor?: string, mSize?: number): L.CircleMarker {
     if (!mColor) {
         mColor = "#959595";
     }
@@ -122,7 +122,7 @@ function getCentralityIndex() {
 }
 
 function getFilter() {
-    const travelersFilter = <HTMLSelectElement> document.getElementById("travelers_filter");
+    const travelersFilter = <HTMLSelectElement>document.getElementById("travelers_filter");
     let values = "";
     if (travelersFilter !== null) {
         const trLen = travelersFilter.options.length;
@@ -148,21 +148,20 @@ function addFilterOptions() {
         if (a < b) return -1;
         return 0
     });
-    travelersListOptions.forEach( option => {
+    travelersListOptions.forEach(option => {
         $("#traveler").append(new Option(option, option));
     });
 }
 
 function addFilter() {
-    const travelersFilter: HTMLSelectElement = <HTMLSelectElement> document.getElementById("travelers_filter");
-    const filterValue = <string> $("#traveler").val();
+    const travelersFilter: HTMLSelectElement = <HTMLSelectElement>document.getElementById("travelers_filter");
+    const filterValue = <string>$("#traveler").val();
     if (travelersFilter !== null) {
         const trLen = travelersFilter.options.length;
         let addFilter2Control = true;
         for (let i = 0; i < trLen; i++) {
             if (travelersFilter.options[i].value === filterValue) {
                 addFilter2Control = false;
-                console.log("Exist");
             }
         }
         if (addFilter2Control) {
@@ -199,7 +198,7 @@ function zoomToFeature(e: any) {
 }
 
 function onEachFeatureFn(feature: any, layer: L.GeoJSON): any {
-    layer.on( {
+    layer.on({
         click: zoomToFeature
     });
     if (feature.geometry.type == "LineString") {
@@ -211,12 +210,12 @@ function onEachFeatureFn(feature: any, layer: L.GeoJSON): any {
             + feature.properties.travelsTo
         )
         layer.bindPopup(strPopUp)
-        .setStyle({
-            weight: 3,
-            dashArray: '',
-            opacity: 0.5,
-            color: "#333"
-        });
+            .setStyle({
+                weight: 3,
+                dashArray: '',
+                opacity: 0.5,
+                color: "#333"
+            });
     } else {
         layer.bindTooltip(feature.properties.name);
         layer.bindPopup(feature.properties.name);
@@ -226,6 +225,7 @@ function onEachFeatureFn(feature: any, layer: L.GeoJSON): any {
 
 function clearMap() {
     if (degreelayerGroup.getLayers().length > 0) {
+        console.log("Clear layergroup Degree");
         baseMap.removeLayer(degreelayerGroup);
     }
     if (betweenesLayerGroup.getLayers().length > 0) {
@@ -279,7 +279,10 @@ function updateMapLegend(title: string) {
 function updateMap() {
     const currentCentrality = getCentralityIndex();
     const nodeSizes = $(".node-range-slider").val() as string;
-    const currentFilter = getFilter();
+    let currentFilter = getFilter();
+    if (currentFilter === "") {
+        currentFilter = "All";
+    }
     const urlBase = encodeURI(
         BASE_URL
         + "/map/get/map?centrality="
@@ -289,6 +292,8 @@ function updateMap() {
         + "&filter="
         + currentFilter
     );
+    console.log("Current Filter: " + currentFilter);
+    console.log("Current URL: " + urlBase);
     clearMap();
     $.ajax({
         dataType: "text json",
@@ -297,6 +302,7 @@ function updateMap() {
             travelersListOptions = [];
             localMapInfo = data;
             markers_list = localMapInfo.data;
+            console.log(markers_list.length);
             markers_list.forEach((m) => {
                 const metaGeoJSON = JSON.stringify({
                     "type": "FeatureCollection",
@@ -305,11 +311,11 @@ function updateMap() {
                             "type": "Feature",
                             "geometry": {
                                 "type": "LineString",
-                                "coordinates": 
-                                [
-                                    [m.SourceLongitude, m.SourceLatitude],
-                                    [m.DestLongitude, m.DestLatitude]
-                                ]
+                                "coordinates":
+                                    [
+                                        [m.SourceLongitude, m.SourceLatitude],
+                                        [m.DestLongitude, m.DestLatitude]
+                                    ]
                             },
                             "properties": {
                                 "type": "edge",
@@ -395,7 +401,9 @@ function updateMap() {
                 // addFilterOption(m.Philosopher);
                 travelersListOptions.push(m.Philosopher);
             });
-            addFilterOptions();
+            if (currentFilter === "All") {
+                addFilterOptions();
+            }
             switch (currentCentrality) {
                 case "Degree":
                     degreelayerGroup.addTo(baseMap);
@@ -444,12 +452,12 @@ function updateMetricsTable() {
         url: urlBase,
         success: (fullData: DataMapTable) => {
             const dataCentral = [
-                [ 
-                    "Graph", 
+                [
+                    "Graph",
                     String(fullData.CentralizationDegree),
                     String(fullData.CentralizationBetweenness),
                     String(fullData.CentralizationCloseness),
-                    String(fullData.CentralizationEigenvector) 
+                    String(fullData.CentralizationEigenvector)
                 ],
             ]
             $("#centralization-table").DataTable({

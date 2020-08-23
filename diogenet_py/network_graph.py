@@ -11,6 +11,7 @@
 import igraph
 import pyvis
 import json
+import copy
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
@@ -652,7 +653,7 @@ class MapGraph:
             sub_igraph = self.create_subgraph()
             self.tabulate_subgraph_data()
             sub_travels_map_data = self.travels_subgraph_data
-            subgraph = self
+            subgraph = copy.deepcopy(self)
             subgraph.igraph_map = sub_igraph
             subgraph.travels_graph_data = sub_travels_map_data
         return subgraph

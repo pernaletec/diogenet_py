@@ -46,22 +46,20 @@ def get_map_data():
     all_data = {}
     data = None
     if map_filter == "All":
+        print("Get ALL data")
         data = ng.grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = ng.grafo.get_max_min()
     else:
         filters = map_filter.split(";")
         for m_filter in filters:
             ng.grafo.set_edges_filter(m_filter)
-        print(ng.grafo.edges_filter)
-        sub_igraph = ng.grafo.create_subgraph()
-        ng.grafo.tabulate_subgraph_data()
-        sub_travelers_data = ng.grafo.travels_subgraph_data
-        subgraph = ng.grafo
-        subgraph.igraph_map = sub_igraph
-        subgraph.travels_graph_data = sub_travelers_data
-
+        subgraph = ng.grafo.get_subgraph()
         data = subgraph.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = subgraph.get_max_min()
+        print("*****************************************************  ALL DATA ")
+        print(len(ng.grafo.get_map_data()))
+        print("*****************************************************  FILTERED DATA ")
+        print(len(data))
     if data:
         all_data["data"] = data
         headers = {"Content-Type": "application/json"}
