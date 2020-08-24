@@ -343,7 +343,6 @@ class MapGraph:
     def calculate_closeness(self):
         """Create closeness for the graph
         """
-
         return self.igraph_map.closeness()
 
     def calculate_betweenness(self):

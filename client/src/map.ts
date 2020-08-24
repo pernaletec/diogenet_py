@@ -61,6 +61,8 @@ let eigenVectorLayerGroup = new L.LayerGroup();
 let activeTab = "#map";
 let htmlLegend: L.HtmlLegend | undefined = undefined;
 let travelersListOptions: string[] = [];
+let table1: any;
+
 
 function componentToHex(c: number) {
     var hex = c.toString(16);
@@ -168,6 +170,12 @@ function addFilter() {
             $("#travelers_filter").append(new Option(filterValue, filterValue));
         }
     }
+}
+
+function clearFilters() {
+    const travelersFilter: HTMLSelectElement = <HTMLSelectElement>document.getElementById("travelers_filter");
+    travelersFilter.innerHTML = "";
+    updateAll();
 }
 
 function highlightFeature(e: any, color?: string) {
@@ -427,7 +435,7 @@ function updateMap() {
 }
 
 function updateMetricsTable() {
-    type MeticsTableData = {
+    type MetricsTableData = {
         City: string,
         Degree: number,
         Betweenness: number,
@@ -439,14 +447,19 @@ function updateMetricsTable() {
         CentralizationBetweenness: number,
         CentralizationCloseness: number,
         CentralizationEigenvector: number,
-        CityData: MeticsTableData[]
+        CityData: MetricsTableData[]
     }
-    const currentPhilosopher = "All";
-    const urlBase = (
+
+    let currentFilter = getFilter();
+    if (currentFilter === "") {
+        currentFilter = "All";
+    }
+    const urlBase = encodeURI(
         BASE_URL
-        + "/map/get/table/"
-        + currentPhilosopher
+        + "/map/get/table?filter="
+        + currentFilter
     );
+
     $.ajax({
         dataType: "text json",
         url: urlBase,
@@ -475,19 +488,11 @@ function updateMetricsTable() {
                 "info": false,
                 "searching": false
             });
-            const data: MeticsTableData[] = fullData.CityData;
+            const data: MetricsTableData[] = fullData.CityData;
             const tableData = data.map(el => [el.City, el.Degree, el.Betweenness, el.Closeness, el.Eigenvector]);
-            $("#metrics-table").DataTable({
-                data: tableData,
-                retrieve: true,
-                columns: [
-                    { title: "City" },
-                    { title: "Degree" },
-                    { title: "Betweenness" },
-                    { title: "Closeness" },
-                    { title: "Eigenvector" },
-                ]
-            });
+            table1.clear();
+            table1.rows.add(tableData);
+            table1.draw();
         }
     });
     //
@@ -551,6 +556,16 @@ function updateAll() {
 }
 
 $(() => {
+    clearFilters();
+    table1 = $("#metrics-table").DataTable({
+        columns: [
+            { title: "City" },
+            { title: "Degree" },
+            { title: "Betweenness" },
+            { title: "Closeness" },
+            { title: "Eigenvector" },
+        ]
+    });
     // Setup multirange slider
     $(".node-range-slider").jRange({
         from: 1,
@@ -599,9 +614,7 @@ $(() => {
         debouncedUpdateAll()
     });
     $("#filter_clear").click((e) => {
-        const travelersFilter: HTMLSelectElement = <HTMLSelectElement>document.getElementById("travelers_filter");
-        travelersFilter.innerHTML = "";
-        updateAll();
+        clearFilters();
     });
     $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
         const activedTab = <HTMLAnchorElement>e.target;

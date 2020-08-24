@@ -63,14 +63,43 @@ def get_map_data():
         return make_response("Error accessing MapGraph Object", 400)
 
 
-@app.route("/map/get/table/<phylosopher>")
-def get_metrics_table(phylosopher="All"):
+@app.route("/map/get/table")
+def get_metrics_table():
+    if request.method != "GET":
+        return make_response("Malformed request", 400)
+
+    map_filter = str(request.args.get("filter"))
+    print(map_filter)
+
+    if not map_filter:
+        map_filter = "All"
+
     data = []
-    cities = ng.grafo.get_vertex_names()
-    degree = ng.grafo.calculate_degree()
-    betweeness = ng.grafo.calculate_betweenness()
-    closeness = ng.grafo.calculate_closeness()
-    eigenvector = ng.grafo.calculate_eigenvector()
+
+    print(map_filter)
+    if map_filter == "All":
+        cities = ng.grafo.get_vertex_names()
+        degree = ng.grafo.calculate_degree()
+        betweeness = ng.grafo.calculate_betweenness()
+        closeness = ng.grafo.calculate_closeness()
+        eigenvector = ng.grafo.calculate_eigenvector()
+    else:
+        filters = map_filter.split(";")
+        for m_filter in filters:
+            ng.grafo.set_edges_filter(m_filter)
+        print(m_filter)
+        subgraph = ng.grafo.get_subgraph()
+
+        cities = subgraph.get_vertex_names()
+        print(len(cities))
+        degree = subgraph.calculate_degree()
+        print(len(degree))
+        betweeness = subgraph.calculate_betweenness()
+        print(len(betweeness))
+        closeness = subgraph.calculate_closeness()
+        print(len(closeness))
+        eigenvector = subgraph.calculate_eigenvector()
+        print(len(eigenvector))
 
     for (
         city_name,
