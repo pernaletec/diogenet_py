@@ -613,6 +613,9 @@ $(() => {
         addFilter();
         debouncedUpdateAll()
     });
+    $("#filter_apply").click((e) => {
+        updateAll()
+    });
     $("#filter_clear").click((e) => {
         clearFilters();
     });

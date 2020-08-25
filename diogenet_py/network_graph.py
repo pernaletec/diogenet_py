@@ -85,6 +85,8 @@ class MapGraph:
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
 
+    graph_layout = None
+
     # Estetic's attributes (plot attribs)
     node_min_size = 4
     node_max_size = 6
@@ -484,10 +486,11 @@ class MapGraph:
             N = len(self.get_vertex_names())
             factor = 50
             # EDGES = [e.tuple for e in self.igraph_map.es]
-            layout_graph = self.igraph_map.layout(layout)
+            if not self.graph_layout:
+                self.graph_layout = self.igraph_map.layout(layout)
 
-            Xn = [layout_graph[k][0] for k in range(N)]
-            Yn = [layout_graph[k][1] for k in range(N)]
+            Xn = [self.graph_layout[k][0] for k in range(N)]
+            Yn = [self.graph_layout[k][1] for k in range(N)]
             # Xe = []
             # Ye = []
             # for e in EDGES:
