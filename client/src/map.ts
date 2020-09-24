@@ -476,6 +476,13 @@ function updateMetricsTable() {
             $("#centralization-table").DataTable({
                 data: dataCentral,
                 retrieve: true,
+                columnDefs: [{
+                    targets: [1, 2, 3, 4],
+                    className: 'dt-body-right',
+                    render: (data, type, row) => {
+                        return Number(data).toLocaleString(undefined, {minimumFractionDigits: 3});
+                    }
+                }],
                 columns: [
                     { title: "" },
                     { title: "Degree" },
@@ -558,6 +565,13 @@ function updateAll() {
 $(() => {
     clearFilters();
     table1 = $("#metrics-table").DataTable({
+        columnDefs: [{
+            targets: [1, 2, 3, 4],
+            className: 'dt-body-right',
+            render: (data, type, row) => {
+                return Number(data).toLocaleString(undefined, {minimumFractionDigits: 3});
+            }
+        }],
         columns: [
             { title: "City" },
             { title: "Degree" },
