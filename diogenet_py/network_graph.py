@@ -1,8 +1,8 @@
 """Module to handle Complex Networks Graph relations in ancient Greece.
-   This module must create a graph given a set of nodes and edges
-   The set of nodes and edges will be pandas data frames
-   In this map_graph nodes are locations and edges are people traveling
-   from one location to another
+    This module must create a graph given a set of nodes and edges
+    The set of nodes and edges will be pandas data frames
+    In this map_graph nodes are locations and edges are people traveling
+    from one location to another
 
 .. platform:: Unix, Windows, Mac
 .. moduleauthor:: César Pernalete <pernalete.cg@gmail.com>
@@ -14,11 +14,11 @@ import json
 import copy
 import pandas as pd
 import numpy as np
+import networkx as nx
 from dataclasses import dataclass
 from . import data_access as da
 
 # import cairocffi
-
 #  I need to see how to handle the locations
 #  Because locations are related to nodes
 
@@ -455,7 +455,7 @@ class MapGraph:
         max_weight=6,
         min_label_size=4,
         max_label_size=6,
-        layout="fruchterman_reingold",
+        layout="fr",
     ):
         """Create a pyvis object based on current igraph network
         :param int min_weight: Integer with min node size
@@ -484,10 +484,18 @@ class MapGraph:
 
         if self.igraph_map:
             N = len(self.get_vertex_names())
-            factor = 50
+            factor = 30
             # EDGES = [e.tuple for e in self.igraph_map.es]
-            if not self.graph_layout:
-                self.graph_layout = self.igraph_map.layout(layout)
+            if layout == "fr":
+                self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
+            elif layout == "kk":
+                self.graph_layout = self.igraph_map.layout_kamada_kawai()
+            elif layout == "grid_fr":
+                self.graph_layout = self.igraph_map.layout_grid()
+            elif layout == "circle":
+                self.graph_layout = self.igraph_map.layout_circle()
+            elif layout == "sphere":
+                self.graph_layout = self.igraph_map.layout_sphere()
 
             Xn = [self.graph_layout[k][0] for k in range(N)]
             Yn = [self.graph_layout[k][1] for k in range(N)]
@@ -509,12 +517,13 @@ class MapGraph:
             }
             pyvis_map_options["physics"] = {"enabled": False}
             pyvis_map_options["interaction"] = {
-                "dragNodes": False,
+                "dragNodes": True,
                 "hover": True,
                 "navigationButtons": True,
                 "selectable": False,
             }
             pv_graph.set_options(json.dumps(pyvis_map_options))
+
             # Add Nodes
             for node in self.igraph_map.vs:
                 color_index = self.get_interpolated_index(
@@ -535,8 +544,10 @@ class MapGraph:
                     label=node["name"],
                     color=color,
                     value=int(size * 2),
-                    x=int(Xn[node.index] * factor),
-                    y=int(Yn[node.index] * factor),
+                    # x=int(Xn[node.index] * factor),
+                    # y=int(Yn[node.index] * factor),
+                    x=int(Xn[node.index]),
+                    y=int(Yn[node.index]),
                 )
             for edge in self.igraph_map.es:
                 title = (

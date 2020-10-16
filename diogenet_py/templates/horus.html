@@ -1,73 +1,132 @@
-{% extends "sidebar_base.html" %}
-{% block title %}Horus{% endblock title %}
-{% block page_name %}Diogenet&apos;s Horus{% endblock page_name %}
-
-{% block head %}
-  {{ super() }}
-  <script src="/static/client/horus.bundle.js" type="text/javascript"></script>
-{% endblock head %}
-
-{% block sidebar %}
-  <div class="form-group my-5">
-    <label class="label" for="graph-layout">Graph layout:</label>
-    <select class="custom-select" name="graph-layout" id="graph-layout">
-      <option value="1">Graph Layout #1</option>
-      <option value="2">Graph Layout #2</option>
-      <option value="3">Graph Layout #3</option>
-      <option value="4">Graph Layout #4</option>
+{% extends "sidebar_base.html" %} {% block title %}Horus{% endblock title %} {%
+block page_name %}Diogenet&apos;s Horus{% endblock page_name %} 
+{% block page_style %}
+<link rel="stylesheet" href="/static/client/horus_styles.bundle.css" type="text/css" />
+{% endblock page_style %}
+{% block navbar_items %}
+<li class="nav-item dropdown active">
+  <a
+    class="nav-link dropdown-toggle"
+    data-toggle="dropdown"
+    href="#"
+    role="button"
+    aria-haspopup="true"
+    aria-expanded="false"
+    >Global Network</a
+  >
+  <div class="dropdown-menu">
+    <a class="dropdown-item active" href="#">Graph</a>
+    <a class="dropdown-item" href="#">Graph + Centrality</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a
+    class="nav-link dropdown-toggle"
+    data-toggle="dropdown"
+    href="#"
+    role="button"
+    aria-haspopup="true"
+    aria-expanded="false"
+    >Local Network</a
+  >
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="#">Graph</a>
+    <a class="dropdown-item" href="#">Graph + Centrality</a>
+  </div>
+</li>
+<li class="nav-item dropdown">
+  <a
+    class="nav-link dropdown-toggle"
+    data-toggle="dropdown"
+    href="#"
+    role="button"
+    aria-haspopup="true"
+    aria-expanded="false"
+    >Communities</a
+  >
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="#">Graph</a>
+    <a class="dropdown-item" href="#">Treemap View</a>
+  </div>
+</li>
+{% endblock navbar_items %} {% block head %} {{ super() }}
+<script src="/static/client/horus.bundle.js" type="text/javascript"></script>
+{% endblock head %} {% block sidebar %}
+<div class="my-5">
+  <h5>Network Ties:</h5>
+  <div class="form-group" style="padding-left: 20px;">
+    <div>
+      <input type="checkbox" name="ntIsTeacherOf" value="1" checked="checked" />
+      <label class="label" for="ntIsTeacherOf">Is Teacher Of</label>
+    </div>
+    <div>
+      <input type="checkbox" name="ntIsFriendOf" value="1" />
+      <label class="label" for="ntIsFriendOf">Is Friend Of</label>
+    </div>
+    <div>
+      <input type="checkbox" name="ntIsFamilyOf" value="1" />
+      <label class="label" for="ntIsFamilyOf">Is Family Of</label>
+    </div>
+    <div>
+      <input type="checkbox" name="ntIsBenefactorOf" value="1" />
+      <label class="label" for="ntIsBenefactorOf">Is Benefactor Of</label>
+    </div>
+    <div>
+      <input type="checkbox" name="ntStudyTheWorkOf" value="1" />
+      <label class="label" for="ntStudyTheWorkOf">Study the work Of</label>
+    </div>
+    <div>
+      <input type="checkbox" name="ntSendsLettersTo" value="1" />
+      <label class="label" for="ntSendsLettersTo">Send letters to</label>
+    </div>
+  </div>
+</div>
+<div class="my-5">
+  <h5>Graph Layout:</h5>
+  <div style="padding-left: 20px;">
+    <select name="graphLayout" id="graph-layout">
+      <option value="fr">Frutchterman-Reingold</option>
+      <option value="kk">Kamada-Kawai</option>
+      <option value="sphere">On Sphere</option>
+      <option value="circle">In Circle</option>
+      <option value="grid_fr">On Grid</option>
     </select>
   </div>
-  <div class="my-5">
-    <h5>Appareance:</h5>
-    <div class="form-group">
-      <label class="label" for="label-size">Label size:</label>
-      <input type="range"
-             name="label-size"
-             id="label-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="label" for="node-size">Node size:</label>
-      <input type="range"
-             name="node-size"
-             id="node-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
+</div>
+<div class="my-5">
+  <h5 id="appareance-label">Appareance:</h5>
+  <div class="form-group" id="node-size-div">
+    <label class="label" for="node-size" style="padding-bottom: 15px">Node size:</label>
+    <div class="d-flex">
+      <div class="m-auto pb-10">
+        <input type="hidden" name="node-size" id="node-size" class="node-range-slider" value="4,6" />
       </div>
     </div>
   </div>
-{% endblock sidebar %}
-
-{% block main %}
-  <div class="col-9 p-1">
-    <ul class="nav nav-tabs nav-tabs-square border-top border-left border-right">
-      <li class="nav-item">
-        <a class="nav-link border-top-0 border-left-0 rounded-0" href="#">1</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link active border-top-0 rounded-0" href="#">2</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" href="#">3</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" href="#">4</a>
-      </li>
-    </ul>
-    <div class="border border-top-0 p-2">
-      Hello
+  <div class="form-group" id="label-size-div">
+    <label class="label" for="label-size" style="padding-bottom: 15px">Label size:</label>
+    <div class="d-flex">
+      <div class="m-auto pb-10">
+        <input type="hidden" name="label-size" id="label-size" class="label-range-slider" value="4,6" />
+      </div>
     </div>
   </div>
+</div>
+{% endblock sidebar %} {% block main %}
+<div id="main-container" class="main-container">
+  <ul class="nav nav-tabs nav-tabs-square border-top border-left border-right" role="tablist">
+    <li class="nav-item">
+      <!-- Map container -->
+      <a class="nav-link active border-top-0 border-left-0 rounded-0" id="graph-tab" href="#global-graph" role="tab"
+        aria-controls="global-graph" aria-selected="true" data-toggle="tab">Map</a>
+    </li>
+  </ul>
+  <div class="tab-content main-container" id="mapsTabContent">
+    <div class="tab-pane fade show active tab-container" id="global-graph" role="tabpanel" aria-labelledby="graph-tab">
+      <iframe id="graph-global" src="" width="100%" height="100%" title="">
+        Loading...
+      </iframe>
+    </div>
+  </div>
+</div>
 {% endblock main %}
