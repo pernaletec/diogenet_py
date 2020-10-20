@@ -484,7 +484,7 @@ class MapGraph:
 
         if self.igraph_map:
             N = len(self.get_vertex_names())
-            factor = 30
+            factor = 100 
             # EDGES = [e.tuple for e in self.igraph_map.es]
             if layout == "fr":
                 self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
@@ -544,10 +544,10 @@ class MapGraph:
                     label=node["name"],
                     color=color,
                     value=int(size * 2),
-                    # x=int(Xn[node.index] * factor),
-                    # y=int(Yn[node.index] * factor),
-                    x=int(Xn[node.index]),
-                    y=int(Yn[node.index]),
+                    x=int(Xn[node.index] * factor),
+                    y=int(Yn[node.index] * factor),
+                    # x=int(Xn[node.index]),
+                    # y=int(Yn[node.index]),
                 )
             for edge in self.igraph_map.es:
                 title = (
@@ -750,7 +750,6 @@ class MapGraph:
         )
         list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
         self.travels_subgraph_data = list_of_tuples_
-
 
 grafo = MapGraph(
     NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
