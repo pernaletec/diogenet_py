@@ -69,11 +69,15 @@ VIRIDIS_COLORMAP = [
 
 
 @dataclass
-class MapGraph:
+class diogenetGraph:
+
+    graphType = None
+
     nodes_file = None
     edges_file = None
     locations_file = None
     blacklist_file = None
+    current_edges =  None
 
     nodes_raw_data = None
     edges_raw_data = None
@@ -104,9 +108,10 @@ class MapGraph:
 
     located_nodes = None
 
-    def __init__(self, nodes_file, edges_file, locations_file, blacklist_file):
+    def __init__(self, graph_type, nodes_file, edges_file, locations_file, blacklist_file):
         """Create parameters for the class graph
 
+        :param graph_type: It defines the type of the graph (map, global, local, communities)
         :param nodes_file: File with the full list of nodes name/group (.csv)
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
@@ -140,6 +145,7 @@ class MapGraph:
         # :return:
         # :rtype: :py:class:`pd.DataFrame`
 
+        self.graphType = graph_type
         self.nodes_file = nodes_file
         self.edges_file = edges_file
         self.locations_file = locations_file
@@ -153,11 +159,12 @@ class MapGraph:
         self.set_edges("local")
         self.set_blacklist("local")
 
-        self.validate_nodes_locations()
-        self.validate_phylosopher_origin()
-        self.validate_travels_locations()
+        if (self.graphType == "map"):
+            self.validate_nodes_locations()
+            self.validate_phylosopher_origin()
+            self.validate_travels_locations()
+        
         self.create_edges_for_graph()
-
         self.update_graph()
         self.create_subgraph()
         self.tabulate_subgraph_data()
@@ -269,157 +276,195 @@ class MapGraph:
         """Create Data Frame with all edge's data for graph construction
 
         """
+        self.travels_graph_data = None
+
         traveler_origin = []
         lat_source = []
         lon_source = []
         lat_target = []
         lon_target = []
         multi_origin = []  # Phylosopher with more than one origin city
+        Source = []
+        Target = []
+        Relation = []
 
-        for idx, cell in enumerate(self.travels_graph_data.Source):
-            current_origin = pd.Series.to_list(
-                self.phylosophers_known_origin.origin[
-                    self.phylosophers_known_origin.name == cell
-                ]
-            )
-            current_destiny = self.travels_graph_data.Target[idx]
-            current_origin = current_origin[0]
-            if len(current_origin) > 1:
-                # If the traveler shows multiple origins by default the
-                multi_origin.append(cell)
-            traveler_origin.append(current_origin)
-            current_origin = "".join(current_origin)
-            self.multi_origin_phylosophers = multi_origin
-            lat_source.append(
-                pd.Series.to_list(
-                    self.location_raw_data.lat[
-                        self.location_raw_data.name.isin([current_origin])
-                    ]
-                )
-            )
-            lon_source.append(
-                pd.Series.to_list(
-                    self.location_raw_data.lon[
-                        self.location_raw_data.name.isin([current_origin])
-                    ]
-                )
-            )
-            lat_target.append(
-                pd.Series.to_list(
-                    self.location_raw_data.lat[
-                        self.location_raw_data.name.isin([current_destiny])
-                    ]
-                )
-            )
-            lon_target.append(
-                pd.Series.to_list(
-                    self.location_raw_data.lon[
-                        self.location_raw_data.name.isin([current_destiny])
-                    ]
-                )
-            )
 
-        source = traveler_origin
-        target = pd.Series.to_list(self.travels_graph_data.Target)
-        name = pd.Series.to_list(self.travels_graph_data.Source)
+        if (graphType == "map"):
+            for idx, cell in enumerate(self.travels_graph_data.Source):
+                current_origin = pd.Series.to_list(
+                    self.phylosophers_known_origin.origin[
+                        self.phylosophers_known_origin.name == cell
+                    ]
+                )
+                current_destiny = self.travels_graph_data.Target[idx]
+                current_origin = current_origin[0]
+                if len(current_origin) > 1:
+                    # If the traveler shows multiple origins by default the
+                    multi_origin.append(cell)
+                traveler_origin.append(current_origin)
+                current_origin = "".join(current_origin)
+                self.multi_origin_phylosophers = multi_origin
+                lat_source.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lat[
+                            self.location_raw_data.name.isin([current_origin])
+                        ]
+                    )
+                )
+                lon_source.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lon[
+                            self.location_raw_data.name.isin([current_origin])
+                        ]
+                    )
+                )
+                lat_target.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lat[
+                            self.location_raw_data.name.isin([current_destiny])
+                        ]
+                    )
+                )
+                lon_target.append(
+                    pd.Series.to_list(
+                        self.location_raw_data.lon[
+                            self.location_raw_data.name.isin([current_destiny])
+                        ]
+                    )
+                )
 
-        list_of_tuples = list(
-            zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
-        )
-        list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
-        self.travels_graph_data = list_of_tuples_
+            source = traveler_origin
+            target = pd.Series.to_list(self.travels_graph_data.Target)
+            name = pd.Series.to_list(self.travels_graph_data.Source)
+
+            list_of_tuples = list(
+                zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
+            )
+            list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
+            self.travels_graph_data = list_of_tuples_
+        
+        if (graphType == "global"):
+            node_list = self.nodes_raw_data[(self.nodes_raw_data.Groups == 'Male') | (self.nodes_raw_data.Groups == 'Female')]
+            edges = self.edges_raw_data[(self.edges_raw_data.Relation == 'is teacher of') | 
+                (self.edges_raw_data.Relation == 'is teacher of') | 
+                (self.edges_raw_data.Relation == 'is friend of') | 
+                (self.edges_raw_data.Relation == 'is family of') | 
+                (self.edges_raw_data.Relation == 'studied the work of') | 
+                (self.edges_raw_data.Relation == 'sent letters to') | 
+                (self.edges_raw_data.Relation == 'is benefactor of')]
+            source = edges['Source']
+            target = edges['Target']
+            name = edges['Relation']
+            self.current_edges = name.unique()
+            list_of_tuples = list(
+                    zip(source, target, name)
+                )
+            list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
+            self.travels_graph_data = list_of_tuples_
+
         return self.travels_graph_data
 
     def update_graph(self):
         """Create graph once defined source data
         """
-        self.igraph_map = igraph.Graph.TupleList(
-            self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
-        )
+        if (self.travels_graph_data is not None):
+            self.igraph_map = igraph.Graph.TupleList(
+                self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
+            )
 
     def calculate_degree(self):
         """Calculate degree for the graph
         """
-        return self.igraph_map.degree()
+        if self.igraph_map is not None:
+            return self.igraph_map.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph
         """
-        return self.igraph_map.closeness()
+        if self.igraph_map is not None:
+            return self.igraph_map.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
         """
-        return self.igraph_map.betweenness()
+        if self.igraph_map is not None:
+            return self.igraph_map.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph
         """
-        return self.igraph_map.evcent()
+        if self.igraph_map is not None:
+            return self.igraph_map.evcent()
 
     def centralization_degree(self):
         """Calculate unnormalized centralization degree for the graph
         """
-        degree = self.calculate_degree()
-        max_degree = max(degree)
-        cent_degree = 0
-        for centrality in degree:
-            cent_degree = cent_degree + (max_degree - centrality)
-        return cent_degree
+        if self.igraph_map is not None:
+            degree = self.calculate_degree()
+            max_degree = max(degree)
+            cent_degree = 0
+            for centrality in degree:
+                cent_degree = cent_degree + (max_degree - centrality)
+            return cent_degree
 
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
         """
-        betweenness = self.calculate_betweenness()
-        max_betweenness = max(betweenness)
-        cent_betweenness = 0
-        for centrality in betweenness:
-            cent_betweenness = cent_betweenness + (max_betweenness - centrality)
-        return cent_betweenness
+        if self.igraph_map is not None:
+            betweenness = self.calculate_betweenness()
+            max_betweenness = max(betweenness)
+            cent_betweenness = 0
+            for centrality in betweenness:
+                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
+            return cent_betweenness
 
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
         """
-        closeness = self.calculate_closeness()
-        max_closeness = max(closeness)
-        cent_closeness = 0
-        for centrality in closeness:
-            cent_closeness = cent_closeness + (max_closeness - centrality)
-        return cent_closeness
+        if self.igraph_map is not None:
+            closeness = self.calculate_closeness()
+            max_closeness = max(closeness)
+            cent_closeness = 0
+            for centrality in closeness:
+                cent_closeness = cent_closeness + (max_closeness - centrality)
+            return cent_closeness
 
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
         """
-        eigenvector = self.calculate_eigenvector()
-        max_eigenvector = max(eigenvector)
-        cent_eigenvector = 0
-        for centrality in eigenvector:
-            cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
-        return cent_eigenvector
+        if self.igraph_map is not None:
+            eigenvector = self.calculate_eigenvector()
+            max_eigenvector = max(eigenvector)
+            cent_eigenvector = 0
+            for centrality in eigenvector:
+                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
+            return cent_eigenvector
 
     def get_vertex_names(self):
         """Return names for each vertex of the graph
         """
-        vertex_names = []
-        for vertex in self.igraph_map.vs:
-            vertex_names.append(vertex["name"])
-        return vertex_names
+        if self.igraph_map is not None:
+            vertex_names = []
+            for vertex in self.igraph_map.vs:
+                vertex_names.append(vertex["name"])
+            return vertex_names
 
     def get_max_min(self):
-        centrality_indexes = []
-        ret_val = {}
-        if self.current_centrality_index == "Degree":
-            centrality_indexes = self.calculate_degree()
-        elif self.current_centrality_index == "Betweeness":
-            centrality_indexes = self.calculate_betweenness()
-        elif self.current_centrality_index == "Closeness":
-            centrality_indexes = self.calculate_closeness()
-        else:
-            centrality_indexes = self.calculate_eigenvector()
-        ret_val["min"] = min(centrality_indexes)
-        ret_val["max"] = max(centrality_indexes)
+        if self.igraph_map is not None:
+            centrality_indexes = []
+            ret_val = {}
+            if self.current_centrality_index == "Degree":
+                centrality_indexes = self.calculate_degree()
+            elif self.current_centrality_index == "Betweeness":
+                centrality_indexes = self.calculate_betweenness()
+            elif self.current_centrality_index == "Closeness":
+                centrality_indexes = self.calculate_closeness()
+            else:
+                centrality_indexes = self.calculate_eigenvector()
+            ret_val["min"] = min(centrality_indexes)
+            ret_val["max"] = max(centrality_indexes)
 
-        return ret_val
+            return ret_val
 
     def get_interpolated_index(self, r1_min, r1_max, r1_value, r2_min=0, r2_max=9):
         """Get an interpolated integer from range [r1_min, r1_max] to [r2_min..r2_max]
@@ -467,173 +512,174 @@ class MapGraph:
         :return: A PyVis Object filled with the network's data.
         :rtype: :py:class:`pyvis`
         """
-
-        centrality_indexes = []
-        if self.current_centrality_index == "Degree":
-            centrality_indexes = self.calculate_degree()
-        elif self.current_centrality_index == "Betweeness":
-            centrality_indexes = self.calculate_betweenness()
-        elif self.current_centrality_index == "Closeness":
-            centrality_indexes = self.calculate_closeness()
-        else:
-            centrality_indexes = self.calculate_eigenvector()
-
-        centrality_indexes_min = min(centrality_indexes)
-        centrality_indexes_max = max(centrality_indexes)
         pv_graph = None
 
-        if self.igraph_map:
-            N = len(self.get_vertex_names())
-            factor = 100 
-            # EDGES = [e.tuple for e in self.igraph_map.es]
-            if layout == "fr":
-                self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
-            elif layout == "kk":
-                self.graph_layout = self.igraph_map.layout_kamada_kawai()
-            elif layout == "grid_fr":
-                self.graph_layout = self.igraph_map.layout_grid()
-            elif layout == "circle":
-                self.graph_layout = self.igraph_map.layout_circle()
-            elif layout == "sphere":
-                self.graph_layout = self.igraph_map.layout_sphere()
+        if self.igraph_map is not None:
+            centrality_indexes = []
+            if self.current_centrality_index == "Degree":
+                centrality_indexes = self.calculate_degree()
+            elif self.current_centrality_index == "Betweeness":
+                centrality_indexes = self.calculate_betweenness()
+            elif self.current_centrality_index == "Closeness":
+                centrality_indexes = self.calculate_closeness()
+            else:
+                centrality_indexes = self.calculate_eigenvector()
 
-            Xn = [self.graph_layout[k][0] for k in range(N)]
-            Yn = [self.graph_layout[k][1] for k in range(N)]
-            # Xe = []
-            # Ye = []
-            # for e in EDGES:
-            #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
-            #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
+            centrality_indexes_min = min(centrality_indexes)
+            centrality_indexes_max = max(centrality_indexes)
 
-            pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
-            pyvis_map_options = {}
-            pyvis_map_options["nodes"] = {
-                "scaling": {"min": min_weight, "max": max_weight}
-            }
-            pyvis_map_options["edges"] = {
-                "arrows": {"to": {"enabled": True}},
-                "color": {"inherit": True},
-                "smooth": False,
-            }
-            pyvis_map_options["physics"] = {"enabled": False}
-            pyvis_map_options["interaction"] = {
-                "dragNodes": True,
-                "hover": True,
-                "navigationButtons": True,
-                "selectable": False,
-            }
-            pv_graph.set_options(json.dumps(pyvis_map_options))
+            if self.igraph_map:
+                N = len(self.get_vertex_names())
+                factor = 100 
+                # EDGES = [e.tuple for e in self.igraph_map.es]
+                if layout == "fr":
+                    self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
+                elif layout == "kk":
+                    self.graph_layout = self.igraph_map.layout_kamada_kawai()
+                elif layout == "grid_fr":
+                    self.graph_layout = self.igraph_map.layout_grid()
+                elif layout == "circle":
+                    self.graph_layout = self.igraph_map.layout_circle()
+                elif layout == "sphere":
+                    self.graph_layout = self.igraph_map.layout_sphere()
 
-            # Add Nodes
-            for node in self.igraph_map.vs:
-                color_index = self.get_interpolated_index(
-                    centrality_indexes_min,
-                    centrality_indexes_max,
-                    centrality_indexes[node.index],
-                )
-                color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                size = self.get_interpolated_index(
-                    centrality_indexes_min,
-                    centrality_indexes_max,
-                    centrality_indexes[node.index],
-                    min_weight,
-                    max_weight,
-                )
-                pv_graph.add_node(
-                    node.index,
-                    label=node["name"],
-                    color=color,
-                    value=int(size * 2),
-                    x=int(Xn[node.index] * factor),
-                    y=int(Yn[node.index] * factor),
-                    # x=int(Xn[node.index]),
-                    # y=int(Yn[node.index]),
-                )
-            for edge in self.igraph_map.es:
-                title = (
-                    edge["edge_name"]
-                    + " travels from: "
-                    + self.igraph_map.vs[edge.source]["name"]
-                    + " to: "
-                    + self.igraph_map.vs[edge.target]["name"]
-                )
-                pv_graph.add_edge(edge.source, edge.target, title=title)
+                Xn = [self.graph_layout[k][0] for k in range(N)]
+                Yn = [self.graph_layout[k][1] for k in range(N)]
+                # Xe = []
+                # Ye = []
+                # for e in EDGES:
+                #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
+                #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
+
+                pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
+                pyvis_map_options = {}
+                pyvis_map_options["nodes"] = {
+                    "scaling": {"min": min_weight, "max": max_weight}
+                }
+                pyvis_map_options["edges"] = {
+                    "arrows": {"to": {"enabled": True}},
+                    "color": {"inherit": True},
+                    "smooth": False,
+                }
+                pyvis_map_options["physics"] = {"enabled": False}
+                pyvis_map_options["interaction"] = {
+                    "dragNodes": True,
+                    "hover": True,
+                    "navigationButtons": True,
+                    "selectable": False,
+                }
+                pv_graph.set_options(json.dumps(pyvis_map_options))
+
+                # Add Nodes
+                for node in self.igraph_map.vs:
+                    color_index = self.get_interpolated_index(
+                        centrality_indexes_min,
+                        centrality_indexes_max,
+                        centrality_indexes[node.index],
+                    )
+                    color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                    size = self.get_interpolated_index(
+                        centrality_indexes_min,
+                        centrality_indexes_max,
+                        centrality_indexes[node.index],
+                        min_weight,
+                        max_weight,
+                    )
+                    pv_graph.add_node(
+                        node.index,
+                        label=node["name"],
+                        color=color,
+                        value=int(size * 2),
+                        x=int(Xn[node.index] * factor),
+                        y=int(Yn[node.index] * factor),
+                        # x=int(Xn[node.index]),
+                        # y=int(Yn[node.index]),
+                    )
+                for edge in self.igraph_map.es:
+                    title = (
+                        edge["edge_name"]
+                        + " travels from: "
+                        + self.igraph_map.vs[edge.source]["name"]
+                        + " to: "
+                        + self.igraph_map.vs[edge.target]["name"]
+                    )
+                    pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
 
     def get_map_data(
         self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
     ):
-        centrality_indexes = []
-        if self.current_centrality_index == "Degree":
-            centrality_indexes = self.calculate_degree()
-        elif self.current_centrality_index == "Betweeness":
-            centrality_indexes = self.calculate_betweenness()
-        elif self.current_centrality_index == "Closeness":
-            centrality_indexes = self.calculate_closeness()
-        else:
-            centrality_indexes = self.calculate_eigenvector()
+        if self.igraph_map is not None:
+            centrality_indexes = []
+            if self.current_centrality_index == "Degree":
+                centrality_indexes = self.calculate_degree()
+            elif self.current_centrality_index == "Betweeness":
+                centrality_indexes = self.calculate_betweenness()
+            elif self.current_centrality_index == "Closeness":
+                centrality_indexes = self.calculate_closeness()
+            else:
+                centrality_indexes = self.calculate_eigenvector()
 
-        centrality_indexes_min = min(centrality_indexes)
-        centrality_indexes_max = max(centrality_indexes)
+            centrality_indexes_min = min(centrality_indexes)
+            centrality_indexes_max = max(centrality_indexes)
 
-        map = []
-        nodes = self.get_vertex_names()
-        map_dict_strings = [
-            "Source",
-            "Destination",
-            "Philosopher",
-            "SourceLatitude",
-            "SourceLongitude",
-            "DestLatitude",
-            "DestLongitude",
-        ]
-        if self.travels_graph_data:
-            for record in self.travels_graph_data:
-                index = 0
-                map_record = {}
-                for item in record:
-                    tmp_value = item
-                    if isinstance(item, list):
-                        if len(item) == 1:
-                            tmp_value = item[0]
-                    map_record[map_dict_strings[index]] = tmp_value
-                    if index == 0:
-                        i = nodes.index(tmp_value)
-                        color_index = self.get_interpolated_index(
-                            centrality_indexes_min,
-                            centrality_indexes_max,
-                            centrality_indexes[i],
-                        )
-                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                        map_record["SourceColor"] = color
-                        size = self.get_interpolated_index(
-                            centrality_indexes_min,
-                            centrality_indexes_max,
-                            centrality_indexes[i],
-                            min_weight,
-                            max_weight,
-                        )
-                        map_record["SourceSize"] = size
-                    elif index == 1:
-                        i = nodes.index(tmp_value)
-                        color_index = self.get_interpolated_index(
-                            centrality_indexes_min,
-                            centrality_indexes_max,
-                            centrality_indexes[i],
-                        )
-                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                        map_record["DestinationColor"] = color
-                        size = self.get_interpolated_index(
-                            centrality_indexes_min,
-                            centrality_indexes_max,
-                            centrality_indexes[i],
-                            min_weight,
-                            max_weight,
-                        )
-                        map_record["DestinationSize"] = size
-                    index = index + 1
-                map.append(map_record)
-
+            map = []
+            nodes = self.get_vertex_names()
+            map_dict_strings = [
+                "Source",
+                "Destination",
+                "Philosopher",
+                "SourceLatitude",
+                "SourceLongitude",
+                "DestLatitude",
+                "DestLongitude",
+            ]
+            if self.travels_graph_data:
+                for record in self.travels_graph_data:
+                    index = 0
+                    map_record = {}
+                    for item in record:
+                        tmp_value = item
+                        if isinstance(item, list):
+                            if len(item) == 1:
+                                tmp_value = item[0]
+                        map_record[map_dict_strings[index]] = tmp_value
+                        if index == 0:
+                            i = nodes.index(tmp_value)
+                            color_index = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[i],
+                            )
+                            color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                            map_record["SourceColor"] = color
+                            size = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[i],
+                                min_weight,
+                                max_weight,
+                            )
+                            map_record["SourceSize"] = size
+                        elif index == 1:
+                            i = nodes.index(tmp_value)
+                            color_index = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[i],
+                            )
+                            color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                            map_record["DestinationColor"] = color
+                            size = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[i],
+                                min_weight,
+                                max_weight,
+                            )
+                            map_record["DestinationSize"] = size
+                        index = index + 1
+                    map.append(map_record)
         return map
 
     def set_edges_filter(self, edges_filter):
@@ -645,18 +691,19 @@ class MapGraph:
         """Create subgraph depending on edges selected (i.e travellers)
         """
         subgraph = None
-        if not self.edges_filter:
-            subgraph = self.igraph_map
-        else:
-            edges = self.igraph_map.es
-            edge_names = self.igraph_map.es["edge_name"]
-            travellers = self.edges_filter if self.edges_filter else edges_filter
-            edge_indexes = [
-                j.index for i, j in zip(edge_names, edges) if i in travellers
-            ]
-            subgraph = self.igraph_map.subgraph_edges(edge_indexes)
+        if self.igraph_map is not None:
+            if not self.edges_filter:
+                subgraph = self.igraph_map
+            else:
+                edges = self.igraph_map.es
+                edge_names = self.igraph_map.es["edge_name"]
+                travellers = self.edges_filter if self.edges_filter else edges_filter
+                edge_indexes = [
+                    j.index for i, j in zip(edge_names, edges) if i in travellers
+                ]
+                subgraph = self.igraph_map.subgraph_edges(edge_indexes)
 
-        self.igraph_submap = subgraph
+            self.igraph_submap = subgraph
 
         return subgraph
 
@@ -751,8 +798,14 @@ class MapGraph:
         list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
         self.travels_subgraph_data = list_of_tuples_
 
-grafo = MapGraph(
-    NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
+    def get_current_edges(self):
+        if (self.current_edges is not None):
+            return(self.current_edges)
+
+graphType = "global"
+
+grafo = diogenetGraph(
+    graphType, NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
 )
 
 # grafo.centralization_degree()
