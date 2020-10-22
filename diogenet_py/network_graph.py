@@ -802,7 +802,7 @@ class diogenetGraph:
         if (self.current_edges is not None):
             return(self.current_edges)
 
-graphType = "global"
+graphType = "map"
 
 grafo = diogenetGraph(
     graphType, NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
