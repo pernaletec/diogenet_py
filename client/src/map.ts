@@ -511,20 +511,22 @@ function updateMetricsTable() {
 function updateGraph() {
   const currentCentrality = getCentralityIndex();
   const nodeSizes = $(".node-range-slider").val() as string;
-  const labelSizes = $(".label-range-slider").val() as string;
+    const labelSizes = $(".label-range-slider").val() as string;
   let currentFilter = getFilter();
   if (currentFilter === "") {
     currentFilter = "All";
   }
-  const urlBase = encodeURI(
-    BASE_URL +
-      "/map/get/graph?centrality=" +
-      currentCentrality +
-      "&node_min_max=" +
-      nodeSizes +
-      "&filter=" +
-      currentFilter
-  );
+    const urlBase = encodeURI(
+        BASE_URL +
+        "/map/get/graph?centrality=" +
+        currentCentrality +
+        "&node_min_max=" +
+        nodeSizes +
+        "&label_min_max=" +
+        labelSizes +
+        "&filter=" +
+        currentFilter 
+    );
   let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
   graphiFrame.src = urlBase;
 }

@@ -35,9 +35,10 @@ def get_map_data():
     centrality_index = str(request.args.get("centrality"))
     min_max = str(request.args.get("min_max"))
     map_filter = str(request.args.get("filter"))
+    grafo = ng.diogenetGraph(graph_type="map")
 
     if centrality_index:
-        ng.grafo.current_centrality_index = centrality_index
+        grafo.current_centrality_index = centrality_index
     if not min_max:
         min_max = "4,6"
     if not map_filter:
@@ -49,13 +50,13 @@ def get_map_data():
     all_data = {}
     data = None
     if map_filter == "All":
-        data = ng.grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
-        all_data = ng.grafo.get_max_min()
+        data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
+        all_data = grafo.get_max_min()
     else:
         filters = map_filter.split(";")
         for m_filter in filters:
-            ng.grafo.set_edges_filter(m_filter)
-        subgraph = ng.grafo.get_subgraph()
+            grafo.set_edges_filter(m_filter)
+        subgraph = grafo.get_subgraph()
         data = subgraph.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = subgraph.get_max_min()
     if data:
@@ -72,37 +73,30 @@ def get_metrics_table():
         return make_response(MALFORMED_REQUEST, 400)
 
     map_filter = str(request.args.get("filter"))
-    print(map_filter)
 
     if not map_filter:
         map_filter = "All"
 
     data = []
+    grafo = ng.diogenetGraph(graph_type="map")
 
-    print(map_filter)
     if map_filter == "All":
-        cities = ng.grafo.get_vertex_names()
-        degree = ng.grafo.calculate_degree()
-        betweeness = ng.grafo.calculate_betweenness()
-        closeness = ng.grafo.calculate_closeness()
-        eigenvector = ng.grafo.calculate_eigenvector()
+        cities = grafo.get_vertex_names()
+        degree = grafo.calculate_degree()
+        betweeness = grafo.calculate_betweenness()
+        closeness = grafo.calculate_closeness()
+        eigenvector = grafo.calculate_eigenvector()
     else:
         filters = map_filter.split(";")
         for m_filter in filters:
-            ng.grafo.set_edges_filter(m_filter)
-        print(m_filter)
-        subgraph = ng.grafo.get_subgraph()
+            grafo.set_edges_filter(m_filter)
+        subgraph = grafo.get_subgraph()
 
         cities = subgraph.get_vertex_names()
-        print(len(cities))
         degree = subgraph.calculate_degree()
-        print(len(degree))
         betweeness = subgraph.calculate_betweenness()
-        print(len(betweeness))
         closeness = subgraph.calculate_closeness()
-        print(len(closeness))
         eigenvector = subgraph.calculate_eigenvector()
-        print(len(eigenvector))
 
     for (
         city_name,
@@ -121,10 +115,10 @@ def get_metrics_table():
         data.append(record)
 
     data_table = {}
-    data_table["CentralizationDegree"] = ng.grafo.centralization_degree()
-    data_table["CentralizationBetweenness"] = ng.grafo.centralization_betweenness()
-    data_table["CentralizationCloseness"] = ng.grafo.centralization_closeness()
-    data_table["CentralizationEigenvector"] = ng.grafo.centralization_eigenvector()
+    data_table["CentralizationDegree"] = grafo.centralization_degree()
+    data_table["CentralizationBetweenness"] = grafo.centralization_betweenness()
+    data_table["CentralizationCloseness"] = grafo.centralization_closeness()
+    data_table["CentralizationEigenvector"] = grafo.centralization_eigenvector()
     data_table["CityData"] = data
 
     if data:
@@ -146,8 +140,10 @@ def get_graph_data():
     graph_layout = str(request.args.get("layout"))
     selected_edges = str(request.args.get("edges"))
 
+    grafo = ng.diogenetGraph(graph_type="map")
+
     if centrality_index:
-        ng.grafo.current_centrality_index = centrality_index
+        grafo.current_centrality_index = centrality_index
     if not node_min_max:
         node_min_max = "4,6"
     if not label_min_max:
@@ -164,7 +160,7 @@ def get_graph_data():
     label_max_size = int(label_min_max.split(",")[1])
 
     if map_filter == "All":
-        pvis_graph = ng.grafo.get_pyvis(
+        pvis_graph = grafo.get_pyvis(
             min_weight=node_min_size,
             max_weight=node_max_size,
             min_label_size=label_min_size,
@@ -174,8 +170,8 @@ def get_graph_data():
     else:
         filters = map_filter.split(";")
         for m_filter in filters:
-            ng.grafo.set_edges_filter(m_filter)
-        subgraph = ng.grafo.get_subgraph()
+            grafo.set_edges_filter(m_filter)
+        subgraph = grafo.get_subgraph()
         pvis_graph = subgraph.get_pyvis()
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"

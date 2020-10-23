@@ -32,6 +32,7 @@ from . import data_access as da
 ############
 
 # In case local or url method define file names
+GRAPH_TYPE = "global"
 TRAVELS_BLACK_LIST_FILE = "travels_blacklist.csv"
 LOCATIONS_DATA_FILE = "locations_data.csv"
 NODES_DATA_FILE = "new_Nodes.csv"
@@ -77,7 +78,7 @@ class diogenetGraph:
     edges_file = None
     locations_file = None
     blacklist_file = None
-    current_edges =  None
+    current_edges = None
 
     nodes_raw_data = None
     edges_raw_data = None
@@ -103,12 +104,19 @@ class diogenetGraph:
     nodes_graph_data = pd.DataFrame()
     edges_graph_data = pd.DataFrame()
     locations_graph_data = pd.DataFrame()
-    travels_graph_data = pd.DataFrame()
+    travels_graph_data = None
     travels_subgraph_data = pd.DataFrame()
 
     located_nodes = None
 
-    def __init__(self, graph_type, nodes_file, edges_file, locations_file, blacklist_file):
+    def __init__(
+        self,
+        graph_type=GRAPH_TYPE,
+        nodes_file=NODES_DATA_FILE,
+        edges_file=EDGES_DATA_FILE,
+        locations_file=LOCATIONS_DATA_FILE,
+        blacklist_file=TRAVELS_BLACK_LIST_FILE,
+    ):
         """Create parameters for the class graph
 
         :param graph_type: It defines the type of the graph (map, global, local, communities)
@@ -159,11 +167,11 @@ class diogenetGraph:
         self.set_edges("local")
         self.set_blacklist("local")
 
-        if (self.graphType == "map"):
+        if self.graphType == "map":
             self.validate_nodes_locations()
             self.validate_phylosopher_origin()
             self.validate_travels_locations()
-        
+
         self.create_edges_for_graph()
         self.update_graph()
         self.create_subgraph()
@@ -276,7 +284,6 @@ class diogenetGraph:
         """Create Data Frame with all edge's data for graph construction
 
         """
-        self.travels_graph_data = None
 
         traveler_origin = []
         lat_source = []
@@ -288,8 +295,7 @@ class diogenetGraph:
         Target = []
         Relation = []
 
-
-        if (graphType == "map"):
+        if self.graphType == "map":
             for idx, cell in enumerate(self.travels_graph_data.Source):
                 current_origin = pd.Series.to_list(
                     self.phylosophers_known_origin.origin[
@@ -338,27 +344,32 @@ class diogenetGraph:
             name = pd.Series.to_list(self.travels_graph_data.Source)
 
             list_of_tuples = list(
-                zip(source, target, name, lat_source, lon_source, lat_target, lon_target)
+                zip(
+                    source, target, name, lat_source, lon_source, lat_target, lon_target
+                )
             )
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
-        
-        if (graphType == "global"):
-            node_list = self.nodes_raw_data[(self.nodes_raw_data.Groups == 'Male') | (self.nodes_raw_data.Groups == 'Female')]
-            edges = self.edges_raw_data[(self.edges_raw_data.Relation == 'is teacher of') | 
-                (self.edges_raw_data.Relation == 'is teacher of') | 
-                (self.edges_raw_data.Relation == 'is friend of') | 
-                (self.edges_raw_data.Relation == 'is family of') | 
-                (self.edges_raw_data.Relation == 'studied the work of') | 
-                (self.edges_raw_data.Relation == 'sent letters to') | 
-                (self.edges_raw_data.Relation == 'is benefactor of')]
-            source = edges['Source']
-            target = edges['Target']
-            name = edges['Relation']
+
+        if self.graphType == "global":
+            node_list = self.nodes_raw_data[
+                (self.nodes_raw_data.Groups == "Male")
+                | (self.nodes_raw_data.Groups == "Female")
+            ]
+            edges = self.edges_raw_data[
+                (self.edges_raw_data.Relation == "is teacher of")
+                | (self.edges_raw_data.Relation == "is teacher of")
+                | (self.edges_raw_data.Relation == "is friend of")
+                | (self.edges_raw_data.Relation == "is family of")
+                | (self.edges_raw_data.Relation == "studied the work of")
+                | (self.edges_raw_data.Relation == "sent letters to")
+                | (self.edges_raw_data.Relation == "is benefactor of")
+            ]
+            source = edges["Source"]
+            target = edges["Target"]
+            name = edges["Relation"]
             self.current_edges = name.unique()
-            list_of_tuples = list(
-                    zip(source, target, name)
-                )
+            list_of_tuples = list(zip(source, target, name))
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
 
@@ -367,7 +378,7 @@ class diogenetGraph:
     def update_graph(self):
         """Create graph once defined source data
         """
-        if (self.travels_graph_data is not None):
+        if self.travels_graph_data is not None:
             self.igraph_map = igraph.Graph.TupleList(
                 self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
             )
@@ -530,11 +541,9 @@ class diogenetGraph:
 
             if self.igraph_map:
                 N = len(self.get_vertex_names())
-                factor = 100 
+                factor = 100
                 # EDGES = [e.tuple for e in self.igraph_map.es]
-                if layout == "fr":
-                    self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
-                elif layout == "kk":
+                if layout == "kk":
                     self.graph_layout = self.igraph_map.layout_kamada_kawai()
                 elif layout == "grid_fr":
                     self.graph_layout = self.igraph_map.layout_grid()
@@ -542,6 +551,8 @@ class diogenetGraph:
                     self.graph_layout = self.igraph_map.layout_circle()
                 elif layout == "sphere":
                     self.graph_layout = self.igraph_map.layout_sphere()
+                else:
+                    self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
 
                 Xn = [self.graph_layout[k][0] for k in range(N)]
                 Yn = [self.graph_layout[k][1] for k in range(N)]
@@ -551,7 +562,9 @@ class diogenetGraph:
                 #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
                 #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
 
-                pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
+                pv_graph = pyvis.network.Network(
+                    height="100%", width="100%", heading=""
+                )
                 pyvis_map_options = {}
                 pyvis_map_options["nodes"] = {
                     "scaling": {"min": min_weight, "max": max_weight}
@@ -799,14 +812,17 @@ class diogenetGraph:
         self.travels_subgraph_data = list_of_tuples_
 
     def get_current_edges(self):
-        if (self.current_edges is not None):
-            return(self.current_edges)
+        if self.current_edges is not None:
+            return self.current_edges
 
-graphType = "global"
 
-grafo = diogenetGraph(
-    graphType, NODES_DATA_FILE, EDGES_DATA_FILE, LOCATIONS_DATA_FILE, TRAVELS_BLACK_LIST_FILE
-)
+# grafo = diogenetGraph(
+#     graphType,
+#     NODES_DATA_FILE,
+#     EDGES_DATA_FILE,
+#     LOCATIONS_DATA_FILE,
+#     TRAVELS_BLACK_LIST_FILE,
+# )
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()
