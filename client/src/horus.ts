@@ -16,7 +16,7 @@ function updateGraph() {
     let currentFilter = "All";
     const urlBase = encodeURI(
         BASE_URL +
-        "/map/get/graph?centrality=" +
+        "/horus/get/graph?centrality=" +
         currentCentrality +
         "&node_min_max=" +
         nodeSizes +

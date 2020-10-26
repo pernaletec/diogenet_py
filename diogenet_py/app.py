@@ -140,7 +140,7 @@ def get_graph_data():
     graph_layout = str(request.args.get("layout"))
     selected_edges = str(request.args.get("edges"))
 
-    grafo = ng.diogenetGraph(graph_type="map")
+    grafo = ng.map_graph
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -185,3 +185,57 @@ def get_graph_data():
 @app.route("/horus")
 def horus():
     return render_template("horus.html")
+
+
+@app.route("/horus/get/graph")
+def horus_get_graph():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    centrality_index = str(request.args.get("centrality"))
+    node_min_max = str(request.args.get("node_min_max"))
+    label_min_max = str(request.args.get("label_min_max"))
+    map_filter = str(request.args.get("filter"))
+    graph_layout = str(request.args.get("layout"))
+    selected_edges = str(request.args.get("edges"))
+
+    grafo = ng.global_graph
+
+    if centrality_index:
+        grafo.current_centrality_index = centrality_index
+    if not node_min_max:
+        node_min_max = "4,6"
+    if not label_min_max:
+        label_min_max = "4,6"
+    if not map_filter:
+        map_filter = "All"
+    if not graph_layout:
+        # "fr", "kk", "circle", "sphere" or "grid_fr"
+        graph_layout = "fr"
+
+    node_min_size = int(node_min_max.split(",")[0])
+    node_max_size = int(node_min_max.split(",")[1])
+    label_min_size = int(label_min_max.split(",")[0])
+    label_max_size = int(label_min_max.split(",")[1])
+
+    if map_filter == "All":
+        pvis_graph = grafo.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+        )
+    else:
+        filters = map_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+        subgraph = grafo.get_subgraph()
+        pvis_graph = subgraph.get_pyvis()
+    if pvis_graph:
+        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+        full_filename = os.path.join(app.root_path, "temp", temp_file_name)
+        pvis_graph.write_html(full_filename)
+        return send_from_directory("temp", temp_file_name)
+    else:
+        return make_response(MAP_GRAPH_ERROR, 400)

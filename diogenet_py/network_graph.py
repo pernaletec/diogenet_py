@@ -72,7 +72,7 @@ VIRIDIS_COLORMAP = [
 @dataclass
 class diogenetGraph:
 
-    graphType = None
+    graph_type = None
 
     nodes_file = None
     edges_file = None
@@ -153,7 +153,7 @@ class diogenetGraph:
         # :return:
         # :rtype: :py:class:`pd.DataFrame`
 
-        self.graphType = graph_type
+        self.graph_type = graph_type
         self.nodes_file = nodes_file
         self.edges_file = edges_file
         self.locations_file = locations_file
@@ -167,7 +167,7 @@ class diogenetGraph:
         self.set_edges("local")
         self.set_blacklist("local")
 
-        if self.graphType == "map":
+        if self.graph_type == "map":
             self.validate_nodes_locations()
             self.validate_phylosopher_origin()
             self.validate_travels_locations()
@@ -295,7 +295,7 @@ class diogenetGraph:
         Target = []
         Relation = []
 
-        if self.graphType == "map":
+        if self.graph_type == "map":
             for idx, cell in enumerate(self.travels_graph_data.Source):
                 current_origin = pd.Series.to_list(
                     self.phylosophers_known_origin.origin[
@@ -351,7 +351,7 @@ class diogenetGraph:
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
 
-        if self.graphType == "global":
+        if self.graph_type == "global":
             node_list = self.nodes_raw_data[
                 (self.nodes_raw_data.Groups == "Male")
                 | (self.nodes_raw_data.Groups == "Female")
@@ -524,6 +524,7 @@ class diogenetGraph:
         :rtype: :py:class:`pyvis`
         """
         pv_graph = None
+        factor = 0
 
         if self.igraph_map is not None:
             centrality_indexes = []
@@ -541,16 +542,20 @@ class diogenetGraph:
 
             if self.igraph_map:
                 N = len(self.get_vertex_names())
-                factor = 100
+                factor = 50
                 # EDGES = [e.tuple for e in self.igraph_map.es]
                 if layout == "kk":
                     self.graph_layout = self.igraph_map.layout_kamada_kawai()
+                    factor = 150
                 elif layout == "grid_fr":
                     self.graph_layout = self.igraph_map.layout_grid()
+                    factor = 150
                 elif layout == "circle":
                     self.graph_layout = self.igraph_map.layout_circle()
+                    factor = 250
                 elif layout == "sphere":
                     self.graph_layout = self.igraph_map.layout_sphere()
+                    factor = 250
                 else:
                     self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
 
@@ -602,20 +607,29 @@ class diogenetGraph:
                         node.index,
                         label=node["name"],
                         color=color,
-                        value=int(size * 2),
+                        value=int(size * 3),
                         x=int(Xn[node.index] * factor),
                         y=int(Yn[node.index] * factor),
                         # x=int(Xn[node.index]),
                         # y=int(Yn[node.index]),
                     )
                 for edge in self.igraph_map.es:
-                    title = (
-                        edge["edge_name"]
-                        + " travels from: "
-                        + self.igraph_map.vs[edge.source]["name"]
-                        + " to: "
-                        + self.igraph_map.vs[edge.target]["name"]
-                    )
+                    if self.graph_type == "map":
+                        title = (
+                            edge["edge_name"]
+                            + " travels from: "
+                            + self.igraph_map.vs[edge.source]["name"]
+                            + " to: "
+                            + self.igraph_map.vs[edge.target]["name"]
+                        )
+                    else:
+                        title = (
+                            self.igraph_map.vs[edge.source]["name"]
+                            + " "
+                            + edge["edge_name"]
+                            + " "
+                            + self.igraph_map.vs[edge.target]["name"]
+                        )
                     pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
 
@@ -815,14 +829,29 @@ class diogenetGraph:
         if self.current_edges is not None:
             return self.current_edges
 
+    def get_global_edges_types(self):
+        edges_types = []
+        for edge_name in self.igraph_map.es:
+            if edge_name["edge_name"] not in edges_types:
+                edges_types.append(edge_name["edge_name"])
+        return edges_types
 
-# grafo = diogenetGraph(
-#     graphType,
-#     NODES_DATA_FILE,
-#     EDGES_DATA_FILE,
-#     LOCATIONS_DATA_FILE,
-#     TRAVELS_BLACK_LIST_FILE,
-# )
+
+global_graph = diogenetGraph(
+    "global",
+    NODES_DATA_FILE,
+    EDGES_DATA_FILE,
+    LOCATIONS_DATA_FILE,
+    TRAVELS_BLACK_LIST_FILE,
+)
+
+map_graph = diogenetGraph(
+    "map",
+    NODES_DATA_FILE,
+    EDGES_DATA_FILE,
+    LOCATIONS_DATA_FILE,
+    TRAVELS_BLACK_LIST_FILE,
+)
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()
