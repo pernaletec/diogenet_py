@@ -13,7 +13,7 @@ import "leaflet-html-legend";
 import "!style-loader!css-loader!leaflet/dist/leaflet.css";
 import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css";
 
-import { getCentralityIndex, interpolateValue, rgbToHex, VIRIDIS_COLORMAP } from "./graphLibrary";
+import { getCentralityIndex, interpolateValue, rgbToHex, VIRIDIS_COLORMAP, debounce } from "./graphLibrary";
 import { BASE_URL } from "./baseURLS";
 
 
@@ -531,18 +531,6 @@ function updateGraph() {
   graphiFrame.src = urlBase;
 }
 
-function debounce<Params extends any[]>(
-  func: (...args: Params) => any,
-  timeout: number
-): (...args: Params) => void {
-  let timer: NodeJS.Timeout;
-  return (...args: Params) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func(...args);
-    }, timeout);
-  };
-}
 
 function updateAll() {
   switch (activeTab) {

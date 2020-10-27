@@ -546,7 +546,6 @@ class diogenetGraph:
                 # EDGES = [e.tuple for e in self.igraph_map.es]
                 if layout == "kk":
                     self.graph_layout = self.igraph_map.layout_kamada_kawai()
-                    factor = 150
                 elif layout == "grid_fr":
                     self.graph_layout = self.igraph_map.layout_grid()
                     factor = 150
@@ -572,12 +571,24 @@ class diogenetGraph:
                 )
                 pyvis_map_options = {}
                 pyvis_map_options["nodes"] = {
-                    "scaling": {"min": min_weight, "max": max_weight}
+                    "font": {"size": min_weight + 8},
+                    "scaling": {"min": min_weight, "max": max_weight},
                 }
+                show_arrows = True
+                if self.graph_type == "global" and len(self.edges_filter) > 1:
+                    show_arrows = False
+
                 pyvis_map_options["edges"] = {
-                    "arrows": {"to": {"enabled": True}},
+                    "arrows": {"to": {"enabled": show_arrows, "scaleFactor": 0.4}},
                     "color": {"inherit": True},
-                    "smooth": False,
+                    "smooth": True,
+                    "scaling": {
+                        "label": {
+                            "min": min_weight + 8,
+                            "max": max_weight + 8,
+                            "maxVisible": 18,
+                        }
+                    },
                 }
                 pyvis_map_options["physics"] = {"enabled": False}
                 pyvis_map_options["interaction"] = {
@@ -586,7 +597,9 @@ class diogenetGraph:
                     "navigationButtons": True,
                     "selectable": False,
                 }
+                pyvis_map_options["configure"] = {"enabled": True}
                 pv_graph.set_options(json.dumps(pyvis_map_options))
+                # pv_graph.show_buttons()
 
                 # Add Nodes
                 for node in self.igraph_map.vs:
@@ -607,9 +620,10 @@ class diogenetGraph:
                         node.index,
                         label=node["name"],
                         color=color,
-                        value=int(size * 3),
+                        size=int(size * 2),
                         x=int(Xn[node.index] * factor),
                         y=int(Yn[node.index] * factor),
+                        shape="dot",
                         # x=int(Xn[node.index]),
                         # y=int(Yn[node.index]),
                     )
