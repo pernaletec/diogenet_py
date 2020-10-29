@@ -38,7 +38,7 @@ interface AllMapData {
 
 const MAP_CENTER: L.LatLng = new L.LatLng(35.255, 24.92);
 const MAIN_TILE_LAYER =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}";
 
 
 let localMapInfo: AllMapData;
@@ -612,10 +612,10 @@ $(() => {
     theme: "theme-blue",
   });
   baseMap = L.map("map").setView(MAP_CENTER, 5);
-  L.tileLayer(MAIN_TILE_LAYER, {
+  const esri = L.tileLayer(MAIN_TILE_LAYER, {
     maxZoom: 19,
     attribution:
-      "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
+      "Tiles &copy; Esri &mdash; Source: US National Park Service",
   }).addTo(baseMap);
   activeTab = "#map";
   updateAll();
