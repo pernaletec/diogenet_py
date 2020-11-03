@@ -58,7 +58,7 @@ function updateGraph() {
             break;
         }
         case "global+centrality": {
-            debugger;
+            //debugger;
             graphiFrame = $("#graph-centrality")[0] as HTMLIFrameElement;
             graphiFrame.src = urlBase;
             break;

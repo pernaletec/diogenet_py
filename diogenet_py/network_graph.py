@@ -84,16 +84,16 @@ class diogenetGraph:
     edges_raw_data = None
     location_raw_data = None
     blacklist_raw_data = None
-    igraph_map = None
-    igraph_submap = None
+    igraph_graph = None
+    igraph_subgraph = None
 
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
 
     graph_layout = None
-    graph_layout_name = "None"
-    Xn = None
-    Yn = None
+    graph_layout_name = None
+    Xn = []
+    Yn = []
 
     # Estetic's attributes (plot attribs)
     node_min_size = 4
@@ -135,8 +135,8 @@ class diogenetGraph:
         :param location_raw_data: Raw data for locations
         :param blacklist_raw_data: Raw data for blacklisted places
 
-        :param igraph_map: Python igraph graph object
-        :param igraph_map: Python igraph sub-graph object
+        :param igraph_graph: Python igraph graph object
+        :param igraph_graph: Python igraph sub-graph object
 
         :param phylosophers_known_origin: Data for phylosophers and their origin
         :param multi_origin_phylosophers: List of phylosophers with more than one
@@ -187,7 +187,7 @@ class diogenetGraph:
         :param nodes_file: File with the full list of nodes name/group (.csv)
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        :param igraph_graph: Python igraph graph object
 
         """
         print("def know_locations(self): Not implemented")
@@ -383,38 +383,38 @@ class diogenetGraph:
         """Create graph once defined source data
         """
         if self.travels_graph_data is not None:
-            self.igraph_map = igraph.Graph.TupleList(
+            self.igraph_graph = igraph.Graph.TupleList(
                 self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
             )
 
     def calculate_degree(self):
         """Calculate degree for the graph
         """
-        if self.igraph_map is not None:
-            return self.igraph_map.degree()
+        if self.igraph_graph is not None:
+            return self.igraph_graph.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph
         """
-        if self.igraph_map is not None:
-            return self.igraph_map.closeness()
+        if self.igraph_graph is not None:
+            return self.igraph_graph.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
         """
-        if self.igraph_map is not None:
-            return self.igraph_map.betweenness()
+        if self.igraph_graph is not None:
+            return self.igraph_graph.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph
         """
-        if self.igraph_map is not None:
-            return self.igraph_map.evcent()
+        if self.igraph_graph is not None:
+            return self.igraph_graph.evcent()
 
     def centralization_degree(self):
         """Calculate unnormalized centralization degree for the graph
         """
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             degree = self.calculate_degree()
             max_degree = max(degree)
             cent_degree = 0
@@ -425,7 +425,7 @@ class diogenetGraph:
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
         """
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             betweenness = self.calculate_betweenness()
             max_betweenness = max(betweenness)
             cent_betweenness = 0
@@ -436,7 +436,7 @@ class diogenetGraph:
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
         """
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             closeness = self.calculate_closeness()
             max_closeness = max(closeness)
             cent_closeness = 0
@@ -447,7 +447,7 @@ class diogenetGraph:
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
         """
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             eigenvector = self.calculate_eigenvector()
             max_eigenvector = max(eigenvector)
             cent_eigenvector = 0
@@ -458,14 +458,14 @@ class diogenetGraph:
     def get_vertex_names(self):
         """Return names for each vertex of the graph
         """
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             vertex_names = []
-            for vertex in self.igraph_map.vs:
+            for vertex in self.igraph_graph.vs:
                 vertex_names.append(vertex["name"])
             return vertex_names
 
     def get_max_min(self):
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             centrality_indexes = []
             ret_val = {}
             if self.current_centrality_index == "Degree":
@@ -532,10 +532,10 @@ class diogenetGraph:
         factor = 0
 
         print("Entering get_pyvis")
-        print("self.graph_layout_name: " + self.graph_layout_name)
+        print("self.graph_layout_name: " + str(repr(self.graph_layout_name)))
         print("layout: " + layout)
 
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             centrality_indexes = []
             if self.current_centrality_index == "Degree":
                 centrality_indexes = self.calculate_degree()
@@ -557,22 +557,22 @@ class diogenetGraph:
                 print("self.graph_layout_name: " + self.graph_layout_name)
                 print("layout: " + layout)
                 if layout == "kk":
-                    self.graph_layout = self.igraph_map.layout_kamada_kawai()
+                    self.graph_layout = self.igraph_graph.layout_kamada_kawai()
                     self.graph_layout_name = "kk"
                 elif layout == "grid_fr":
-                    self.graph_layout = self.igraph_map.layout_grid()
+                    self.graph_layout = self.igraph_graph.layout_grid()
                     self.graph_layout_name = "grid_fr"
                     factor = 150
                 elif layout == "circle":
-                    self.graph_layout = self.igraph_map.layout_circle()
+                    self.graph_layout = self.igraph_graph.layout_circle()
                     self.graph_layout_name = "circle"
                     factor = 250
                 elif layout == "sphere":
-                    self.graph_layout = self.igraph_map.layout_sphere()
+                    self.graph_layout = self.igraph_graph.layout_sphere()
                     self.graph_layout_name = "sphere"
                     factor = 250
                 else:
-                    self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
+                    self.graph_layout = self.igraph_graph.layout_fruchterman_reingold()
                     self.graph_layout_name = "fr"
 
                 self.Xn = [self.graph_layout[k][0] for k in range(N)]
@@ -620,7 +620,7 @@ class diogenetGraph:
             # pv_graph.show_buttons()
 
             # Add Nodes
-            for node in self.igraph_map.vs:
+            for node in self.igraph_graph.vs:
                 if not avoid_centrality:
                     color_index = self.get_interpolated_index(
                         centrality_indexes_min,
@@ -648,22 +648,22 @@ class diogenetGraph:
                     # x=int(Xn[node.index]),
                     # y=int(Yn[node.index]),
                 )
-            for edge in self.igraph_map.es:
+            for edge in self.igraph_graph.es:
                 if self.graph_type == "map":
                     title = (
                         edge["edge_name"]
                         + " travels from: "
-                        + self.igraph_map.vs[edge.source]["name"]
+                        + self.igraph_graph.vs[edge.source]["name"]
                         + " to: "
-                        + self.igraph_map.vs[edge.target]["name"]
+                        + self.igraph_graph.vs[edge.target]["name"]
                     )
                 else:
                     title = (
-                        self.igraph_map.vs[edge.source]["name"]
+                        self.igraph_graph.vs[edge.source]["name"]
                         + " "
                         + edge["edge_name"]
                         + " "
-                        + self.igraph_map.vs[edge.target]["name"]
+                        + self.igraph_graph.vs[edge.target]["name"]
                     )
                 pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
@@ -671,7 +671,7 @@ class diogenetGraph:
     def get_map_data(
         self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
     ):
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             centrality_indexes = []
             if self.current_centrality_index == "Degree":
                 centrality_indexes = self.calculate_degree()
@@ -753,19 +753,19 @@ class diogenetGraph:
         """Create subgraph depending on edges selected (i.e travellers)
         """
         subgraph = None
-        if self.igraph_map is not None:
+        if self.igraph_graph is not None:
             if not self.edges_filter:
-                subgraph = self.igraph_map
+                subgraph = self.igraph_graph
             else:
-                edges = self.igraph_map.es
-                edge_names = self.igraph_map.es["edge_name"]
+                edges = self.igraph_graph.es
+                edge_names = self.igraph_graph.es["edge_name"]
                 travellers = self.edges_filter if self.edges_filter else edges_filter
                 edge_indexes = [
                     j.index for i, j in zip(edge_names, edges) if i in travellers
                 ]
-                subgraph = self.igraph_map.subgraph_edges(edge_indexes)
+                subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
 
-            self.igraph_submap = subgraph
+            self.igraph_subgraph = subgraph
 
         return subgraph
 
@@ -776,7 +776,7 @@ class diogenetGraph:
             self.tabulate_subgraph_data()
             sub_travels_map_data = self.travels_subgraph_data
             subgraph = copy.deepcopy(self)
-            subgraph.igraph_map = sub_igraph
+            subgraph.igraph_graph = sub_igraph
             subgraph.travels_graph_data = sub_travels_map_data
         return subgraph
 
@@ -786,7 +786,7 @@ class diogenetGraph:
         :param nodes_file: File with the full list of nodes name/group (.csv)
         :param edges_file: File with full list of edges (.csv)
         :param locations_file: File with list of nodees/localization (.csv).
-        :param igraph_map: Python igraph graph object
+        :param igraph_graph: Python igraph graph object
 
         """
         return ()
@@ -805,12 +805,12 @@ class diogenetGraph:
         vertex_list = []
         edges_list = []
 
-        if self.igraph_submap:
-            for vertex in self.igraph_submap.vs:
+        if self.igraph_subgraph:
+            for vertex in self.igraph_subgraph.vs:
                 vertex_list.append(vertex["name"])
 
-        if self.igraph_submap:
-            for idx, edges in enumerate(self.igraph_submap.es):
+        if self.igraph_subgraph:
+            for idx, edges in enumerate(self.igraph_subgraph.es):
                 source.append(vertex_list[edges.tuple[0]])
                 target.append(vertex_list[edges.tuple[1]])
                 name.append(edges["edge_name"])
@@ -866,7 +866,7 @@ class diogenetGraph:
 
     def get_global_edges_types(self):
         edges_types = []
-        for edge_name in self.igraph_map.es:
+        for edge_name in self.igraph_graph.es:
             if edge_name["edge_name"] not in edges_types:
                 edges_types.append(edge_name["edge_name"])
         return edges_types
@@ -896,7 +896,7 @@ map_graph = diogenetGraph(
 # grafo.set_edges_filter("Aristotle")
 # # grafo.set_edges_filter("Pythagoras")
 # grafo.create_subgraph()
-# # print(grafo.igraph_submap)
+# # print(grafo.igraph_subgraph)
 
 # grafo.tabulate_subgraph_data()
 
