@@ -56,6 +56,14 @@ export function getGraphLayout() {
     return layout;
 }
 
+export function getNodesSize() {
+    return $(".node-range-slider").val() as string;
+}
+
+export function getLabelsSize() {
+    return $(".label-range-slider").val() as string;
+}
+
 export function debounce<Params extends any[]>(
     func: (...args: Params) => any,
     timeout: number

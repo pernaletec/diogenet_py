@@ -97,6 +97,7 @@ module.exports = {
         path: DIST,
     },
     plugins: [
+        new webpack.SourceMapDevToolPlugin({}),
         new ForkTsCheckerWebpackPlugin(),
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({

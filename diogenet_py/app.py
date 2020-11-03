@@ -201,9 +201,14 @@ def horus_get_graph():
     selected_edges = str(request.args.get("edges"))
 
     grafo = ng.global_graph
+    not_centrality = False
 
     if centrality_index:
-        grafo.current_centrality_index = centrality_index
+        if centrality_index == "None":
+            grafo.current_centrality_index = "Degree"
+            not_centrality = True
+        else:
+            grafo.current_centrality_index = centrality_index
 
     if not node_min_max:
         node_min_max = "4,6"
@@ -214,15 +219,11 @@ def horus_get_graph():
     if not graph_filter:
         graph_filter = "is teacher of"
         grafo.set_edges_filter(graph_filter)
-        print("APP Filter Not in URL")
-        print(grafo.edges_filter)
     else:
-        print("URL Filter: " + graph_filter)
         grafo.edges_filter = []
         filters = graph_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        print("APP Filter: " + repr(grafo.edges_filter))
 
     if not graph_layout:
         graph_layout = "fr"
@@ -239,6 +240,7 @@ def horus_get_graph():
         min_label_size=label_min_size,
         max_label_size=label_max_size,
         layout=graph_layout,
+        avoid_centrality=not_centrality,
     )
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + ".html"

@@ -4,9 +4,13 @@ import $ from "jquery";
 import "jquery-range";
 import "!style-loader!css-loader!jquery-range/jquery.range.css";
 
-import { getGraphLayout, debounce } from "./graphLibrary";
+import { getCentralityIndex, getGraphLayout, getNodesSize, getLabelsSize, debounce } from "./graphLibrary";
 import { BASE_URL } from "./baseURLS";
 
+
+let activeTab = "#global-graph";
+let leaveTab = "";
+let mainMenuValue = "global";
 
 function getCheckedRelations() {
     const checkedCheckboxes = $("input:checkbox[name=edgesFilter]:checked");
@@ -22,10 +26,15 @@ function getCheckedRelations() {
 }
 
 function updateGraph() {
-    const currentCentrality = "Degree";
+    let currentCentrality = "";
+    if (mainMenuValue.includes("centrality")) {
+        currentCentrality = getCentralityIndex();
+    } else {
+        currentCentrality = "None";
+    }
     const currentLayout = getGraphLayout();
-    const nodeSizes = $(".node-range-slider").val() as string;
-    const labelSizes = $(".label-range-slider").val() as string;
+    const nodeSizes = getNodesSize();
+    const labelSizes = getLabelsSize();
     let currentFilter = getCheckedRelations();
     const urlBase = encodeURI(
         BASE_URL +
@@ -40,8 +49,116 @@ function updateGraph() {
         "&layout=" +
         currentLayout
     );
-    let graphiFrame = $("#graph-global")[0] as HTMLIFrameElement;
-    graphiFrame.src = urlBase;
+    let graphiFrame: HTMLIFrameElement;
+    // debugger;
+    switch (mainMenuValue) {
+        case "global": {
+            graphiFrame = $("#graph-global")[0] as HTMLIFrameElement;
+            graphiFrame.src = urlBase;
+            break;
+        }
+        case "global+centrality": {
+            debugger;
+            graphiFrame = $("#graph-centrality")[0] as HTMLIFrameElement;
+            graphiFrame.src = urlBase;
+            break;
+        }
+        case "local": {
+            $("#local-btn").removeClass("active");
+            break;
+        }
+        case "local+centrality": {
+            $("#local-centrality-btn").removeClass("active");
+            break;
+        }
+        case "communities": {
+            $("#communities-btn").removeClass("active");
+            break;
+        }
+        case "communities+treemap": {
+            $("#communities-treemap-btn").removeClass("active");
+            break;
+        }
+    }
+}
+
+function mainMenu(menuItem: string) {
+    // mainMenuValue = menuItem;
+    // debugger;
+    switch (menuItem) {
+        case "global": {
+            // Hide global+centrality MenuItem & Tab container
+            $("#global-centrality-main-div").hide();
+            $("#global-centrality-tab-content").hide();
+            // Show lobal MenuItem & Tab container
+            $("#global-main-div").show()
+            $("#global-tab-content").show();
+            // Hide lateral centrality index selector
+            $("#centrality-index-div").hide();
+            // Set Active menu item
+            $("#global-btn").addClass("active");
+            $("#graph-tab").trigger('click');
+            break;
+        }
+        case "global+centrality": {
+            // Hide global tabitem & Tab container
+            $("#global-main-div").hide()
+            $("#global-tab-content").hide();
+            // show global+centrality MenuItem & Ta container
+            $("#global-centrality-main-div").show();
+            $("#global-centrality-tab-content").show();
+            // Show lateral centrality index selector
+            $("#centrality-index-div").show();
+            // Set Active menu item
+            $("#global-centrality-btn").addClass("active");
+            $("#graph-central-tab").trigger('click');
+            break;
+        }
+        case "local": {
+            $("#local-btn").addClass("active");
+            break;
+        }
+        case "local+centrality": {
+            $("#local-centrality-btn").addClass("active");
+            break;
+        }
+        case "communities": {
+            $("#communities-btn").addClass("active");
+            break;
+        }
+        case "communities+treemap": {
+            $("#communities-treemap-btn").addClass("active");
+            break;
+        }
+    }
+    switch (mainMenuValue) {
+        case "global": {
+            $("#global-btn").removeClass("active");
+            break;
+        }
+        case "global+centrality": {
+            $("#global-centrality-btn").removeClass("active");
+            break;
+        }
+        case "local": {
+            $("#local-btn").removeClass("active");
+            break;
+        }
+        case "local+centrality": {
+            $("#local-centrality-btn").removeClass("active");
+            break;
+        }
+        case "communities": {
+            $("#communities-btn").removeClass("active");
+            break;
+        }
+        case "communities+treemap": {
+            $("#communities-treemap-btn").removeClass("active");
+            break;
+        }
+    }
+    mainMenuValue = menuItem;
+    updateGraph();
 }
 
 
@@ -70,20 +187,37 @@ $(() => {
         snap: true,
         theme: "theme-blue",
     });
+
+    const debouncedUpdateGraph = debounce(updateGraph, 4000);
+
     $("#graph-layout").change((event) => {
         updateGraph();
     });
     $("input:checkbox[name=edgesFilter]").change((event) => {
         updateGraph();
     });
-
-    const debouncedUpdateGraph = debounce(updateGraph, 4000);
     $(".node-range-slider").change((event) => {
         debouncedUpdateGraph();
     });
     $(".label-range-slider").change((event) => {
         debouncedUpdateGraph();
     });
+    $("#centrality-index").change((event) => {
+        updateGraph();
+    });
 
-    updateGraph();
+    $("#global-btn").on("click", () => { 
+        mainMenu("global");
+    });
+    $("#global-centrality-btn").on("click", () => { 
+        mainMenu("global+centrality");
+    });
+
+    $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
+        const activedTab = <HTMLAnchorElement>e.target;
+        const leavedTab = <HTMLAnchorElement>e.relatedTarget;
+        activeTab = activedTab.hash;
+        leaveTab = leavedTab.hash;
+    });
+    mainMenu("global"); 
 });

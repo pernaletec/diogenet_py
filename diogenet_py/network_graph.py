@@ -91,6 +91,9 @@ class diogenetGraph:
     multi_origin_phylosophers = None
 
     graph_layout = None
+    graph_layout_name = "None"
+    Xn = None
+    Yn = None
 
     # Estetic's attributes (plot attribs)
     node_min_size = 4
@@ -158,6 +161,7 @@ class diogenetGraph:
         self.edges_file = edges_file
         self.locations_file = locations_file
         self.blacklist_file = blacklist_file
+
         self.edges_filter = []
 
         # self.know_locations()
@@ -512,6 +516,7 @@ class diogenetGraph:
         min_label_size=4,
         max_label_size=6,
         layout="fr",
+        avoid_centrality=False,
     ):
         """Create a pyvis object based on current igraph network
         :param int min_weight: Integer with min node size
@@ -525,6 +530,10 @@ class diogenetGraph:
         """
         pv_graph = None
         factor = 0
+
+        print("Entering get_pyvis")
+        print("self.graph_layout_name: " + self.graph_layout_name)
+        print("layout: " + layout)
 
         if self.igraph_map is not None:
             centrality_indexes = []
@@ -540,111 +549,123 @@ class diogenetGraph:
             centrality_indexes_min = min(centrality_indexes)
             centrality_indexes_max = max(centrality_indexes)
 
-            if self.igraph_map:
-                N = len(self.get_vertex_names())
-                factor = 50
-                # EDGES = [e.tuple for e in self.igraph_map.es]
+            N = len(self.get_vertex_names())
+            factor = 50
+
+            if (not self.graph_layout_name) or (layout != self.graph_layout_name):
+                print("Recalculating layout...")
+                print("self.graph_layout_name: " + self.graph_layout_name)
+                print("layout: " + layout)
                 if layout == "kk":
                     self.graph_layout = self.igraph_map.layout_kamada_kawai()
+                    self.graph_layout_name = "kk"
                 elif layout == "grid_fr":
                     self.graph_layout = self.igraph_map.layout_grid()
+                    self.graph_layout_name = "grid_fr"
                     factor = 150
                 elif layout == "circle":
                     self.graph_layout = self.igraph_map.layout_circle()
+                    self.graph_layout_name = "circle"
                     factor = 250
                 elif layout == "sphere":
                     self.graph_layout = self.igraph_map.layout_sphere()
+                    self.graph_layout_name = "sphere"
                     factor = 250
                 else:
                     self.graph_layout = self.igraph_map.layout_fruchterman_reingold()
+                    self.graph_layout_name = "fr"
 
-                Xn = [self.graph_layout[k][0] for k in range(N)]
-                Yn = [self.graph_layout[k][1] for k in range(N)]
-                # Xe = []
-                # Ye = []
-                # for e in EDGES:
-                #     Xe += [layout_graph[e[0]][0], layout_graph[e[1]][0], None]
-                #     Ye += [layout_graph[e[0]][1], layout_graph[e[1]][1], None]
+                self.Xn = [self.graph_layout[k][0] for k in range(N)]
+                self.Yn = [self.graph_layout[k][1] for k in range(N)]
+            else:
+                print("using same layout...")
 
-                pv_graph = pyvis.network.Network(
-                    height="100%", width="100%", heading=""
-                )
-                pyvis_map_options = {}
-                pyvis_map_options["nodes"] = {
-                    "font": {"size": min_weight + 8},
-                    "scaling": {"min": min_weight, "max": max_weight},
-                }
-                show_arrows = True
-                if self.graph_type == "global" and len(self.edges_filter) > 1:
-                    show_arrows = False
+            pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
+            pyvis_map_options = {}
+            pyvis_map_options["nodes"] = {
+                "font": {"size": min_weight + 8},
+                "scaling": {"min": min_weight, "max": max_weight},
+            }
+            show_arrows = True
+            if self.graph_type == "global" and len(self.edges_filter) > 1:
+                show_arrows = False
 
-                pyvis_map_options["edges"] = {
-                    "arrows": {"to": {"enabled": show_arrows, "scaleFactor": 0.4}},
-                    "color": {"inherit": True},
-                    "smooth": True,
-                    "scaling": {
-                        "label": {
-                            "min": min_weight + 8,
-                            "max": max_weight + 8,
-                            "maxVisible": 18,
-                        }
-                    },
-                }
-                pyvis_map_options["physics"] = {"enabled": False}
-                pyvis_map_options["interaction"] = {
-                    "dragNodes": True,
-                    "hover": True,
-                    "navigationButtons": True,
-                    "selectable": False,
-                }
-                pyvis_map_options["configure"] = {"enabled": True}
-                pv_graph.set_options(json.dumps(pyvis_map_options))
-                # pv_graph.show_buttons()
+            pyvis_map_options["edges"] = {
+                "arrows": {"to": {"enabled": show_arrows, "scaleFactor": 0.4}},
+                "color": {"inherit": True},
+                "smooth": True,
+                "scaling": {
+                    "label": {
+                        "min": min_weight + 8,
+                        "max": max_weight + 8,
+                        "maxVisible": 18,
+                    }
+                },
+            }
+            pyvis_map_options["physics"] = {"enabled": False}
+            pyvis_map_options["interaction"] = {
+                "dragNodes": True,
+                "hideEdgesOnDrag": True,
+                "hover": True,
+                "navigationButtons": True,
+                "selectable": True,
+                "multiselect": True,
+            }
+            pyvis_map_options["manipulation"] = {
+                "enabled": False,
+                "initiallyActive": True,
+            }
+            pyvis_map_options["configure"] = {"enabled": False}
+            pv_graph.set_options(json.dumps(pyvis_map_options))
+            # pv_graph.show_buttons()
 
-                # Add Nodes
-                for node in self.igraph_map.vs:
+            # Add Nodes
+            for node in self.igraph_map.vs:
+                if not avoid_centrality:
                     color_index = self.get_interpolated_index(
                         centrality_indexes_min,
                         centrality_indexes_max,
                         centrality_indexes[node.index],
                     )
-                    color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                    size = self.get_interpolated_index(
-                        centrality_indexes_min,
-                        centrality_indexes_max,
-                        centrality_indexes[node.index],
-                        min_weight,
-                        max_weight,
+                else:
+                    color_index = 4
+                color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                size = self.get_interpolated_index(
+                    centrality_indexes_min,
+                    centrality_indexes_max,
+                    centrality_indexes[node.index],
+                    min_weight,
+                    max_weight,
+                )
+                pv_graph.add_node(
+                    node.index,
+                    label=node["name"],
+                    color=color,
+                    size=int(size * 2),
+                    x=int(self.Xn[node.index] * factor),
+                    y=int(self.Yn[node.index] * factor),
+                    shape="dot",
+                    # x=int(Xn[node.index]),
+                    # y=int(Yn[node.index]),
+                )
+            for edge in self.igraph_map.es:
+                if self.graph_type == "map":
+                    title = (
+                        edge["edge_name"]
+                        + " travels from: "
+                        + self.igraph_map.vs[edge.source]["name"]
+                        + " to: "
+                        + self.igraph_map.vs[edge.target]["name"]
                     )
-                    pv_graph.add_node(
-                        node.index,
-                        label=node["name"],
-                        color=color,
-                        size=int(size * 2),
-                        x=int(Xn[node.index] * factor),
-                        y=int(Yn[node.index] * factor),
-                        shape="dot",
-                        # x=int(Xn[node.index]),
-                        # y=int(Yn[node.index]),
+                else:
+                    title = (
+                        self.igraph_map.vs[edge.source]["name"]
+                        + " "
+                        + edge["edge_name"]
+                        + " "
+                        + self.igraph_map.vs[edge.target]["name"]
                     )
-                for edge in self.igraph_map.es:
-                    if self.graph_type == "map":
-                        title = (
-                            edge["edge_name"]
-                            + " travels from: "
-                            + self.igraph_map.vs[edge.source]["name"]
-                            + " to: "
-                            + self.igraph_map.vs[edge.target]["name"]
-                        )
-                    else:
-                        title = (
-                            self.igraph_map.vs[edge.source]["name"]
-                            + " "
-                            + edge["edge_name"]
-                            + " "
-                            + self.igraph_map.vs[edge.target]["name"]
-                        )
-                    pv_graph.add_edge(edge.source, edge.target, title=title)
+                pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
 
     def get_map_data(
