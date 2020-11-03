@@ -7,7 +7,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from . import network_graph as ng
+from .network_graph import global_graph, map_graph
 import os
 import tempfile
 
@@ -35,7 +35,7 @@ def get_map_data():
     centrality_index = str(request.args.get("centrality"))
     min_max = str(request.args.get("min_max"))
     map_filter = str(request.args.get("filter"))
-    grafo = ng.diogenetGraph(graph_type="map")
+    grafo = map_graph
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -78,7 +78,7 @@ def get_metrics_table():
         map_filter = "All"
 
     data = []
-    grafo = ng.diogenetGraph(graph_type="map")
+    grafo = map_graph
 
     if map_filter == "All":
         cities = grafo.get_vertex_names()
@@ -140,7 +140,7 @@ def get_graph_data():
     graph_layout = str(request.args.get("layout"))
     selected_edges = str(request.args.get("edges"))
 
-    grafo = ng.map_graph
+    grafo = map_graph
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -200,7 +200,7 @@ def horus_get_graph():
     graph_layout = str(request.args.get("layout"))
     selected_edges = str(request.args.get("edges"))
 
-    grafo = ng.global_graph
+    grafo = global_graph
     not_centrality = False
 
     if centrality_index:
