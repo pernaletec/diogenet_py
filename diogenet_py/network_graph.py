@@ -91,7 +91,7 @@ class diogenetGraph:
     multi_origin_phylosophers = None
 
     graph_layout = None
-    graph_layout_name = None
+    graph_layout_name = "None"
     Xn = []
     Yn = []
 
@@ -549,12 +549,12 @@ class diogenetGraph:
             centrality_indexes_min = min(centrality_indexes)
             centrality_indexes_max = max(centrality_indexes)
 
-            N = len(self.get_vertex_names())
+            N = len(self.igraph_graph.vs)
             factor = 50
 
-            if (not self.graph_layout_name) or (layout != self.graph_layout_name):
+            if (self.graph_layout is None) or (layout != self.graph_layout_name):
                 print("Recalculating layout...")
-                print("self.graph_layout_name: " + self.graph_layout_name)
+                print("self.graph_layout_name: " + str(repr(self.graph_layout_name)))
                 print("layout: " + layout)
                 if layout == "kk":
                     self.graph_layout = self.igraph_graph.layout_kamada_kawai()
