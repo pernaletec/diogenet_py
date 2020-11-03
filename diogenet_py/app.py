@@ -10,8 +10,17 @@ from flask import (
 from .network_graph import global_graph, map_graph
 import os
 import tempfile
+import random
 
 app = Flask(__name__)
+
+
+def setup_app(app):
+    # All your initialization code
+    random.seed(1234)
+
+
+setup_app(app)
 
 MALFORMED_REQUEST = "Malformed request"
 MAP_GRAPH_ERROR = "Error accessing MapGraph Object"

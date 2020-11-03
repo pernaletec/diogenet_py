@@ -17,6 +17,7 @@ import numpy as np
 import networkx as nx
 from dataclasses import dataclass
 from . import data_access as da
+import random
 
 # import cairocffi
 #  I need to see how to handle the locations
@@ -534,6 +535,7 @@ class diogenetGraph:
         print("Entering get_pyvis")
         print("self.graph_layout_name: " + str(repr(self.graph_layout_name)))
         print("layout: " + layout)
+        random.seed(1234)
 
         if self.igraph_graph is not None:
             centrality_indexes = []
