@@ -340,6 +340,10 @@ $(() => {
         const activedTab = <HTMLAnchorElement>e.target;
         const leavedTab = <HTMLAnchorElement>e.relatedTarget;
         activeTab = activedTab.hash;
+        console.log(activeTab);
+        if (activeTab == "#global-metrics-graph") {
+            updateMetricsTable();
+        }
         leaveTab = leavedTab.hash;
     });
     mainMenu("global"); 
