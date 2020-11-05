@@ -11,6 +11,7 @@ import { BASE_URL } from "./baseURLS";
 let activeTab = "#global-graph";
 let leaveTab = "";
 let mainMenuValue = "global";
+let table1: any;
 
 function getCheckedRelations() {
     const checkedCheckboxes = $("input:checkbox[name=edgesFilter]:checked");
@@ -24,6 +25,94 @@ function getCheckedRelations() {
 
     return filter;
 }
+
+function updateMetricsTable() {
+    type MetricsTableData = {
+        City: string;
+        Degree: number;
+        Betweenness: number;
+        Closeness: number;
+        Eigenvector: number;
+    };
+    type DataMapTable = {
+        CentralizationDegree: number;
+        CentralizationBetweenness: number;
+        CentralizationCloseness: number;
+        CentralizationEigenvector: number;
+        CityData: MetricsTableData[];
+    };
+
+    let currentFilter = getCheckedRelations();
+    const urlBase = encodeURI(
+        BASE_URL + "/map/get/table?filter=" 
+        + currentFilter
+        + "&type=global"
+    );
+
+  $.ajax({
+    dataType: "text json",
+    url: urlBase,
+    success: (fullData: DataMapTable) => {
+        const dataCentral = [
+            [
+                "Graph",
+                String(fullData.CentralizationDegree),
+                String(fullData.CentralizationBetweenness),
+                String(fullData.CentralizationCloseness),
+                String(fullData.CentralizationEigenvector),
+            ],
+        ];
+        $("#centralization-table").DataTable({
+            data: dataCentral,
+            retrieve: true,
+            columnDefs: [
+                {
+                    targets: [1],
+                    className: "dt-body-right",
+                    render: (data, type, row) => {
+                        return Number(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 0,
+                        });
+                    },
+                },
+                {
+                    targets: [2, 3, 4],
+                    className: "dt-body-right",
+                    render: (data, type, row) => {
+                        return Number(data).toLocaleString(undefined, {
+                            minimumFractionDigits: 6,
+                        });
+                    },
+                },
+            ],
+            columns: [
+                { title: "" },
+                { title: "Degree" },
+                { title: "Betweenness" },
+                { title: "Closeness" },
+                { title: "Eigenvector" },
+            ],
+            paging: false,
+            ordering: false,
+            info: false,
+            searching: false,
+        });
+        const data: MetricsTableData[] = fullData.CityData;
+        const tableData = data.map((el) => [
+            el.City,
+            el.Degree,
+            el.Betweenness,
+            el.Closeness,
+            el.Eigenvector,
+        ]);
+        table1.clear();
+        table1.rows.add(tableData);
+        table1.draw();
+    },
+});
+  //
+}
+
 
 function updateGraph() {
     let currentCentrality = "";
@@ -163,6 +252,36 @@ function mainMenu(menuItem: string) {
 
 
 $(() => { 
+      table1 = $("#metrics-table").DataTable({
+    columnDefs: [
+      {
+        targets: [1],
+        className: "dt-body-right",
+        render: (data, type, row) => {
+          return Number(data).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+          });
+        },
+      },
+      {
+        targets: [2, 3, 4],
+        className: "dt-body-right",
+        render: (data, type, row) => {
+          return Number(data).toLocaleString(undefined, {
+            minimumFractionDigits: 6,
+          });
+        },
+      },
+    ],
+    columns: [
+      { title: "City" },
+      { title: "Degree" },
+      { title: "Betweenness" },
+      { title: "Closeness" },
+      { title: "Eigenvector" },
+    ],
+  });
+
     $(".node-range-slider").jRange({
         from: 1,
         to: 10,

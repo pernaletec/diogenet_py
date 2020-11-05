@@ -82,20 +82,38 @@ def get_metrics_table():
         return make_response(MALFORMED_REQUEST, 400)
 
     map_filter = str(request.args.get("filter"))
+    graph_type = str(request.args.get("type"))
+
+    if not graph_type:
+        graph_type = "map"
 
     if not map_filter:
         map_filter = "All"
 
     data = []
-    grafo = map_graph
+    grafo = None
 
-    if map_filter == "All":
-        cities = grafo.get_vertex_names()
-        degree = grafo.calculate_degree()
-        betweeness = grafo.calculate_betweenness()
-        closeness = grafo.calculate_closeness()
-        eigenvector = grafo.calculate_eigenvector()
+    if graph_type == "map":
+        grafo = map_graph
+        if map_filter == "All":
+            cities = grafo.get_vertex_names()
+            degree = grafo.calculate_degree()
+            betweeness = grafo.calculate_betweenness()
+            closeness = grafo.calculate_closeness()
+            eigenvector = grafo.calculate_eigenvector()
+        else:
+            filters = map_filter.split(";")
+            for m_filter in filters:
+                grafo.set_edges_filter(m_filter)
+            subgraph = grafo.get_subgraph()
+
+            cities = subgraph.get_vertex_names()
+            degree = subgraph.calculate_degree()
+            betweeness = subgraph.calculate_betweenness()
+            closeness = subgraph.calculate_closeness()
+            eigenvector = subgraph.calculate_eigenvector()
     else:
+        grafo = global_graph
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
