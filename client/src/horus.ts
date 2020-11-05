@@ -1,8 +1,12 @@
+/// <reference path="jquery-range.d.ts"/>
 import "bootstrap";
 import "!style-loader!css-loader!@fortawesome/fontawesome-free/css/all.min.css";
 import $ from "jquery";
 import "jquery-range";
 import "!style-loader!css-loader!jquery-range/jquery.range.css";
+import "datatables.net";
+import "datatables.net-dt";
+import "!style-loader!css-loader!datatables.net-dt/css/jquery.dataTables.min.css";
 
 import { getCentralityIndex, getGraphLayout, getNodesSize, getLabelsSize, debounce } from "./graphLibrary";
 import { BASE_URL } from "./baseURLS";
