@@ -26,7 +26,7 @@ let activeMenu = "";
 let activeTab = "";
 let leavedTab = "";
 let initDTable: boolean = true;
-let table1: any;
+let table1: any, table2: any;
 
 const menuItemsIds: MenuItem[] = [
   { name: "global", tabs: ["global-graph"] },
@@ -154,6 +154,8 @@ function updateGraph(
         );
       }
       targetIFrame.src = srcURL;
+      if (srcURL === "")
+        alert("Please select at least one relation from Network Ties!");
       break;
     }
     case "local": {
@@ -182,72 +184,48 @@ function updateMetricsTable() {
   };
 
   let currentFilter = getCheckedRelations();
-  const urlBase = encodeURI(
-    BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
-  );
+  if (currentFilter === "") {
+    table1.clear();
+    table1.draw();
+    table2.clear();
+    table2.draw();
+    alert("Please select at least one relation from Network Ties!");
+  } else {
+    const urlBase = encodeURI(
+      BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
+    );
 
-  $.ajax({
-    dataType: "text json",
-    url: urlBase,
-    success: (fullData: DataMapTable) => {
-      const dataCentral = [
-        [
-          "Graph",
-          String(fullData.CentralizationDegree),
-          String(fullData.CentralizationBetweenness),
-          String(fullData.CentralizationCloseness),
-          String(fullData.CentralizationEigenvector),
-        ],
-      ];
-      $("#centralization-table").DataTable({
-        data: dataCentral,
-        retrieve: true,
-        columnDefs: [
-          {
-            targets: [1],
-            className: "dt-body-right",
-            render: (data, type, row) => {
-              return Number(data).toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-              });
-            },
-          },
-          {
-            targets: [2, 3, 4],
-            className: "dt-body-right",
-            render: (data, type, row) => {
-              return Number(data).toLocaleString(undefined, {
-                minimumFractionDigits: 6,
-              });
-            },
-          },
-        ],
-        columns: [
-          { title: "" },
-          { title: "Degree" },
-          { title: "Betweenness" },
-          { title: "Closeness" },
-          { title: "Eigenvector" },
-        ],
-        paging: false,
-        ordering: false,
-        info: false,
-        searching: false,
-      });
-      const data: MetricsTableData[] = fullData.CityData;
-      const tableData = data.map((el) => [
-        el.City,
-        el.Degree,
-        el.Betweenness,
-        el.Closeness,
-        el.Eigenvector,
-      ]);
+    $.ajax({
+      dataType: "text json",
+      url: urlBase,
+      success: (fullData: DataMapTable) => {
+        const dataCentral = [
+          [
+            "Graph",
+            String(fullData.CentralizationDegree),
+            String(fullData.CentralizationBetweenness),
+            String(fullData.CentralizationCloseness),
+            String(fullData.CentralizationEigenvector),
+          ],
+        ];
+        table2.clear();
+        table2.rows.add(dataCentral);
+        table2.draw();
+        const data: MetricsTableData[] = fullData.CityData;
+        const tableData = data.map((el) => [
+          el.City,
+          el.Degree,
+          el.Betweenness,
+          el.Closeness,
+          el.Eigenvector,
+        ]);
 
-      table1.clear();
-      table1.rows.add(tableData);
-      table1.draw();
-    },
-  });
+        table1.clear();
+        table1.rows.add(tableData);
+        table1.draw();
+      },
+    });
+  }
   //
 }
 
@@ -272,7 +250,6 @@ function updateTab() {
       break;
     }
     case "global-metrics-graph": {
-      console.log("updating metrics table");
       updateMetricsTable();
       break;
     }
@@ -401,6 +378,40 @@ function initDataTable() {
       { title: "Closeness" },
       { title: "Eigenvector" },
     ],
+  });
+  table2 = $("#centralization-table").DataTable({
+    retrieve: true,
+    columnDefs: [
+      {
+        targets: [1],
+        className: "dt-body-right",
+        render: (data, type, row) => {
+          return Number(data).toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+          });
+        },
+      },
+      {
+        targets: [2, 3, 4],
+        className: "dt-body-right",
+        render: (data, type, row) => {
+          return Number(data).toLocaleString(undefined, {
+            minimumFractionDigits: 6,
+          });
+        },
+      },
+    ],
+    columns: [
+      { title: "" },
+      { title: "Degree" },
+      { title: "Betweenness" },
+      { title: "Closeness" },
+      { title: "Eigenvector" },
+    ],
+    paging: false,
+    ordering: false,
+    info: false,
+    searching: false,
   });
   initDTable = false;
 }
