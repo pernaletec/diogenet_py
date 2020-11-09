@@ -14,6 +14,8 @@ import random
 
 app = Flask(__name__)
 
+app_global_graph = global_graph
+
 
 def setup_app(app):
     # All your initialization code
@@ -76,6 +78,45 @@ def get_map_data():
         return make_response(MAP_GRAPH_ERROR, 400)
 
 
+def get_map_data_table(filter_string):
+    graph = None
+    graph = map_graph
+    if filter_string != "All":
+        filters = filter_string.split(";")
+        for m_filter in filters:
+            graph.set_edges_filter(m_filter)
+        subgraph = graph.get_subgraph()
+        graph = subgraph
+
+    return (
+        graph.get_vertex_names(),
+        graph.calculate_degree(),
+        graph.calculate_betweenness(),
+        graph.calculate_closeness(),
+        graph.calculate_eigenvector(),
+    )
+
+
+def get_global_data_table(filter_string):
+    graph = None
+    graph = global_graph
+    subgraph = None
+
+    filters = filter_string.split(";")
+    for m_filter in filters:
+        graph.set_edges_filter(m_filter)
+    subgraph = graph.get_subgraph()
+
+    return (
+        subgraph,
+        subgraph.get_vertex_names(),
+        subgraph.calculate_degree(),
+        subgraph.calculate_betweenness(),
+        subgraph.calculate_closeness(),
+        subgraph.calculate_eigenvector(),
+    )
+
+
 @app.route("/map/get/table")
 def get_metrics_table():
     if request.method != "GET":
@@ -86,44 +127,31 @@ def get_metrics_table():
 
     if not graph_type:
         graph_type = "map"
-
     if not map_filter:
         map_filter = "All"
 
     data = []
     grafo = None
+    cities = degree = betweeness = closeness = eigenvector = []
 
     if graph_type == "map":
-        grafo = map_graph
-        if map_filter == "All":
-            cities = grafo.get_vertex_names()
-            degree = grafo.calculate_degree()
-            betweeness = grafo.calculate_betweenness()
-            closeness = grafo.calculate_closeness()
-            eigenvector = grafo.calculate_eigenvector()
-        else:
-            filters = map_filter.split(";")
-            for m_filter in filters:
-                grafo.set_edges_filter(m_filter)
-            subgraph = grafo.get_subgraph()
-
-            cities = subgraph.get_vertex_names()
-            degree = subgraph.calculate_degree()
-            betweeness = subgraph.calculate_betweenness()
-            closeness = subgraph.calculate_closeness()
-            eigenvector = subgraph.calculate_eigenvector()
+        (
+            grafo,
+            cities,
+            degree,
+            betweeness,
+            closeness,
+            eigenvector,
+        ) = get_map_data_table(map_filter)
     else:
-        grafo = global_graph
-        filters = map_filter.split(";")
-        for m_filter in filters:
-            grafo.set_edges_filter(m_filter)
-        subgraph = grafo.get_subgraph()
-
-        cities = subgraph.get_vertex_names()
-        degree = subgraph.calculate_degree()
-        betweeness = subgraph.calculate_betweenness()
-        closeness = subgraph.calculate_closeness()
-        eigenvector = subgraph.calculate_eigenvector()
+        (
+            grafo,
+            cities,
+            degree,
+            betweeness,
+            closeness,
+            eigenvector,
+        ) = get_global_data_table(map_filter)
 
     for (
         city_name,

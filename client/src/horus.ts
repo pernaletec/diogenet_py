@@ -8,255 +8,368 @@ import "datatables.net";
 import "datatables.net-dt";
 import "!style-loader!css-loader!datatables.net-dt/css/jquery.dataTables.min.css";
 
-import { getCentralityIndex, getGraphLayout, getNodesSize, getLabelsSize, debounce } from "./graphLibrary";
+import {
+  getCentralityIndex,
+  getGraphLayout,
+  getNodesSize,
+  getLabelsSize,
+  debounce,
+} from "./graphLibrary";
 import { BASE_URL } from "./baseURLS";
 
+type MenuItem = {
+  name: string;
+  tabs: string[];
+};
 
-let activeTab = "#global-graph";
-let leaveTab = "";
-let mainMenuValue = "global";
+let activeMenu = "";
+let activeTab = "";
+let leavedTab = "";
+let initDTable: boolean = true;
 let table1: any;
 
-function getCheckedRelations() {
-    const checkedCheckboxes = $("input:checkbox[name=edgesFilter]:checked");
-    let filter = "";
+const menuItemsIds: MenuItem[] = [
+  { name: "global", tabs: ["global-graph"] },
+  {
+    name: "global-centrality",
+    tabs: [
+      "global-central-graph",
+      "global-heatmap-graph",
+      "global-metrics-graph",
+    ],
+  },
+  { name: "local", tabs: ["local-graph"] },
+  {
+    name: "local-centrality",
+    tabs: ["local-central-graph", "local-heatmap-graph", "local-metrics-graph"],
+  },
+  { name: "communities", tabs: ["communities-graph"] },
+  { name: "communities-treemap", tabs: ["communities-treemap-graph"] },
+];
 
-    checkedCheckboxes.each(nCheckBox => { 
-        let cBoxElem = <HTMLInputElement>checkedCheckboxes[nCheckBox];
-        if (filter.length > 1) { filter += ";"; };
-        filter += cBoxElem.value;
-    });
+function getCheckedRelations(): string {
+  const checkedCheckboxes = $("input:checkbox[name=edgesFilter]:checked");
+  let filter = "";
 
-    return filter;
+  checkedCheckboxes.each((nCheckBox) => {
+    let cBoxElem = <HTMLInputElement>checkedCheckboxes[nCheckBox];
+    if (filter.length > 1) {
+      filter += ";";
+    }
+    filter += cBoxElem.value;
+  });
+  return filter;
+}
+
+function showAppearenceControls(show: boolean) {
+  if (show) {
+    $(".node-range-slider").show();
+    $(".label-range-slider").show();
+  } else {
+    $(".node-range-slider").hide();
+    $(".label-range-slider").hide();
+  }
+}
+
+function showLayoutControl(show: boolean) {
+  if (show) {
+    $("#graph-layout").show();
+  } else {
+    $("#graph-layout").hide();
+  }
+}
+
+function showDegreeControl(show: boolean) {
+  if (show) {
+    $("#centrality-index-div").show();
+  } else {
+    $("#centrality-index-div").hide();
+  }
+}
+
+function showOrderControl(show: boolean) {
+  if (show) {
+    $("#ego-div").show();
+  } else {
+    $("#ego-div").hide();
+  }
+}
+
+function setActiveMenuItem(item: string) {
+  menuItemsIds.forEach((mItem) => {
+    const objectName = "#" + mItem.name + "-btn";
+    if (item === mItem.name) {
+      $(objectName).addClass("active");
+    } else {
+      $(objectName).removeClass("active");
+    }
+  });
+}
+
+function setActiveLayout(item: string) {
+  menuItemsIds.forEach((mItem) => {
+    const divObjectName = "#" + mItem.name + "-main-div";
+    const tabObjectName = "#" + mItem.name + "-tab-content";
+    if (item === mItem.name) {
+      $(divObjectName).show();
+      $(tabObjectName).show();
+    } else {
+      $(divObjectName).hide();
+      $(tabObjectName).hide();
+    }
+  });
+}
+
+function updateGraph(
+  targetIFrame: HTMLIFrameElement,
+  type: string = "global",
+  showCentrality: boolean = false
+) {
+  const currentCentrality: string = showCentrality
+    ? getCentralityIndex()
+    : "None";
+  let currentLayout: string = "";
+  let currentFilter: string = "";
+  const nodeSizes = getNodesSize();
+  const labelSizes = getLabelsSize();
+
+  switch (type) {
+    case "global": {
+      currentLayout = getGraphLayout();
+      currentFilter = getCheckedRelations();
+      targetIFrame.src = encodeURI(
+        BASE_URL +
+          "/horus/get/graph?centrality=" +
+          currentCentrality +
+          "&node_min_max=" +
+          nodeSizes +
+          "&label_min_max=" +
+          labelSizes +
+          "&filter=" +
+          currentFilter +
+          "&layout=" +
+          currentLayout
+      );
+      break;
+    }
+    case "local": {
+      break;
+    }
+    case "communities": {
+      break;
+    }
+  }
 }
 
 function updateMetricsTable() {
-    type MetricsTableData = {
-        City: string;
-        Degree: number;
-        Betweenness: number;
-        Closeness: number;
-        Eigenvector: number;
-    };
-    type DataMapTable = {
-        CentralizationDegree: number;
-        CentralizationBetweenness: number;
-        CentralizationCloseness: number;
-        CentralizationEigenvector: number;
-        CityData: MetricsTableData[];
-    };
+  type MetricsTableData = {
+    City: string;
+    Degree: number;
+    Betweenness: number;
+    Closeness: number;
+    Eigenvector: number;
+  };
+  type DataMapTable = {
+    CentralizationDegree: number;
+    CentralizationBetweenness: number;
+    CentralizationCloseness: number;
+    CentralizationEigenvector: number;
+    CityData: MetricsTableData[];
+  };
 
-    let currentFilter = getCheckedRelations();
-    const urlBase = encodeURI(
-        BASE_URL + "/map/get/table?filter=" 
-        + currentFilter
-        + "&type=global"
-    );
+  let currentFilter = getCheckedRelations();
+  const urlBase = encodeURI(
+    BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
+  );
 
   $.ajax({
     dataType: "text json",
     url: urlBase,
     success: (fullData: DataMapTable) => {
-        const dataCentral = [
-            [
-                "Graph",
-                String(fullData.CentralizationDegree),
-                String(fullData.CentralizationBetweenness),
-                String(fullData.CentralizationCloseness),
-                String(fullData.CentralizationEigenvector),
-            ],
-        ];
-        $("#centralization-table").DataTable({
-            data: dataCentral,
-            retrieve: true,
-            columnDefs: [
-                {
-                    targets: [1],
-                    className: "dt-body-right",
-                    render: (data, type, row) => {
-                        return Number(data).toLocaleString(undefined, {
-                            minimumFractionDigits: 0,
-                        });
-                    },
-                },
-                {
-                    targets: [2, 3, 4],
-                    className: "dt-body-right",
-                    render: (data, type, row) => {
-                        return Number(data).toLocaleString(undefined, {
-                            minimumFractionDigits: 6,
-                        });
-                    },
-                },
-            ],
-            columns: [
-                { title: "" },
-                { title: "Degree" },
-                { title: "Betweenness" },
-                { title: "Closeness" },
-                { title: "Eigenvector" },
-            ],
-            paging: false,
-            ordering: false,
-            info: false,
-            searching: false,
-        });
-        const data: MetricsTableData[] = fullData.CityData;
-        const tableData = data.map((el) => [
-            el.City,
-            el.Degree,
-            el.Betweenness,
-            el.Closeness,
-            el.Eigenvector,
-        ]);
-        table1.clear();
-        table1.rows.add(tableData);
-        table1.draw();
+      const dataCentral = [
+        [
+          "Graph",
+          String(fullData.CentralizationDegree),
+          String(fullData.CentralizationBetweenness),
+          String(fullData.CentralizationCloseness),
+          String(fullData.CentralizationEigenvector),
+        ],
+      ];
+      $("#centralization-table").DataTable({
+        data: dataCentral,
+        retrieve: true,
+        columnDefs: [
+          {
+            targets: [1],
+            className: "dt-body-right",
+            render: (data, type, row) => {
+              return Number(data).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+              });
+            },
+          },
+          {
+            targets: [2, 3, 4],
+            className: "dt-body-right",
+            render: (data, type, row) => {
+              return Number(data).toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+              });
+            },
+          },
+        ],
+        columns: [
+          { title: "" },
+          { title: "Degree" },
+          { title: "Betweenness" },
+          { title: "Closeness" },
+          { title: "Eigenvector" },
+        ],
+        paging: false,
+        ordering: false,
+        info: false,
+        searching: false,
+      });
+      const data: MetricsTableData[] = fullData.CityData;
+      const tableData = data.map((el) => [
+        el.City,
+        el.Degree,
+        el.Betweenness,
+        el.Closeness,
+        el.Eigenvector,
+      ]);
+
+      table1.clear();
+      table1.rows.add(tableData);
+      table1.draw();
     },
-});
+  });
   //
 }
 
-
-function updateGraph() {
-    let currentCentrality = "";
-    if (mainMenuValue.includes("centrality")) {
-        currentCentrality = getCentralityIndex();
-    } else {
-        currentCentrality = "None";
+function updateTab() {
+  switch (activeTab) {
+    case "global-graph": {
+      $("#global-graph").addClass("active");
+      updateGraph($("#graph-global")[0] as HTMLIFrameElement);
+      break;
     }
-    const currentLayout = getGraphLayout();
-    const nodeSizes = getNodesSize();
-    const labelSizes = getLabelsSize();
-    let currentFilter = getCheckedRelations();
-    const urlBase = encodeURI(
-        BASE_URL +
-        "/horus/get/graph?centrality=" +
-        currentCentrality +
-        "&node_min_max=" +
-        nodeSizes +
-        "&label_min_max=" +
-        labelSizes +
-        "&filter=" +
-        currentFilter + 
-        "&layout=" +
-        currentLayout
-    );
-    let graphiFrame: HTMLIFrameElement;
-    // debugger;
-    switch (mainMenuValue) {
-        case "global": {
-            graphiFrame = $("#graph-global")[0] as HTMLIFrameElement;
-            graphiFrame.src = urlBase;
-            break;
-        }
-        case "global+centrality": {
-            //debugger;
-            graphiFrame = $("#graph-centrality")[0] as HTMLIFrameElement;
-            graphiFrame.src = urlBase;
-            break;
-        }
-        case "local": {
-            $("#local-btn").removeClass("active");
-            break;
-        }
-        case "local+centrality": {
-            $("#local-centrality-btn").removeClass("active");
-            break;
-        }
-        case "communities": {
-            $("#communities-btn").removeClass("active");
-            break;
-        }
-        case "communities+treemap": {
-            $("#communities-treemap-btn").removeClass("active");
-            break;
-        }
+    case "global-central-graph": {
+      $("#global-central-graph").addClass("active");
+      $("#global-central-graph").addClass("show");
+      updateGraph(
+        $("#graph-centrality")[0] as HTMLIFrameElement,
+        "global",
+        true
+      );
+      break;
     }
+    case "global-heatmap-graph": {
+      break;
+    }
+    case "global-metrics-graph": {
+      console.log("updating metrics table");
+      updateMetricsTable();
+      break;
+    }
+    case "local-graph": {
+      break;
+    }
+    case "local-central-graph": {
+      updateGraph(
+        $("#graph-local-centrality")[0] as HTMLIFrameElement,
+        "local"
+      );
+      break;
+    }
+    case "local-heatmap-graph": {
+      break;
+    }
+    case "local-metrics-graph": {
+      break;
+    }
+    case "communities-graph": {
+      updateGraph(
+        $("#graph-communities")[0] as HTMLIFrameElement,
+        "communities"
+      );
+      break;
+    }
+    case "communities-treemap-graph": {
+      break;
+    }
+  }
 }
 
-function mainMenu(menuItem: string) {
-    // mainMenuValue = menuItem;
-    // debugger;
-    switch (menuItem) {
-        case "global": {
-            // Hide global+centrality MenuItem & Tab container
-            $("#global-centrality-main-div").hide();
-            $("#global-centrality-tab-content").hide();
-            // Show lobal MenuItem & Tab container
-            $("#global-main-div").show()
-            $("#global-tab-content").show();
-            // Hide lateral centrality index selector
-            $("#centrality-index-div").hide();
-            // Set Active menu item
-            $("#global-btn").addClass("active");
-            $("#graph-tab").trigger('click');
-            break;
+function drawScreen(selectedMenu: string, selectedTab: string) {
+  let mustUpdateTab: boolean = false;
+  if (selectedMenu !== activeMenu || selectedTab !== activeTab) {
+    switch (selectedMenu) {
+      case "global": {
+        activeMenu = "global";
+        showLayoutControl(true);
+        showDegreeControl(false);
+        showOrderControl(false);
+        showAppearenceControls(true);
+        break;
+      }
+      case "global-centrality": {
+        activeMenu = "global-centrality";
+        if (selectedTab === "global-central-graph") {
+          showLayoutControl(true);
+          showDegreeControl(true);
+          showOrderControl(false);
+          showAppearenceControls(true);
+        } else {
+          showLayoutControl(false);
+          showDegreeControl(false);
+          showOrderControl(false);
+          showAppearenceControls(false);
+          console.log("Entering layout " + selectedTab);
+          if (selectedTab === "global-metrics-graph") {
+            initDataTable();
+          }
         }
-        case "global+centrality": {
-            // Hide global tabitem & Tab container
-            $("#global-main-div").hide()
-            $("#global-tab-content").hide();
-            // show global+centrality MenuItem & Ta container
-            $("#global-centrality-main-div").show();
-            $("#global-centrality-tab-content").show();
-            // Show lateral centrality index selector
-            $("#centrality-index-div").show();
-            // Set Active menu item
-            $("#global-centrality-btn").addClass("active");
-            $("#graph-central-tab").trigger('click');
-            break;
-        }
-        case "local": {
-            $("#local-btn").addClass("active");
-            break;
-        }
-        case "local+centrality": {
-            $("#local-centrality-btn").addClass("active");
-            break;
-        }
-        case "communities": {
-            $("#communities-btn").addClass("active");
-            break;
-        }
-        case "communities+treemap": {
-            $("#communities-treemap-btn").addClass("active");
-            break;
-        }
+        break;
+      }
+      case "local": {
+        activeMenu = "local";
+        showLayoutControl(false);
+        showDegreeControl(false);
+        showOrderControl(true);
+        showAppearenceControls(true);
+        break;
+      }
+      case "local-centrality": {
+        activeMenu = "local-centrality";
+        showLayoutControl(false);
+        showDegreeControl(true);
+        showOrderControl(true);
+        showAppearenceControls(true);
+        break;
+      }
     }
-    switch (mainMenuValue) {
-        case "global": {
-            $("#global-btn").removeClass("active");
-            break;
-        }
-        case "global+centrality": {
-            $("#global-centrality-btn").removeClass("active");
-            break;
-        }
-        case "local": {
-            $("#local-btn").removeClass("active");
-            break;
-        }
-        case "local+centrality": {
-            $("#local-centrality-btn").removeClass("active");
-            break;
-        }
-        case "communities": {
-            $("#communities-btn").removeClass("active");
-            break;
-        }
-        case "communities+treemap": {
-            $("#communities-treemap-btn").removeClass("active");
-            break;
-        }
+    // Set active menu
+    setActiveMenuItem(activeMenu);
+    // Update Layout
+    setActiveLayout(activeMenu);
+    let activeMenuItem = menuItemsIds.find((item) => item.name === activeMenu);
+    if (activeMenuItem) {
+      let tab2Click = activeMenuItem.tabs[0];
+      console.log("Trigging click on tab " + tab2Click);
+      const tabName = "#" + tab2Click;
+      $(tabName).trigger("click");
+      activeTab = selectedTab;
     }
-    mainMenuValue = menuItem;
-    updateGraph();
+    mustUpdateTab = true;
+  }
+  if (mustUpdateTab || selectedTab !== activeTab) {
+    updateTab();
+  }
 }
 
-
-$(() => { 
-      table1 = $("#metrics-table").DataTable({
+function initDataTable() {
+  table1 = $("#metrics-table").DataTable({
     columnDefs: [
       {
         targets: [1],
@@ -278,73 +391,66 @@ $(() => {
       },
     ],
     columns: [
-      { title: "City" },
+      { title: "Philosopher" },
       { title: "Degree" },
       { title: "Betweenness" },
       { title: "Closeness" },
       { title: "Eigenvector" },
     ],
   });
+}
 
-    $(".node-range-slider").jRange({
-        from: 1,
-        to: 10,
-        step: 1,
-        scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        format: "%s",
-        width: 200,
-        showLabels: true,
-        isRange: true,
-        snap: true,
-        theme: "theme-blue",
-    });
-    $(".label-range-slider").jRange({
-        from: 1,
-        to: 10,
-        step: 1,
-        scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        format: "%s",
-        width: 200,
-        showLabels: true,
-        isRange: true,
-        snap: true,
-        theme: "theme-blue",
-    });
+function initRangeSlider(classname: string) {
+  $("." + classname).jRange({
+    from: 1,
+    to: 10,
+    step: 1,
+    scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    format: "%s",
+    width: 200,
+    showLabels: true,
+    isRange: true,
+    snap: true,
+    theme: "theme-blue",
+  });
+}
 
-    const debouncedUpdateGraph = debounce(updateGraph, 4000);
+const debouncedUpdateGraph = debounce(updateGraph, 4000);
 
-    $("#graph-layout").change((event) => {
-        updateGraph();
-    });
-    $("input:checkbox[name=edgesFilter]").change((event) => {
-        updateGraph();
-    });
-    $(".node-range-slider").change((event) => {
-        debouncedUpdateGraph();
-    });
-    $(".label-range-slider").change((event) => {
-        debouncedUpdateGraph();
-    });
-    $("#centrality-index").change((event) => {
-        updateGraph();
-    });
+$(() => {
+  initRangeSlider("node-range-slider");
+  initRangeSlider("label-range-slider");
 
-    $("#global-btn").on("click", () => { 
-        mainMenu("global");
-    });
-    $("#global-centrality-btn").on("click", () => { 
-        mainMenu("global+centrality");
-    });
+  $("#graph-layout").on("change", (event) => {
+    updateTab();
+  });
+  $("input:checkbox[name=edgesFilter]").on("change", (event) => {
+    updateTab();
+  });
+  $(".node-range-slider").on("change", (event) => {
+    updateTab();
+  });
+  $(".label-range-slider").on("change", (event) => {
+    updateTab();
+  });
+  $("#centrality-index").on("change", (event) => {
+    updateTab();
+  });
 
-    $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
-        const activedTab = <HTMLAnchorElement>e.target;
-        const leavedTab = <HTMLAnchorElement>e.relatedTarget;
-        activeTab = activedTab.hash;
-        console.log(activeTab);
-        if (activeTab == "#global-metrics-graph") {
-            updateMetricsTable();
-        }
-        leaveTab = leavedTab.hash;
-    });
-    mainMenu("global"); 
+  $("#global-btn").on("click", () => {
+    drawScreen("global", "global-graph");
+  });
+  $("#global-centrality-btn").on("click", () => {
+    drawScreen("global-centrality", "global-central-graph");
+  });
+
+  $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
+    const activedTab = <HTMLAnchorElement>e.target;
+    //const leavedTab = <HTMLAnchorElement>e.relatedTarget;
+    const clickedTab = activedTab.hash.substring(1);
+    console.log("Click on: " + clickedTab);
+    drawScreen(activeMenu, clickedTab);
+  });
+
+  drawScreen("global", "global-graph");
 });

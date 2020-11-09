@@ -532,32 +532,30 @@ class diogenetGraph:
         pv_graph = None
         factor = 0
 
-        print("Entering get_pyvis")
-        print("self.graph_layout_name: " + str(repr(self.graph_layout_name)))
-        print("layout: " + layout)
         random.seed(1234)
 
         if self.igraph_graph is not None:
             centrality_indexes = []
             if self.current_centrality_index == "Degree":
                 centrality_indexes = self.calculate_degree()
-            elif self.current_centrality_index == "Betweeness":
+            if self.current_centrality_index == "Betweeness":
                 centrality_indexes = self.calculate_betweenness()
-            elif self.current_centrality_index == "Closeness":
+            if self.current_centrality_index == "Closeness":
                 centrality_indexes = self.calculate_closeness()
-            else:
+            if self.current_centrality_index == "Eigenvector":
                 centrality_indexes = self.calculate_eigenvector()
 
             centrality_indexes_min = min(centrality_indexes)
             centrality_indexes_max = max(centrality_indexes)
 
             N = len(self.igraph_graph.vs)
+            # Spatial separation factor
             factor = 50
+            node_size_factor = 2
 
+            print("Layout: " + repr(layout))
+            print("Graph layout name: " + repr(self.graph_layout_name))
             if (self.graph_layout is None) or (layout != self.graph_layout_name):
-                print("Recalculating layout...")
-                print("self.graph_layout_name: " + str(repr(self.graph_layout_name)))
-                print("layout: " + layout)
                 if layout == "kk":
                     self.graph_layout = self.igraph_graph.layout_kamada_kawai()
                     self.graph_layout_name = "kk"
@@ -569,10 +567,12 @@ class diogenetGraph:
                     self.graph_layout = self.igraph_graph.layout_circle()
                     self.graph_layout_name = "circle"
                     factor = 250
+                    node_size_factor = 1
                 elif layout == "sphere":
                     self.graph_layout = self.igraph_graph.layout_sphere()
                     self.graph_layout_name = "sphere"
                     factor = 250
+                    node_size_factor = 1
                 else:
                     self.graph_layout = self.igraph_graph.layout_fruchterman_reingold()
                     self.graph_layout_name = "fr"
@@ -585,8 +585,8 @@ class diogenetGraph:
             pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
             pyvis_map_options = {}
             pyvis_map_options["nodes"] = {
-                "font": {"size": min_weight + 8},
-                "scaling": {"min": min_weight, "max": max_weight},
+                "font": {"size": min_label_size + 8},
+                "scaling": {"min": min_label_size, "max": max_label_size},
             }
             show_arrows = True
             if self.graph_type == "global" and len(self.edges_filter) > 1:
@@ -617,21 +617,24 @@ class diogenetGraph:
                 "enabled": False,
                 "initiallyActive": True,
             }
-            pyvis_map_options["configure"] = {"enabled": False}
+            pyvis_map_options["configure"] = {"enabled": True}
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # pv_graph.show_buttons()
 
             # Add Nodes
             for node in self.igraph_graph.vs:
+                node_title = node["name"]
                 if not avoid_centrality:
                     color_index = self.get_interpolated_index(
                         centrality_indexes_min,
                         centrality_indexes_max,
                         centrality_indexes[node.index],
                     )
+                    color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                    node_title += "<br />" + str(centrality_indexes[node.index])
                 else:
-                    color_index = 4
-                color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                    color = "#ff6347"
+
                 size = self.get_interpolated_index(
                     centrality_indexes_min,
                     centrality_indexes_max,
@@ -643,10 +646,11 @@ class diogenetGraph:
                     node.index,
                     label=node["name"],
                     color=color,
-                    size=int(size * 2),
+                    size=int(size * node_size_factor),
                     x=int(self.Xn[node.index] * factor),
                     y=int(self.Yn[node.index] * factor),
                     shape="dot",
+                    title=node_title
                     # x=int(Xn[node.index]),
                     # y=int(Yn[node.index]),
                 )
