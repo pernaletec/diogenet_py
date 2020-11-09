@@ -63,19 +63,17 @@ function getCheckedRelations(): string {
 
 function showAppearenceControls(show: boolean) {
   if (show) {
-    $(".node-range-slider").show();
-    $(".label-range-slider").show();
+    $("#appareance-size-div").show();
   } else {
-    $(".node-range-slider").hide();
-    $(".label-range-slider").hide();
+    $("#appareance-size-div").hide();
   }
 }
 
 function showLayoutControl(show: boolean) {
   if (show) {
-    $("#graph-layout").show();
+    $("#graph-layout-control").show();
   } else {
-    $("#graph-layout").hide();
+    $("#graph-layout-control").hide();
   }
 }
 
@@ -137,19 +135,25 @@ function updateGraph(
     case "global": {
       currentLayout = getGraphLayout();
       currentFilter = getCheckedRelations();
-      targetIFrame.src = encodeURI(
-        BASE_URL +
-          "/horus/get/graph?centrality=" +
-          currentCentrality +
-          "&node_min_max=" +
-          nodeSizes +
-          "&label_min_max=" +
-          labelSizes +
-          "&filter=" +
-          currentFilter +
-          "&layout=" +
-          currentLayout
-      );
+      let srcURL: string;
+      if (currentFilter === "") {
+        srcURL = "";
+      } else {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/graph?centrality=" +
+            currentCentrality +
+            "&node_min_max=" +
+            nodeSizes +
+            "&label_min_max=" +
+            labelSizes +
+            "&filter=" +
+            currentFilter +
+            "&layout=" +
+            currentLayout
+        );
+      }
+      targetIFrame.src = srcURL;
       break;
     }
     case "local": {
@@ -326,7 +330,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showOrderControl(false);
           showAppearenceControls(false);
           console.log("Entering layout " + selectedTab);
-          if (selectedTab === "global-metrics-graph") {
+          if (selectedTab === "global-metrics-graph" && !initDTable) {
             initDataTable();
           }
         }
@@ -398,6 +402,7 @@ function initDataTable() {
       { title: "Eigenvector" },
     ],
   });
+  initDTable = true;
 }
 
 function initRangeSlider(classname: string) {
