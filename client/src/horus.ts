@@ -329,8 +329,6 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showDegreeControl(false);
           showOrderControl(false);
           showAppearenceControls(false);
-          console.log("Entering layout " + selectedTab);
-          console.log(initDTable);
           if (selectedTab === "global-metrics-graph" && initDTable) {
             console.log("initial table");
             initDataTable();
@@ -404,7 +402,7 @@ function initDataTable() {
       { title: "Eigenvector" },
     ],
   });
-  initDTable = true;
+  initDTable = false;
 }
 
 function initRangeSlider(classname: string) {
