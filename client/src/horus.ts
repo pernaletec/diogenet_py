@@ -330,7 +330,9 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showOrderControl(false);
           showAppearenceControls(false);
           console.log("Entering layout " + selectedTab);
-          if (selectedTab === "global-metrics-graph" && !initDTable) {
+          console.log(initDTable);
+          if (selectedTab === "global-metrics-graph" && initDTable) {
+            console.log("initial table");
             initDataTable();
           }
         }
