@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <meta charset="utf-8" />
+
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{% block title %}Page{% endblock title %} - Diogenet</title>
+      {% block page_style %}
+        <link rel="stylesheet" href="/static/client/main_styles.bundle.css" type="text/css" />
+      {% endblock page_style %}
+    {% endblock head %}
+  </head>
+  {% block full_body %}
+    <body>
+      {% block body %}{% endblock %}
+    </body>
+  {% endblock full_body %}
+</html>
