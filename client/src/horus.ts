@@ -167,6 +167,38 @@ function updateGraph(
   }
 }
 
+function updateHeatMap(
+  targetIFrame: HTMLIFrameElement,
+  type: string = "global",
+  showCentrality: boolean = false
+) {
+  let currentFilter: string = "";
+
+  switch (type) {
+    case "global": {
+      currentFilter = getCheckedRelations();
+      let srcURL: string;
+      if (currentFilter === "") {
+        srcURL = "";
+      } else {
+        srcURL = encodeURI(
+          BASE_URL + "/horus/get/heatmap?filter=" + currentFilter
+        );
+      }
+      targetIFrame.src = srcURL;
+      if (srcURL === "")
+        alert("Please select at least one relation from Network Ties!");
+      break;
+    }
+    case "local": {
+      break;
+    }
+    case "communities": {
+      break;
+    }
+  }
+}
+
 function updateMetricsTable() {
   type MetricsTableData = {
     City: string;
@@ -247,6 +279,9 @@ function updateTab() {
       break;
     }
     case "global-heatmap-graph": {
+      $("#global-heatmap-graph").addClass("active");
+      $("#global-heatmap-graph").addClass("show");
+      updateHeatMap($("#graph-heatmap-centrality")[0] as HTMLIFrameElement);
       break;
     }
     case "global-metrics-graph": {

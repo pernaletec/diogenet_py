@@ -320,6 +320,17 @@ def horus_get_heatmap():
 
     grafo = global_graph
 
+    if not graph_filter:
+        graph_filter = "is teacher of"
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
+    # subgraph = grafo.get_subgraph()
+    print(repr(grafo))
     data = {
         "Philosopher": grafo.igraph_graph.vs["name"],
         "Degree": grafo.calculate_degree(),
@@ -327,9 +338,12 @@ def horus_get_heatmap():
         "Closeness": grafo.calculate_closeness(),
         "Eigenvector": grafo.calculate_eigenvector(),
     }
-
+    print(repr(data))
     df = pd.DataFrame(data=data)
-    df1 = df.set_index("Philosopher", drop=False)
+    print(repr(df))
+    df1 = df.sort_values(by=["Degree", "Betweeness", "Closeness"]).set_index(
+        "Philosopher", drop=False
+    )
 
     # heatmap = go.Figure(
     #     data=go.Heatmap(
@@ -339,7 +353,7 @@ def horus_get_heatmap():
     #         hoverongaps=False,
     #     )
     # )
-    heatmap = go.Figure(
+    plotly_graph = go.Figure(
         data=go.Heatmap(
             z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
             y=df1.Philosopher,
@@ -350,6 +364,6 @@ def horus_get_heatmap():
 
     temp_file_name = next(tempfile._get_candidate_names()) + ".html"
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
-    heatmap.write_html(full_filename)
+    plotly_graph.write_html(full_filename)
     return send_from_directory("temp", temp_file_name)
 
