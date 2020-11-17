@@ -329,6 +329,7 @@ def horus_get_heatmap():
     }
 
     df = pd.DataFrame(data=data)
+    df1 = df.set_index("Philosopher", drop=False)
 
     # heatmap = go.Figure(
     #     data=go.Heatmap(
@@ -340,9 +341,9 @@ def horus_get_heatmap():
     # )
     heatmap = go.Figure(
         data=go.Heatmap(
-            z=df,
-            y=df.Philosopher,
-            x=["Degree", "Betweeness", "Closeness"],
+            z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
+            y=df1.Philosopher,
+            x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
             hoverongaps=False,
         )
     )
