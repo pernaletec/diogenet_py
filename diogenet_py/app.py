@@ -14,6 +14,7 @@ import random
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -338,8 +339,33 @@ def horus_get_heatmap():
         "Closeness": grafo.calculate_closeness(),
         "Eigenvector": grafo.calculate_eigenvector(),
     }
+
+    interpolated_data = {
+        "Philosopher": data["Philosopher"],
+        "Degree": np.interp(
+            data["Degree"], (min(data["Degree"]), max(data["Degree"])), (0, +1)
+        ),
+        "Betweeness": np.interp(
+            data["Betweeness"],
+            (min(data["Betweeness"]), max(data["Betweeness"])),
+            (0, +1),
+        ),
+        "Closeness": np.interp(
+            data["Closeness"],
+            (min(data["Closeness"]), max(data["Closeness"])),
+            (0, +1),
+        ),
+        "Eigenvector": np.interp(
+            data["Eigenvector"],
+            (min(data["Eigenvector"]), max(data["Eigenvector"])),
+            (0, +1),
+        ),
+    }
+
+    # Interpolate all values to betweetn 0 -  1
+
     print(repr(data))
-    df = pd.DataFrame(data=data)
+    df = pd.DataFrame(data=interpolated_data)
     print(repr(df))
     df1 = df.sort_values(by=["Degree", "Betweeness", "Closeness"]).set_index(
         "Philosopher", drop=False
@@ -359,6 +385,8 @@ def horus_get_heatmap():
             y=df1.Philosopher,
             x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
             hoverongaps=False,
+            type="heatmap",
+            colorscale="Viridis",
         )
     )
 
