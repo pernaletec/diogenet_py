@@ -11,6 +11,9 @@ from .network_graph import global_graph, map_graph
 import os
 import tempfile
 import random
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -304,3 +307,48 @@ def horus_get_graph():
         return send_from_directory("temp", temp_file_name)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
+
+
+@app.route("/horus/get/heatmap")
+def horus_get_heatmap():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    plotly_graph = None
+    graph_filter = str(request.args.get("filter"))
+    selected_edges = str(request.args.get("edges"))
+
+    grafo = global_graph
+
+    data = {
+        "Philosopher": grafo.igraph_graph.vs["name"],
+        "Degree": grafo.calculate_degree(),
+        "Betweeness": grafo.calculate_betweenness(),
+        "Closeness": grafo.calculate_closeness(),
+        "Eigenvector": grafo.calculate_eigenvector(),
+    }
+
+    df = pd.DataFrame(data=data)
+
+    # heatmap = go.Figure(
+    #     data=go.Heatmap(
+    #         z=[df.Degree, df.Betweeness, df.Closeness, df.Eigenvector],
+    #         y=df.Philosopher,
+    #         x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
+    #         hoverongaps=False,
+    #     )
+    # )
+    heatmap = go.Figure(
+        data=go.Heatmap(
+            z=df,
+            y=df.Philosopher,
+            x=["Degree", "Betweeness", "Closeness"],
+            hoverongaps=False,
+        )
+    )
+
+    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    full_filename = os.path.join(app.root_path, "temp", temp_file_name)
+    heatmap.write_html(full_filename)
+    return send_from_directory("temp", temp_file_name)
+
