@@ -169,8 +169,7 @@ function updateGraph(
 
 function updateHeatMap(
   targetIFrame: HTMLIFrameElement,
-  type: string = "global",
-  showCentrality: boolean = false
+  type: string = "global"
 ) {
   let currentFilter: string = "";
 
@@ -279,9 +278,15 @@ function updateTab() {
       break;
     }
     case "global-heatmap-graph": {
-      $("#global-heatmap-graph").addClass("active");
-      $("#global-heatmap-graph").addClass("show");
-      updateHeatMap($("#graph-heatmap-centrality")[0] as HTMLIFrameElement);
+      //   $("#global-heatmap-graph").addClass("active");
+      //   $("#global-heatmap-graph").addClass("show");
+      const iFrameSrc = $("#graph-heatmap-centrality")[0] as HTMLIFrameElement;
+      iFrameSrc.src = "";
+      updateHeatMap(
+        $("#graph-heatmap-centrality")[0] as HTMLIFrameElement,
+        "global",
+        true
+      );
       break;
     }
     case "global-metrics-graph": {

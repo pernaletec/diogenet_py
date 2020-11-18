@@ -331,7 +331,6 @@ def horus_get_heatmap():
             grafo.set_edges_filter(m_filter)
 
     # subgraph = grafo.get_subgraph()
-    print(repr(grafo))
     data = {
         "Philosopher": grafo.igraph_graph.vs["name"],
         "Degree": grafo.calculate_degree(),
@@ -364,9 +363,7 @@ def horus_get_heatmap():
 
     # Interpolate all values to betweetn 0 -  1
 
-    print(repr(data))
     df = pd.DataFrame(data=interpolated_data)
-    print(repr(df))
     df1 = df.sort_values(by=["Degree", "Betweeness", "Closeness"]).set_index(
         "Philosopher", drop=False
     )
@@ -390,8 +387,12 @@ def horus_get_heatmap():
         )
     )
 
+    plotly_graph.update_layout(
+        legend_font_size=12, legend_title_font_size=12, font_size=8
+    )
+
     temp_file_name = next(tempfile._get_candidate_names()) + ".html"
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
     plotly_graph.write_html(full_filename)
+    print("Sending " + full_filename + " file")
     return send_from_directory("temp", temp_file_name)
-
