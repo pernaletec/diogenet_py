@@ -284,8 +284,7 @@ function updateTab() {
       iFrameSrc.src = "";
       updateHeatMap(
         $("#graph-heatmap-centrality")[0] as HTMLIFrameElement,
-        "global",
-        true
+        "global"
       );
       break;
     }
