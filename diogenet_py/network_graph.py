@@ -87,7 +87,6 @@ class diogenetGraph:
     blacklist_raw_data = None
     igraph_graph = None
     igraph_subgraph = None
-    igraph_localgraph = None
 
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
@@ -114,10 +113,6 @@ class diogenetGraph:
 
     located_nodes = None
 
-    # This is used only when local graph is plotted
-    local_phylosopher = None
-    local_order = None
-
     def __init__(
         self,
         graph_type=GRAPH_TYPE,
@@ -142,8 +137,7 @@ class diogenetGraph:
         :param blacklist_raw_data: Raw data for blacklisted places
 
         :param igraph_graph: Python igraph graph object
-        :param igraph_subgraph: Python igraph sub-graph object
-        :param igraph_localgraph: Python igraph local graph object
+        :param igraph_graph: Python igraph sub-graph object
 
         :param phylosophers_known_origin: Data for phylosophers and their origin
         :param multi_origin_phylosophers: List of phylosophers with more than one
@@ -158,9 +152,6 @@ class diogenetGraph:
         phylosopher name and coordinates
 
         :param located_nodes: Nodes with an identified location in locations data
-
-        :local_phylosopher: Phylosopher for which the local graph is generated
-        :local_order: Order of local graph   
 
         """
         # :return:
@@ -365,7 +356,7 @@ class diogenetGraph:
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
 
-        if self.graph_type == "global" or self.graph_type == "local":
+        if self.graph_type == "global":
             node_list = self.nodes_raw_data[
                 (self.nodes_raw_data.Groups == "Male")
                 | (self.nodes_raw_data.Groups == "Female")
@@ -598,7 +589,7 @@ class diogenetGraph:
                 "scaling": {"min": min_label_size, "max": max_label_size},
             }
             show_arrows = True
-            if self.graph_type == "global" or self.graph_type == "local" and len(self.edges_filter) > 1:
+            if self.graph_type == "global" and len(self.edges_filter) > 1:
                 show_arrows = False
 
             pyvis_map_options["edges"] = {
@@ -886,21 +877,6 @@ class diogenetGraph:
                 edges_types.append(edge_name["edge_name"])
         return edges_types
 
-    def create_local_graph(self):
-        """Create local subgraph depending on vertex selected (i.e phylosophers)
-        """
-        local_subgraph = None
-        if self.igraph_graph is not None:
-            if self.graph_type == "local":
-                # If no vertex selected return global graph
-                if not self.local_phylosopher:
-                    #print(self.igraph_graph.vs["name"][2])
-                    local_subgraph = self.igraph_graph
-                else:
-                    neighbour_vertex = self.igraph_graph.neighborhood(self.local_phylosopher, self.local_order) 
-                    local_subgraph = self.igraph_graph.induced_subgraph(neighbour_vertex)
-                self.igraph_localgraph = local_subgraph        
-        return local_subgraph            
 
 global_graph = diogenetGraph(
     "global",
@@ -912,14 +888,6 @@ global_graph = diogenetGraph(
 
 map_graph = diogenetGraph(
     "map",
-    NODES_DATA_FILE,
-    EDGES_DATA_FILE,
-    LOCATIONS_DATA_FILE,
-    TRAVELS_BLACK_LIST_FILE,
-)
-
-local_graph = diogenetGraph(
-    "local",
     NODES_DATA_FILE,
     EDGES_DATA_FILE,
     LOCATIONS_DATA_FILE,
@@ -944,7 +912,3 @@ local_graph = diogenetGraph(
 # grafo.set_edges_filter("Aristotle")
 # grafo.set_edges_filter("Pythagoras")
 # print(grafo.create_subgraph())
-
-local_graph.local_phylosopher = 'Plato'
-local_graph.local_order = 1
-print(local_graph.create_local_graph())
