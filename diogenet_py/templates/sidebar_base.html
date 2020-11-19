@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block full_body %}
-<body class="d-flex flex-column p-0 m-0" style="height: 100vh">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<body class="d-flex flex-column flex-grow-1 p-0 m-0">
+  <nav class="row navbar navbar-expand-lg navbar-dark bg-primary">
     <a class="navbar-brand" href="#"
       >{% block page_name %}Diogenet{% endblock page_name %}</a
     >
@@ -26,11 +26,11 @@
   </nav>
 
   <div class="row flex-grow-1 m-0 p-0">
-    <div class="col-2 bg-light border-right">
+    <div class="col-3 bg-light border-right" style="min-width: 250px">
       {% block sidebar %}{% endblock sidebar %}
     </div>
 
-    <div class="col-10 p-1">{% block main %}{% endblock main %}</div>
+    <div class="col-9 p-1">{% block main %}{% endblock main %}</div>
   </div>
 </body>
 {% endblock full_body %}

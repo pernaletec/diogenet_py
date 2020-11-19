@@ -13,9 +13,14 @@ import "leaflet-html-legend";
 import "!style-loader!css-loader!leaflet/dist/leaflet.css";
 import "!style-loader!css-loader!leaflet-html-legend/dist/L.Control.HtmlLegend.css";
 
-import { getCentralityIndex, interpolateValue, rgbToHex, VIRIDIS_COLORMAP, debounce } from "./graphLibrary";
+import {
+  getCentralityIndex,
+  interpolateValue,
+  rgbToHex,
+  VIRIDIS_COLORMAP,
+  debounce,
+} from "./graphLibrary";
 import { BASE_URL } from "./baseURLS";
-
 
 interface TravelsMapData {
   Source: string;
@@ -39,7 +44,6 @@ interface AllMapData {
 const MAP_CENTER: L.LatLng = new L.LatLng(35.255, 24.92);
 const MAIN_TILE_LAYER =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}";
-
 
 let localMapInfo: AllMapData;
 let markers_list: TravelsMapData[];
@@ -95,7 +99,6 @@ function drawLine(
   }
   return poliLine;
 }
-
 
 function getFilter() {
   const travelersFilter = <HTMLSelectElement>(
@@ -511,26 +514,25 @@ function updateMetricsTable() {
 function updateGraph() {
   const currentCentrality = getCentralityIndex();
   const nodeSizes = $(".node-range-slider").val() as string;
-    const labelSizes = $(".label-range-slider").val() as string;
+  const labelSizes = $(".label-range-slider").val() as string;
   let currentFilter = getFilter();
   if (currentFilter === "") {
     currentFilter = "All";
   }
-    const urlBase = encodeURI(
-        BASE_URL +
-        "/map/get/graph?centrality=" +
-        currentCentrality +
-        "&node_min_max=" +
-        nodeSizes +
-        "&label_min_max=" +
-        labelSizes +
-        "&filter=" +
-        currentFilter 
-    );
+  const urlBase = encodeURI(
+    BASE_URL +
+      "/map/get/graph?centrality=" +
+      currentCentrality +
+      "&node_min_max=" +
+      nodeSizes +
+      "&label_min_max=" +
+      labelSizes +
+      "&filter=" +
+      currentFilter
+  );
   let graphiFrame = $("#map-graph")[0] as HTMLIFrameElement;
   graphiFrame.src = urlBase;
 }
-
 
 function updateAll() {
   switch (activeTab) {
@@ -556,6 +558,9 @@ function updateAll() {
 }
 
 $(() => {
+  document.getElementsByTagName("html")[0].style.height = "100%";
+  document.getElementsByTagName("body")[0].style.height = "100%";
+
   clearFilters();
   table1 = $("#metrics-table").DataTable({
     columnDefs: [
@@ -614,8 +619,7 @@ $(() => {
   baseMap = L.map("map").setView(MAP_CENTER, 5);
   const esri = L.tileLayer(MAIN_TILE_LAYER, {
     maxZoom: 19,
-    attribution:
-      "Tiles &copy; Esri &mdash; Source: US National Park Service",
+    attribution: "Tiles &copy; Esri &mdash; Source: US National Park Service",
   }).addTo(baseMap);
   activeTab = "#map";
   updateAll();

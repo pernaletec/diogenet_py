@@ -591,7 +591,7 @@ class diogenetGraph:
             else:
                 print("using same layout...")
 
-            pv_graph = pyvis.network.Network(height="100%", width="100%", heading="")
+            pv_graph = pyvis.network.Network(height="95%", width="100%", heading="")
             pyvis_map_options = {}
             pyvis_map_options["nodes"] = {
                 "font": {"size": min_label_size + 8},
@@ -630,7 +630,9 @@ class diogenetGraph:
                 "enabled": False,
                 "initiallyActive": True,
             }
-            pyvis_map_options["configure"] = {"enabled": True}
+            # Allow or remove PYVIS configure options
+            # pyvis_map_options["configure"] = {"enabled": True}
+            pyvis_map_options["configure"] = {"enabled": False}
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # pv_graph.show_buttons()
 
@@ -954,6 +956,6 @@ local_graph = diogenetGraph(
 # grafo.set_edges_filter("Pythagoras")
 # print(grafo.create_subgraph())
 
-local_graph.local_phylosopher = "Plato"
-local_graph.local_order = 1
-print(local_graph.create_local_graph())
+# local_graph.local_phylosopher = "Plato"
+# local_graph.local_order = 1
+# print(local_graph.create_local_graph())

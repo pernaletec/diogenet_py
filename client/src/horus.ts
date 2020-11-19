@@ -473,6 +473,8 @@ function initRangeSlider(classname: string) {
 const debouncedUpdateGraph = debounce(updateGraph, 4000);
 
 $(() => {
+  document.getElementsByTagName("html")[0].style.height = "100%";
+  document.getElementsByTagName("body")[0].style.height = "100%";
   initRangeSlider("node-range-slider");
   initRangeSlider("label-range-slider");
 
