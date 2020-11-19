@@ -18,6 +18,7 @@ const ENTRIES = {
 
     main_styles: path.resolve(__dirname, "src/styles/main.ts"),
     map_styles: path.resolve(__dirname, "src/styles/map.ts"),
+    horus_styles: path.resolve(__dirname, "src/styles/horus.ts"),
 };
 
 const AutoprefixerLoader = {
@@ -72,7 +73,7 @@ module.exports = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.(png|jpg|ico|jpeg|gif)$/,
+                test: /\.(png|jpg|ico|jpeg|gif|ttf|otf|eot|svg|woff(2)?)$/,
                 use: [
                     "file-loader",
                 ],
@@ -96,6 +97,7 @@ module.exports = {
         path: DIST,
     },
     plugins: [
+        new webpack.SourceMapDevToolPlugin({}),
         new ForkTsCheckerWebpackPlugin(),
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({

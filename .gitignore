@@ -18,6 +18,9 @@ node_modules/
 /diogenet_py/static/client/*
 
 ## Python:
+#
+# Pyvis temporary files
+/diogenet_py/temp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -157,3 +160,4 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+.python-version

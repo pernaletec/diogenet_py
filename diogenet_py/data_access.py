@@ -6,11 +6,15 @@
 import pandas as pd
 import io
 import requests
-#  Not needed. Data is called from the class. .    
+
+#  Not needed. Data is called from the class. .
 #  from . import network_graph
 
 # VARS to fullfill dataframes
 # Define data access method: local, url or database
+
+from . import network_graph as ng
+
 
 def get_data_entity(entity_name, method):
     """Retrieve a dataset with Complex Network's data.
@@ -24,7 +28,7 @@ def get_data_entity(entity_name, method):
     if method == "local":
         df = pd.read_csv("./" + entity_name, delimiter=",", header=0)
     if method == "url":
-        url = BASE_URL + "/" + entity_name
+        url = ng.BASE_URL + "/" + entity_name
         request = requests.get(url).contents
         df = pd.read_csv(io.StringIO(request.decode("utf-8")), delimiter=",", header=0)
     if method == "database":
@@ -43,5 +47,5 @@ def get_data_entity(entity_name, method):
 #  graph = network_graph.Graph()
 
 
-travel_edges =  pd.read_csv("travel_edges_graph.csv", delimiter=',')
-all_places = pd.read_csv("all_places_graph.csv", delimiter=',')
+travel_edges = pd.read_csv("travel_edges_graph.csv", delimiter=",")
+all_places = pd.read_csv("all_places_graph.csv", delimiter=",")
