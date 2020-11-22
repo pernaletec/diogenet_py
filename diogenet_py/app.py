@@ -257,7 +257,7 @@ def horus_get_graph():
     label_min_max = str(request.args.get("label_min_max"))
     graph_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
-    graph_type = str(request.args.get("type"))
+    graph_type = str(request.args.get("graph_type"))
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
@@ -294,11 +294,12 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
-    if graph_type and (graph_type == "local"):
+    if graph_type == "local":
         print("**********************************  LOCAL")
-        local_graph.local_phylosopher = ego_value if not ego_value else "Plato"
-        local_graph.local_order = order_value if int(order_value) else 1
-        subgraph = local_graph.create_local_graph()
+        local_graph.local_phylosopher = ego_value if ego_value else "Plato"
+        local_graph.local_order = int(order_value) if order_value else 1
+        subgraph = local_graph
+        subgraph.igraph_graph = local_graph.create_local_graph()
     else:
         subgraph = grafo.get_subgraph()
 

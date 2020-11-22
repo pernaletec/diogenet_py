@@ -200,6 +200,7 @@ function updateGraph(
       if (currentFilter === "") {
         srcURL = "";
       } else {
+        console.log("EGOOOOOOOOOOOOOOOOOOOOOOOOOO:  " + getEgo());
         srcURL = encodeURI(
           BASE_URL +
             "/horus/get/graph?centrality=" +
