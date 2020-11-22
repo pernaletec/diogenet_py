@@ -121,12 +121,10 @@ page_style %}
     <option value="4">Eigenvector</option>
   </select>
 </div>
-<div id="ego-div" class="form-group my-4 d-none">
+<div id="ego-div" class="form-group my-4 pb-1" style="display: none">
   <label class="label" for="ego-index">Ego:</label>
-  <select class="custom-select" name="ego-index" id="ego-index">
-    <option value="1">Philosopher</option>
-  </select>
-  <div class="form-group" id="ego-order-div">
+  <select class="custom-select" name="ego-index" id="ego-index"></select>
+  <div class="form-group mb-4" id="ego-order-div">
     <label class="label" for="order-size" style="padding-bottom: 15px"
       >Order:</label
     >
@@ -137,7 +135,7 @@ page_style %}
           name="order-size"
           id="order-size"
           class="order-range-slider"
-          value="4,6"
+          value="4"
         />
       </div>
     </div>

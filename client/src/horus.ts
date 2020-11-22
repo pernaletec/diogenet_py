@@ -27,6 +27,7 @@ let activeTab = "";
 let leavedTab = "";
 let initDTable: boolean = true;
 let table1: any, table2: any;
+let egoFilled: boolean = false;
 
 const menuItemsIds: MenuItem[] = [
   { name: "global", tabs: ["global-graph"] },
@@ -61,6 +62,18 @@ function getCheckedRelations(): string {
   return filter;
 }
 
+function getEgo(): string {
+  let strValue: string = "";
+  if ($("#ego-index").val()) {
+    strValue = $("#ego-index  option:selected").text();
+  }
+  return strValue;
+}
+
+function getOrder() {
+  return $("#order-size").val() as string;
+}
+
 function showAppearenceControls(show: boolean) {
   if (show) {
     $("#appareance-size-div").show();
@@ -88,6 +101,29 @@ function showDegreeControl(show: boolean) {
 function showOrderControl(show: boolean) {
   if (show) {
     $("#ego-div").show();
+    type Philosophers = {
+      name: string;
+    };
+    if (!egoFilled) {
+      const urlBase = encodeURI(BASE_URL + "/horus/get/ego");
+      const egoSelect: HTMLSelectElement = <HTMLSelectElement>(
+        document.getElementById("ego-index")
+      );
+      $.ajax({
+        dataType: "text json",
+        url: urlBase,
+        success: (fullData: Philosophers[]) => {
+          for (let i = 0; i < fullData.length; i++) {
+            const philosopher = fullData[i];
+            $("#ego-index").append(
+              new Option(philosopher.name, philosopher.name)
+            );
+            if (i == 0) egoSelect.selectedIndex = 0;
+          }
+          egoFilled = true;
+        },
+      });
+    }
   } else {
     $("#ego-div").hide();
   }
@@ -159,6 +195,32 @@ function updateGraph(
       break;
     }
     case "local": {
+      currentFilter = getCheckedRelations();
+      let srcURL: string;
+      if (currentFilter === "") {
+        srcURL = "";
+      } else {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/graph?centrality=" +
+            currentCentrality +
+            "&node_min_max=" +
+            nodeSizes +
+            "&label_min_max=" +
+            labelSizes +
+            "&filter=" +
+            currentFilter +
+            "&graph_type=local" +
+            "&ego=" +
+            getEgo() +
+            "&order=" +
+            getOrder()
+        );
+      }
+      console.log(srcURL);
+      targetIFrame.src = srcURL;
+      if (srcURL === "")
+        alert("Please select at least one relation from Network Ties!");
       break;
     }
     case "communities": {
@@ -263,13 +325,12 @@ function updateMetricsTable() {
 function updateTab() {
   switch (activeTab) {
     case "global-graph": {
-      $("#global-graph").addClass("active");
+      $("#global-graph a").trigger("click");
       updateGraph($("#graph-global")[0] as HTMLIFrameElement);
       break;
     }
     case "global-central-graph": {
-      $("#global-central-graph").addClass("active");
-      $("#global-central-graph").addClass("show");
+      $("#global-central-graph a").trigger("click");
       updateGraph(
         $("#graph-centrality")[0] as HTMLIFrameElement,
         "global",
@@ -278,8 +339,7 @@ function updateTab() {
       break;
     }
     case "global-heatmap-graph": {
-      //   $("#global-heatmap-graph").addClass("active");
-      //   $("#global-heatmap-graph").addClass("show");
+      $("#global-heatmap-graph a").trigger("click");
       const iFrameSrc = $("#graph-heatmap-centrality")[0] as HTMLIFrameElement;
       iFrameSrc.src = "";
       updateHeatMap(
@@ -289,17 +349,21 @@ function updateTab() {
       break;
     }
     case "global-metrics-graph": {
+      $("#global-metrics-graph a").trigger("click");
       updateMetricsTable();
       break;
     }
     case "local-graph": {
+      console.log("updateTab:  local-graph");
+      $("#local-graph").find("a").trigger("click");
+      updateGraph($("#graph-local")[0] as HTMLIFrameElement, "local");
       break;
     }
     case "local-central-graph": {
-      updateGraph(
-        $("#graph-local-centrality")[0] as HTMLIFrameElement,
-        "local"
-      );
+      //  updateGraph(
+      //     $("#graph-local-centrality")[0] as HTMLIFrameElement,
+      //     "local"
+      //   );
       break;
     }
     case "local-heatmap-graph": {
@@ -358,6 +422,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
         showDegreeControl(false);
         showOrderControl(true);
         showAppearenceControls(true);
+        console.log("drawScreen(local)");
         break;
       }
       case "local-centrality": {
@@ -371,14 +436,15 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
     }
     // Set active menu
     setActiveMenuItem(activeMenu);
+
     // Update Layout
     setActiveLayout(activeMenu);
     let activeMenuItem = menuItemsIds.find((item) => item.name === activeMenu);
     if (activeMenuItem) {
       let tab2Click = activeMenuItem.tabs[0];
-      console.log("Trigging click on tab " + tab2Click);
+      console.log("drawScree: trigging click on tab " + tab2Click);
       const tabName = "#" + tab2Click;
-      $(tabName).trigger("click");
+      $(tabName + " a").trigger("click");
       activeTab = selectedTab;
     }
     mustUpdateTab = true;
@@ -455,16 +521,30 @@ function initDataTable() {
   initDTable = false;
 }
 
-function initRangeSlider(classname: string) {
+function initRangeSlider(
+  classname: string,
+  range_min: string = "1",
+  range_max: string = "10",
+  step: string = "1"
+) {
+  let scale, isRange;
+  if (range_max == "10") {
+    scale = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    isRange = true;
+  } else {
+    scale = [1, 2, 3, 4];
+    isRange = false;
+  }
+
   $("." + classname).jRange({
-    from: 1,
-    to: 10,
-    step: 1,
-    scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    from: range_min,
+    to: range_max,
+    step: step,
+    scale: scale,
     format: "%s",
     width: 200,
     showLabels: true,
-    isRange: true,
+    isRange: isRange,
     snap: true,
     theme: "theme-blue",
   });
@@ -477,6 +557,8 @@ $(() => {
   document.getElementsByTagName("body")[0].style.height = "100%";
   initRangeSlider("node-range-slider");
   initRangeSlider("label-range-slider");
+  initRangeSlider("order-range-slider", "1", "4", "1");
+  $("#ego-order-div .pointer.low").hide();
 
   $("#graph-layout").on("change", (event) => {
     updateTab();
@@ -500,12 +582,17 @@ $(() => {
   $("#global-centrality-btn").on("click", () => {
     drawScreen("global-centrality", "global-central-graph");
   });
-
+  $("#local-btn").on("click", () => {
+    drawScreen("local", "local-graph");
+  });
+  $("#local-centrality-btn").on("click", () => {
+    drawScreen("local-centrality", "local-graph-central-tab");
+  });
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
     const activedTab = <HTMLAnchorElement>e.target;
     //const leavedTab = <HTMLAnchorElement>e.relatedTarget;
     const clickedTab = activedTab.hash.substring(1);
-    console.log("Click on: " + clickedTab);
+    console.log("Fired drawScreen(" + activeMenu + "," + clickedTab + ")");
     drawScreen(activeMenu, clickedTab);
   });
 

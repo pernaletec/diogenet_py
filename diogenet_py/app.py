@@ -7,7 +7,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from .network_graph import global_graph, map_graph
+from .network_graph import global_graph, map_graph, local_graph
 import os
 import tempfile
 import random
@@ -257,7 +257,9 @@ def horus_get_graph():
     label_min_max = str(request.args.get("label_min_max"))
     graph_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
-    selected_edges = str(request.args.get("edges"))
+    graph_type = str(request.args.get("type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
     grafo = global_graph
     not_centrality = False
@@ -292,7 +294,14 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
-    subgraph = grafo.get_subgraph()
+    if graph_type and (graph_type == "local"):
+        print("**********************************  LOCAL")
+        local_graph.local_phylosopher = ego_value if not ego_value else "Plato"
+        local_graph.local_order = order_value if int(order_value) else 1
+        subgraph = local_graph.create_local_graph()
+    else:
+        subgraph = grafo.get_subgraph()
+
     pvis_graph = subgraph.get_pyvis(
         min_weight=node_min_size,
         max_weight=node_max_size,
@@ -306,6 +315,22 @@ def horus_get_graph():
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
+    else:
+        return make_response(MAP_GRAPH_ERROR, 400)
+
+
+@app.route("/horus/get/ego")
+def horus_get_filosophers():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+    data = []
+    for philosopher in global_graph.igraph_graph.vs:
+        data.append({"name": philosopher["name"]})
+
+    sorted_data = sorted(data, key=lambda k: k["name"])
+    if data:
+        headers = {"Content-Type": "application/json"}
+        return make_response(jsonify(sorted_data), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
 

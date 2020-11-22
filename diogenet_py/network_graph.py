@@ -900,6 +900,7 @@ class diogenetGraph:
             if self.graph_type == "local":
                 # If no vertex selected return global graph
                 if not self.local_phylosopher:
+                    print("LocalPhilosoher")
                     # print(self.igraph_graph.vs["name"][2])
                     local_subgraph = self.igraph_graph
                 else:
