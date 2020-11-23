@@ -801,6 +801,16 @@ class diogenetGraph:
             subgraph.travels_graph_data = sub_travels_map_data
         return subgraph
 
+    def get_localgraph(self):
+        subgraph = None
+        sub_igraph = self.create_local_graph()
+        self.tabulate_subgraph_data()
+        sub_travels_map_data = self.travels_subgraph_data
+        subgraph = copy.deepcopy(self)
+        subgraph.igraph_graph = sub_igraph
+        subgraph.travels_graph_data = sub_travels_map_data
+        return subgraph
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 

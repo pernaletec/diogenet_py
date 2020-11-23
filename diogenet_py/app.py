@@ -261,7 +261,13 @@ def horus_get_graph():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
-    grafo = global_graph
+    if graph_type == "local":
+        grafo = local_graph
+        grafo.local_phylosopher = ego_value if ego_value else "Plato"
+        grafo.local_order = int(order_value) if order_value else 1
+    else:
+        grafo = global_graph
+
     not_centrality = False
 
     if centrality_index:
@@ -295,13 +301,9 @@ def horus_get_graph():
     label_max_size = int(label_min_max.split(",")[1])
 
     if graph_type == "local":
-        print("**********************************  LOCAL")
-        local_graph.local_phylosopher = ego_value if ego_value else "Plato"
-        local_graph.local_order = int(order_value) if order_value else 1
-        subgraph = local_graph
-        subgraph.igraph_graph = local_graph.create_local_graph()
-    else:
-        subgraph = grafo.get_subgraph()
+        grafo = grafo.get_localgraph()
+
+    subgraph = grafo.get_subgraph()
 
     pvis_graph = subgraph.get_pyvis(
         min_weight=node_min_size,
@@ -343,9 +345,19 @@ def horus_get_heatmap():
 
     plotly_graph = None
     graph_filter = str(request.args.get("filter"))
-    selected_edges = str(request.args.get("edges"))
+    graph_type = str(request.args.get("graph_type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
-    grafo = global_graph
+    if graph_type == "local":
+        grafo = local_graph
+        grafo.local_phylosopher = ego_value if ego_value else "Plato"
+        if order_value and order_value != "None":
+            grafo.local_order = int(order_value)
+        else:
+            grafo.local_order = 4
+    else:
+        grafo = global_graph
 
     if not graph_filter:
         graph_filter = "is teacher of"
@@ -356,13 +368,16 @@ def horus_get_heatmap():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
 
-    # subgraph = grafo.get_subgraph()
+    if graph_type == "local":
+        grafo = grafo.get_localgraph()
+    subgraph = grafo.get_subgraph()
+
     data = {
-        "Philosopher": grafo.igraph_graph.vs["name"],
-        "Degree": grafo.calculate_degree(),
-        "Betweeness": grafo.calculate_betweenness(),
-        "Closeness": grafo.calculate_closeness(),
-        "Eigenvector": grafo.calculate_eigenvector(),
+        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Betweeness": subgraph.calculate_betweenness(),
+        "Closeness": subgraph.calculate_closeness(),
+        "Eigenvector": subgraph.calculate_eigenvector(),
     }
 
     interpolated_data = {

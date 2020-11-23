@@ -26,7 +26,7 @@ let activeMenu = "";
 let activeTab = "";
 let leavedTab = "";
 let initDTable: boolean = true;
-let table1: any, table2: any;
+let table1: any, table2: any, table3: any, table4: any;
 let egoFilled: boolean = false;
 
 const menuItemsIds: MenuItem[] = [
@@ -118,7 +118,7 @@ function showOrderControl(show: boolean) {
             $("#ego-index").append(
               new Option(philosopher.name, philosopher.name)
             );
-            if (i == 0) egoSelect.selectedIndex = 0;
+            if (philosopher.name === "Plato") egoSelect.selectedIndex = i;
           }
           egoFilled = true;
         },
@@ -234,29 +234,37 @@ function updateHeatMap(
   targetIFrame: HTMLIFrameElement,
   type: string = "global"
 ) {
-  let currentFilter: string = "";
+  let srcURL: string = "";
+  let currentFilter: string = getCheckedRelations();
 
-  switch (type) {
-    case "global": {
-      currentFilter = getCheckedRelations();
-      let srcURL: string;
-      if (currentFilter === "") {
-        srcURL = "";
-      } else {
+  if (currentFilter === "") {
+    alert("Please select at least one relation from Network Ties!");
+    targetIFrame.src = "";
+  } else {
+    switch (type) {
+      case "global": {
         srcURL = encodeURI(
           BASE_URL + "/horus/get/heatmap?filter=" + currentFilter
         );
+        targetIFrame.src = srcURL;
+        break;
       }
-      targetIFrame.src = srcURL;
-      if (srcURL === "")
-        alert("Please select at least one relation from Network Ties!");
-      break;
-    }
-    case "local": {
-      break;
-    }
-    case "communities": {
-      break;
+      case "local": {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/heatmap?graph_type=local&filter=" +
+            currentFilter +
+            "&ego=" +
+            getEgo +
+            "&order=" +
+            getOrder()
+        );
+        targetIFrame.src = srcURL;
+        break;
+      }
+      case "communities": {
+        break;
+      }
     }
   }
 }
@@ -323,6 +331,68 @@ function updateMetricsTable() {
   //
 }
 
+function updateLocalMetricsTable() {
+  type MetricsTableData = {
+    City: string;
+    Degree: number;
+    Betweenness: number;
+    Closeness: number;
+    Eigenvector: number;
+  };
+  type DataMapTable = {
+    CentralizationDegree: number;
+    CentralizationBetweenness: number;
+    CentralizationCloseness: number;
+    CentralizationEigenvector: number;
+    CityData: MetricsTableData[];
+  };
+
+  let currentFilter = getCheckedRelations();
+  if (currentFilter === "") {
+    table3.clear();
+    table3.draw();
+    table4.clear();
+    table4.draw();
+    alert("Please select at least one relation from Network Ties!");
+  } else {
+    const urlBase = encodeURI(
+      BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
+    );
+
+    $.ajax({
+      dataType: "text json",
+      url: urlBase,
+      success: (fullData: DataMapTable) => {
+        const dataCentral = [
+          [
+            "Graph",
+            String(fullData.CentralizationDegree),
+            String(fullData.CentralizationBetweenness),
+            String(fullData.CentralizationCloseness),
+            String(fullData.CentralizationEigenvector),
+          ],
+        ];
+        table4.clear();
+        table4.rows.add(dataCentral);
+        table4.draw();
+        const data: MetricsTableData[] = fullData.CityData;
+        const tableData = data.map((el) => [
+          el.City,
+          el.Degree,
+          el.Betweenness,
+          el.Closeness,
+          el.Eigenvector,
+        ]);
+
+        table3.clear();
+        table3.rows.add(tableData);
+        table3.draw();
+      },
+    });
+  }
+  //
+}
+
 function updateTab() {
   switch (activeTab) {
     case "global-graph": {
@@ -355,19 +425,29 @@ function updateTab() {
       break;
     }
     case "local-graph": {
-      console.log("updateTab:  local-graph");
       $("#local-graph").find("a").trigger("click");
       updateGraph($("#graph-local")[0] as HTMLIFrameElement, "local");
       break;
     }
     case "local-central-graph": {
-      //  updateGraph(
-      //     $("#graph-local-centrality")[0] as HTMLIFrameElement,
-      //     "local"
-      //   );
+      console.log("Updating tab local+centrality+tab");
+      $("#local-central-graph").find("a").trigger("click");
+      $("#local-central-graph").click();
+      updateGraph(
+        $("#graph-local-centrality")[0] as HTMLIFrameElement,
+        "local",
+        true
+      );
       break;
     }
     case "local-heatmap-graph": {
+      $("#local-heatmap-graph a").trigger("click");
+      const iFrameSrc = $("#heatmap-local-centrality")[0] as HTMLIFrameElement;
+      iFrameSrc.src = "";
+      updateHeatMap(
+        $("#heatmap-local-centrality")[0] as HTMLIFrameElement,
+        "local"
+      );
       break;
     }
     case "local-metrics-graph": {
@@ -423,7 +503,6 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
         showDegreeControl(false);
         showOrderControl(true);
         showAppearenceControls(true);
-        console.log("drawScreen(local)");
         break;
       }
       case "local-centrality": {
@@ -443,9 +522,11 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
     let activeMenuItem = menuItemsIds.find((item) => item.name === activeMenu);
     if (activeMenuItem) {
       let tab2Click = activeMenuItem.tabs[0];
-      console.log("drawScree: trigging click on tab " + tab2Click);
       const tabName = "#" + tab2Click;
       $(tabName + " a").trigger("click");
+      console.log("Tabname: " + tabName);
+      console.log("selectedTab: " + selectedTab);
+      console.log("activeTab: " + activeTab);
       activeTab = selectedTab;
     }
     mustUpdateTab = true;
@@ -576,6 +657,13 @@ $(() => {
   $("#centrality-index").on("change", (event) => {
     updateTab();
   });
+  $(".order-range-slider").on("change", (event) => {
+    updateTab();
+  });
+
+  $("#ego-index").on("change", (event) => {
+    updateTab();
+  });
 
   $("#global-btn").on("click", () => {
     drawScreen("global", "global-graph");
@@ -587,7 +675,7 @@ $(() => {
     drawScreen("local", "local-graph");
   });
   $("#local-centrality-btn").on("click", () => {
-    drawScreen("local-centrality", "local-graph-central-tab");
+    drawScreen("local-centrality", "local-central-graph");
   });
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
     const activedTab = <HTMLAnchorElement>e.target;
