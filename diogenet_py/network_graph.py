@@ -801,6 +801,18 @@ class diogenetGraph:
             subgraph.travels_graph_data = sub_travels_map_data
         return subgraph
 
+    def get_localgraph(self):
+        subgraph = None
+        sub_igraph = self.create_local_graph()
+        self.tabulate_subgraph_data()
+        sub_travels_map_data = self.travels_subgraph_data
+        subgraph = copy.deepcopy(self)
+        subgraph.local_phylosopher = self.local_phylosopher
+        subgraph.local_order = self.local_order
+        subgraph.igraph_graph = sub_igraph
+        subgraph.travels_graph_data = sub_travels_map_data
+        return subgraph
+
     def set_colour_scale(self):
         """Create parameters for the class graph
 
@@ -900,6 +912,7 @@ class diogenetGraph:
             if self.graph_type == "local":
                 # If no vertex selected return global graph
                 if not self.local_phylosopher:
+                    print("LocalPhilosoher")
                     # print(self.igraph_graph.vs["name"][2])
                     local_subgraph = self.igraph_graph
                 else:

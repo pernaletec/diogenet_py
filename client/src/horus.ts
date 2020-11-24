@@ -26,7 +26,9 @@ let activeMenu = "";
 let activeTab = "";
 let leavedTab = "";
 let initDTable: boolean = true;
-let table1: any, table2: any;
+let initDTableEgo: boolean = true;
+let table1: any, table2: any, table3: any, table4: any;
+let egoFilled: boolean = false;
 
 const menuItemsIds: MenuItem[] = [
   { name: "global", tabs: ["global-graph"] },
@@ -61,6 +63,18 @@ function getCheckedRelations(): string {
   return filter;
 }
 
+function getEgo(): string {
+  let strValue: string = "";
+  if ($("#ego-index").val()) {
+    strValue = $("#ego-index  option:selected").text();
+  }
+  return strValue;
+}
+
+function getOrder() {
+  return $("#order-size").val() as string;
+}
+
 function showAppearenceControls(show: boolean) {
   if (show) {
     $("#appareance-size-div").show();
@@ -88,6 +102,29 @@ function showDegreeControl(show: boolean) {
 function showOrderControl(show: boolean) {
   if (show) {
     $("#ego-div").show();
+    type Philosophers = {
+      name: string;
+    };
+    if (!egoFilled) {
+      const urlBase = encodeURI(BASE_URL + "/horus/get/ego");
+      const egoSelect: HTMLSelectElement = <HTMLSelectElement>(
+        document.getElementById("ego-index")
+      );
+      $.ajax({
+        dataType: "text json",
+        url: urlBase,
+        success: (fullData: Philosophers[]) => {
+          for (let i = 0; i < fullData.length; i++) {
+            const philosopher = fullData[i];
+            $("#ego-index").append(
+              new Option(philosopher.name, philosopher.name)
+            );
+            if (philosopher.name === "Plato") egoSelect.selectedIndex = i;
+          }
+          egoFilled = true;
+        },
+      });
+    }
   } else {
     $("#ego-div").hide();
   }
@@ -159,6 +196,32 @@ function updateGraph(
       break;
     }
     case "local": {
+      currentFilter = getCheckedRelations();
+      let srcURL: string;
+      if (currentFilter === "") {
+        srcURL = "";
+      } else {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/graph?centrality=" +
+            currentCentrality +
+            "&node_min_max=" +
+            nodeSizes +
+            "&label_min_max=" +
+            labelSizes +
+            "&filter=" +
+            currentFilter +
+            "&graph_type=local" +
+            "&ego=" +
+            getEgo() +
+            "&order=" +
+            getOrder()
+        );
+      }
+      console.log(srcURL);
+      targetIFrame.src = srcURL;
+      if (srcURL === "")
+        alert("Please select at least one relation from Network Ties!");
       break;
     }
     case "communities": {
@@ -171,34 +234,42 @@ function updateHeatMap(
   targetIFrame: HTMLIFrameElement,
   type: string = "global"
 ) {
-  let currentFilter: string = "";
+  let srcURL: string = "";
+  let currentFilter: string = getCheckedRelations();
 
-  switch (type) {
-    case "global": {
-      currentFilter = getCheckedRelations();
-      let srcURL: string;
-      if (currentFilter === "") {
-        srcURL = "";
-      } else {
+  if (currentFilter === "") {
+    alert("Please select at least one relation from Network Ties!");
+    targetIFrame.src = "";
+  } else {
+    switch (type) {
+      case "global": {
         srcURL = encodeURI(
           BASE_URL + "/horus/get/heatmap?filter=" + currentFilter
         );
+        targetIFrame.src = srcURL;
+        break;
       }
-      targetIFrame.src = srcURL;
-      if (srcURL === "")
-        alert("Please select at least one relation from Network Ties!");
-      break;
-    }
-    case "local": {
-      break;
-    }
-    case "communities": {
-      break;
+      case "local": {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/heatmap?graph_type=local&filter=" +
+            currentFilter +
+            "&ego=" +
+            getEgo() +
+            "&order=" +
+            getOrder()
+        );
+        targetIFrame.src = srcURL;
+        break;
+      }
+      case "communities": {
+        break;
+      }
     }
   }
 }
 
-function updateMetricsTable() {
+function updateMetricsTable(tables = "global") {
   type MetricsTableData = {
     City: string;
     Degree: number;
@@ -216,10 +287,98 @@ function updateMetricsTable() {
 
   let currentFilter = getCheckedRelations();
   if (currentFilter === "") {
-    table1.clear();
-    table1.draw();
-    table2.clear();
-    table2.draw();
+    if (tables === "global") {
+      table1.clear();
+      table1.draw();
+      table2.clear();
+      table2.draw();
+    } else {
+      table3.clear();
+      table3.draw();
+      table4.clear();
+      table4.draw();
+    }
+    alert("Please select at least one relation from Network Ties!");
+  } else {
+    console.log("******************************** entrando a datatable 3 y 4");
+    const urlBase = encodeURI(
+      BASE_URL +
+        "/map/get/table?filter=" +
+        currentFilter +
+        "&type=" +
+        tables +
+        "&ego=" +
+        getEgo() +
+        "&order=" +
+        getOrder()
+    );
+
+    $.ajax({
+      dataType: "text json",
+      url: urlBase,
+      success: (fullData: DataMapTable) => {
+        const dataCentral = [
+          [
+            "Graph",
+            String(fullData.CentralizationDegree),
+            String(fullData.CentralizationBetweenness),
+            String(fullData.CentralizationCloseness),
+            String(fullData.CentralizationEigenvector),
+          ],
+        ];
+
+        const data: MetricsTableData[] = fullData.CityData;
+        const tableData = data.map((el) => [
+          el.City,
+          el.Degree,
+          el.Betweenness,
+          el.Closeness,
+          el.Eigenvector,
+        ]);
+
+        if (tables == "global") {
+          table2.clear();
+          table2.rows.add(dataCentral);
+          table2.draw();
+          table1.clear();
+          table1.rows.add(tableData);
+          table1.draw();
+        } else {
+          table4.clear();
+          table4.rows.add(dataCentral);
+          table4.draw();
+          table3.clear();
+          table3.rows.add(tableData);
+          table3.draw();
+        }
+      },
+    });
+  }
+  //
+}
+
+function updateLocalMetricsTable() {
+  type MetricsTableData = {
+    City: string;
+    Degree: number;
+    Betweenness: number;
+    Closeness: number;
+    Eigenvector: number;
+  };
+  type DataMapTable = {
+    CentralizationDegree: number;
+    CentralizationBetweenness: number;
+    CentralizationCloseness: number;
+    CentralizationEigenvector: number;
+    CityData: MetricsTableData[];
+  };
+
+  let currentFilter = getCheckedRelations();
+  if (currentFilter === "") {
+    table3.clear();
+    table3.draw();
+    table4.clear();
+    table4.draw();
     alert("Please select at least one relation from Network Ties!");
   } else {
     const urlBase = encodeURI(
@@ -239,9 +398,9 @@ function updateMetricsTable() {
             String(fullData.CentralizationEigenvector),
           ],
         ];
-        table2.clear();
-        table2.rows.add(dataCentral);
-        table2.draw();
+        table4.clear();
+        table4.rows.add(dataCentral);
+        table4.draw();
         const data: MetricsTableData[] = fullData.CityData;
         const tableData = data.map((el) => [
           el.City,
@@ -251,9 +410,9 @@ function updateMetricsTable() {
           el.Eigenvector,
         ]);
 
-        table1.clear();
-        table1.rows.add(tableData);
-        table1.draw();
+        table3.clear();
+        table3.rows.add(tableData);
+        table3.draw();
       },
     });
   }
@@ -263,13 +422,12 @@ function updateMetricsTable() {
 function updateTab() {
   switch (activeTab) {
     case "global-graph": {
-      $("#global-graph").addClass("active");
+      $("#global-graph a").trigger("click");
       updateGraph($("#graph-global")[0] as HTMLIFrameElement);
       break;
     }
     case "global-central-graph": {
-      $("#global-central-graph").addClass("active");
-      $("#global-central-graph").addClass("show");
+      $("#global-central-graph a").trigger("click");
       updateGraph(
         $("#graph-centrality")[0] as HTMLIFrameElement,
         "global",
@@ -278,8 +436,7 @@ function updateTab() {
       break;
     }
     case "global-heatmap-graph": {
-      //   $("#global-heatmap-graph").addClass("active");
-      //   $("#global-heatmap-graph").addClass("show");
+      $("#global-heatmap-graph a").trigger("click");
       const iFrameSrc = $("#graph-heatmap-centrality")[0] as HTMLIFrameElement;
       iFrameSrc.src = "";
       updateHeatMap(
@@ -289,23 +446,39 @@ function updateTab() {
       break;
     }
     case "global-metrics-graph": {
+      $("#global-metrics-graph a").trigger("click");
       updateMetricsTable();
       break;
     }
     case "local-graph": {
+      $("#local-graph").find("a").trigger("click");
+      updateGraph($("#graph-local")[0] as HTMLIFrameElement, "local");
       break;
     }
     case "local-central-graph": {
+      console.log("Updating tab local+centrality+tab");
+      $("#local-central-graph").find("a").trigger("click");
+      $("#local-central-graph").click();
       updateGraph(
         $("#graph-local-centrality")[0] as HTMLIFrameElement,
-        "local"
+        "local",
+        true
       );
       break;
     }
     case "local-heatmap-graph": {
+      $("#local-heatmap-graph a").trigger("click");
+      const iFrameSrc = $("#heatmap-local-centrality")[0] as HTMLIFrameElement;
+      iFrameSrc.src = "";
+      updateHeatMap(
+        $("#heatmap-local-centrality")[0] as HTMLIFrameElement,
+        "local"
+      );
       break;
     }
     case "local-metrics-graph": {
+      $("#local-metrics-graph a").trigger("click");
+      updateMetricsTable("local");
       break;
     }
     case "communities-graph": {
@@ -346,8 +519,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showOrderControl(false);
           showAppearenceControls(false);
           if (selectedTab === "global-metrics-graph" && initDTable) {
-            console.log("initial table");
-            initDataTable();
+            initDataTable("global");
           }
         }
         break;
@@ -362,23 +534,38 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
       }
       case "local-centrality": {
         activeMenu = "local-centrality";
-        showLayoutControl(false);
-        showDegreeControl(true);
-        showOrderControl(true);
-        showAppearenceControls(true);
+        if (selectedTab === "local-central-graph") {
+          showLayoutControl(true);
+          showDegreeControl(true);
+          showOrderControl(true);
+          showAppearenceControls(true);
+        } else {
+          showLayoutControl(false);
+          showDegreeControl(false);
+          showOrderControl(true);
+          showAppearenceControls(false);
+          if (selectedTab === "local-metrics-graph" && initDTableEgo) {
+            console.log("initial table LOCALLLLLL");
+            console.log("initial table");
+            initDataTable("local");
+          }
+        }
         break;
       }
     }
     // Set active menu
     setActiveMenuItem(activeMenu);
+
     // Update Layout
     setActiveLayout(activeMenu);
     let activeMenuItem = menuItemsIds.find((item) => item.name === activeMenu);
     if (activeMenuItem) {
       let tab2Click = activeMenuItem.tabs[0];
-      console.log("Trigging click on tab " + tab2Click);
       const tabName = "#" + tab2Click;
-      $(tabName).trigger("click");
+      $(tabName + " a").trigger("click");
+      console.log("Tabname: " + tabName);
+      console.log("selectedTab: " + selectedTab);
+      console.log("activeTab: " + activeTab);
       activeTab = selectedTab;
     }
     mustUpdateTab = true;
@@ -388,83 +575,164 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
   }
 }
 
-function initDataTable() {
-  table1 = $("#metrics-table").DataTable({
-    columnDefs: [
-      {
-        targets: [1],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-          });
+function initDataTable(dtType: string = "global") {
+  if (dtType === "global") {
+    table1 = $("#metrics-table").DataTable({
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
         },
-      },
-      {
-        targets: [2, 3, 4],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 6,
-          });
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
         },
-      },
-    ],
-    columns: [
-      { title: "Philosopher" },
-      { title: "Degree" },
-      { title: "Betweenness" },
-      { title: "Closeness" },
-      { title: "Eigenvector" },
-    ],
-  });
-  table2 = $("#centralization-table").DataTable({
-    retrieve: true,
-    columnDefs: [
-      {
-        targets: [1],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-          });
+      ],
+      columns: [
+        { title: "Philosopher" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+    });
+    table2 = $("#centralization-table").DataTable({
+      retrieve: true,
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
         },
-      },
-      {
-        targets: [2, 3, 4],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 6,
-          });
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
         },
-      },
-    ],
-    columns: [
-      { title: "" },
-      { title: "Degree" },
-      { title: "Betweenness" },
-      { title: "Closeness" },
-      { title: "Eigenvector" },
-    ],
-    paging: false,
-    ordering: false,
-    info: false,
-    searching: false,
-  });
-  initDTable = false;
+      ],
+      columns: [
+        { title: "" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+      paging: false,
+      ordering: false,
+      info: false,
+      searching: false,
+    });
+    initDTable = false;
+  } else {
+    table3 = $("#local-metrics-table").DataTable({
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
+        },
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
+        },
+      ],
+      columns: [
+        { title: "Philosopher" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+    });
+    table4 = $("#local-centralization-table").DataTable({
+      retrieve: true,
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
+        },
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
+        },
+      ],
+      columns: [
+        { title: "" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+      paging: false,
+      ordering: false,
+      info: false,
+      searching: false,
+    });
+    initDTableEgo = false;
+  }
 }
 
-function initRangeSlider(classname: string) {
+function initRangeSlider(
+  classname: string,
+  range_min: string = "1",
+  range_max: string = "10",
+  step: string = "1"
+) {
+  let scale, isRange;
+  if (range_max == "10") {
+    scale = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    isRange = true;
+  } else {
+    scale = [1, 2, 3, 4];
+    isRange = false;
+  }
+
   $("." + classname).jRange({
-    from: 1,
-    to: 10,
-    step: 1,
-    scale: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    from: range_min,
+    to: range_max,
+    step: step,
+    scale: scale,
     format: "%s",
     width: 200,
     showLabels: true,
-    isRange: true,
+    isRange: isRange,
     snap: true,
     theme: "theme-blue",
   });
@@ -477,6 +745,8 @@ $(() => {
   document.getElementsByTagName("body")[0].style.height = "100%";
   initRangeSlider("node-range-slider");
   initRangeSlider("label-range-slider");
+  initRangeSlider("order-range-slider", "1", "4", "1");
+  $("#ego-order-div .pointer.low").hide();
 
   $("#graph-layout").on("change", (event) => {
     updateTab();
@@ -493,6 +763,13 @@ $(() => {
   $("#centrality-index").on("change", (event) => {
     updateTab();
   });
+  $(".order-range-slider").on("change", (event) => {
+    updateTab();
+  });
+
+  $("#ego-index").on("change", (event) => {
+    updateTab();
+  });
 
   $("#global-btn").on("click", () => {
     drawScreen("global", "global-graph");
@@ -500,12 +777,17 @@ $(() => {
   $("#global-centrality-btn").on("click", () => {
     drawScreen("global-centrality", "global-central-graph");
   });
-
+  $("#local-btn").on("click", () => {
+    drawScreen("local", "local-graph");
+  });
+  $("#local-centrality-btn").on("click", () => {
+    drawScreen("local-centrality", "local-central-graph");
+  });
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
     const activedTab = <HTMLAnchorElement>e.target;
     //const leavedTab = <HTMLAnchorElement>e.relatedTarget;
     const clickedTab = activedTab.hash.substring(1);
-    console.log("Click on: " + clickedTab);
+    console.log("Fired drawScreen(" + activeMenu + "," + clickedTab + ")");
     drawScreen(activeMenu, clickedTab);
   });
 

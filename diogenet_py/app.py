@@ -7,7 +7,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from .network_graph import global_graph, map_graph
+from .network_graph import global_graph, map_graph, local_graph
 import os
 import tempfile
 import random
@@ -121,6 +121,31 @@ def get_global_data_table(filter_string):
     )
 
 
+def get_local_data_table(filter_string, ego_value, order_value):
+    graph = None
+    graph = local_graph
+    subgraph = None
+
+    graph.local_phylosopher = ego_value if ego_value else "Plato"
+    graph.local_order = int(order_value) if order_value else 1
+
+    filters = filter_string.split(";")
+    for m_filter in filters:
+        graph.set_edges_filter(m_filter)
+
+    graph = graph.get_localgraph()
+    subgraph = graph.get_subgraph()
+
+    return (
+        subgraph,
+        subgraph.get_vertex_names(),
+        subgraph.calculate_degree(),
+        subgraph.calculate_betweenness(),
+        subgraph.calculate_closeness(),
+        subgraph.calculate_eigenvector(),
+    )
+
+
 @app.route("/map/get/table")
 def get_metrics_table():
     if request.method != "GET":
@@ -128,6 +153,8 @@ def get_metrics_table():
 
     map_filter = str(request.args.get("filter"))
     graph_type = str(request.args.get("type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
     if not graph_type:
         graph_type = "map"
@@ -147,7 +174,7 @@ def get_metrics_table():
             closeness,
             eigenvector,
         ) = get_map_data_table(map_filter)
-    else:
+    elif graph_type == "global":
         (
             grafo,
             cities,
@@ -156,6 +183,15 @@ def get_metrics_table():
             closeness,
             eigenvector,
         ) = get_global_data_table(map_filter)
+    else:
+        (
+            grafo,
+            cities,
+            degree,
+            betweeness,
+            closeness,
+            eigenvector,
+        ) = get_local_data_table(map_filter, ego_value, order_value)
 
     for (
         city_name,
@@ -257,9 +293,17 @@ def horus_get_graph():
     label_min_max = str(request.args.get("label_min_max"))
     graph_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
-    selected_edges = str(request.args.get("edges"))
+    graph_type = str(request.args.get("graph_type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
-    grafo = global_graph
+    if graph_type == "local":
+        grafo = local_graph
+        grafo.local_phylosopher = ego_value if ego_value else "Plato"
+        grafo.local_order = int(order_value) if order_value else 1
+    else:
+        grafo = global_graph
+
     not_centrality = False
 
     if centrality_index:
@@ -292,7 +336,11 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
+    if graph_type == "local":
+        grafo = grafo.get_localgraph()
+
     subgraph = grafo.get_subgraph()
+
     pvis_graph = subgraph.get_pyvis(
         min_weight=node_min_size,
         max_weight=node_max_size,
@@ -310,6 +358,22 @@ def horus_get_graph():
         return make_response(MAP_GRAPH_ERROR, 400)
 
 
+@app.route("/horus/get/ego")
+def horus_get_filosophers():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+    data = []
+    for philosopher in global_graph.igraph_graph.vs:
+        data.append({"name": philosopher["name"]})
+
+    sorted_data = sorted(data, key=lambda k: k["name"])
+    if data:
+        headers = {"Content-Type": "application/json"}
+        return make_response(jsonify(sorted_data), 200, headers)
+    else:
+        return make_response(MAP_GRAPH_ERROR, 400)
+
+
 @app.route("/horus/get/heatmap")
 def horus_get_heatmap():
     if request.method != "GET":
@@ -317,9 +381,26 @@ def horus_get_heatmap():
 
     plotly_graph = None
     graph_filter = str(request.args.get("filter"))
-    selected_edges = str(request.args.get("edges"))
+    graph_type = str(request.args.get("graph_type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
-    grafo = global_graph
+    if graph_type == "local":
+        grafo = local_graph
+        grafo.local_phylosopher = ego_value if ego_value else "Plato"
+        grafo.local_order = int(order_value) if order_value else 1
+    else:
+        grafo = global_graph
+
+    # if graph_type == "local":
+    #     grafo = local_graph
+    #     grafo.local_phylosopher = ego_value if ego_value else "Plato"
+    #     if order_value and order_value != "None":
+    #         grafo.local_order = int(order_value)
+    #     else:
+    #         grafo.local_order = 4
+    # else:
+    #     grafo = global_graph
 
     if not graph_filter:
         graph_filter = "is teacher of"
@@ -330,13 +411,16 @@ def horus_get_heatmap():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
 
-    # subgraph = grafo.get_subgraph()
+    if graph_type == "local":
+        grafo = grafo.get_localgraph()
+    subgraph = grafo.get_subgraph()
+
     data = {
-        "Philosopher": grafo.igraph_graph.vs["name"],
-        "Degree": grafo.calculate_degree(),
-        "Betweeness": grafo.calculate_betweenness(),
-        "Closeness": grafo.calculate_closeness(),
-        "Eigenvector": grafo.calculate_eigenvector(),
+        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Betweeness": subgraph.calculate_betweenness(),
+        "Closeness": subgraph.calculate_closeness(),
+        "Eigenvector": subgraph.calculate_eigenvector(),
     }
 
     interpolated_data = {
