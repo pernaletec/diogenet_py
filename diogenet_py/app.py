@@ -121,6 +121,31 @@ def get_global_data_table(filter_string):
     )
 
 
+def get_local_data_table(filter_string, ego_value, order_value):
+    graph = None
+    graph = local_graph
+    subgraph = None
+
+    graph.local_phylosopher = ego_value if ego_value else "Plato"
+    graph.local_order = int(order_value) if order_value else 1
+
+    filters = filter_string.split(";")
+    for m_filter in filters:
+        graph.set_edges_filter(m_filter)
+
+    graph = graph.get_localgraph()
+    subgraph = graph.get_subgraph()
+
+    return (
+        subgraph,
+        subgraph.get_vertex_names(),
+        subgraph.calculate_degree(),
+        subgraph.calculate_betweenness(),
+        subgraph.calculate_closeness(),
+        subgraph.calculate_eigenvector(),
+    )
+
+
 @app.route("/map/get/table")
 def get_metrics_table():
     if request.method != "GET":
@@ -128,6 +153,8 @@ def get_metrics_table():
 
     map_filter = str(request.args.get("filter"))
     graph_type = str(request.args.get("type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))
 
     if not graph_type:
         graph_type = "map"
@@ -147,7 +174,7 @@ def get_metrics_table():
             closeness,
             eigenvector,
         ) = get_map_data_table(map_filter)
-    else:
+    elif graph_type == "global":
         (
             grafo,
             cities,
@@ -156,6 +183,15 @@ def get_metrics_table():
             closeness,
             eigenvector,
         ) = get_global_data_table(map_filter)
+    else:
+        (
+            grafo,
+            cities,
+            degree,
+            betweeness,
+            closeness,
+            eigenvector,
+        ) = get_local_data_table(map_filter, ego_value, order_value)
 
     for (
         city_name,
@@ -352,12 +388,19 @@ def horus_get_heatmap():
     if graph_type == "local":
         grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
-        if order_value and order_value != "None":
-            grafo.local_order = int(order_value)
-        else:
-            grafo.local_order = 4
+        grafo.local_order = int(order_value) if order_value else 1
     else:
         grafo = global_graph
+
+    # if graph_type == "local":
+    #     grafo = local_graph
+    #     grafo.local_phylosopher = ego_value if ego_value else "Plato"
+    #     if order_value and order_value != "None":
+    #         grafo.local_order = int(order_value)
+    #     else:
+    #         grafo.local_order = 4
+    # else:
+    #     grafo = global_graph
 
     if not graph_filter:
         graph_filter = "is teacher of"

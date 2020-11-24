@@ -26,6 +26,7 @@ let activeMenu = "";
 let activeTab = "";
 let leavedTab = "";
 let initDTable: boolean = true;
+let initDTableEgo: boolean = true;
 let table1: any, table2: any, table3: any, table4: any;
 let egoFilled: boolean = false;
 
@@ -200,7 +201,6 @@ function updateGraph(
       if (currentFilter === "") {
         srcURL = "";
       } else {
-        console.log("EGOOOOOOOOOOOOOOOOOOOOOOOOOO:  " + getEgo());
         srcURL = encodeURI(
           BASE_URL +
             "/horus/get/graph?centrality=" +
@@ -255,7 +255,7 @@ function updateHeatMap(
             "/horus/get/heatmap?graph_type=local&filter=" +
             currentFilter +
             "&ego=" +
-            getEgo +
+            getEgo() +
             "&order=" +
             getOrder()
         );
@@ -269,7 +269,7 @@ function updateHeatMap(
   }
 }
 
-function updateMetricsTable() {
+function updateMetricsTable(tables = "global") {
   type MetricsTableData = {
     City: string;
     Degree: number;
@@ -287,14 +287,30 @@ function updateMetricsTable() {
 
   let currentFilter = getCheckedRelations();
   if (currentFilter === "") {
-    table1.clear();
-    table1.draw();
-    table2.clear();
-    table2.draw();
+    if (tables === "global") {
+      table1.clear();
+      table1.draw();
+      table2.clear();
+      table2.draw();
+    } else {
+      table3.clear();
+      table3.draw();
+      table4.clear();
+      table4.draw();
+    }
     alert("Please select at least one relation from Network Ties!");
   } else {
+    console.log("******************************** entrando a datatable 3 y 4");
     const urlBase = encodeURI(
-      BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
+      BASE_URL +
+        "/map/get/table?filter=" +
+        currentFilter +
+        "&type=" +
+        tables +
+        "&ego=" +
+        getEgo() +
+        "&order=" +
+        getOrder()
     );
 
     $.ajax({
@@ -310,9 +326,7 @@ function updateMetricsTable() {
             String(fullData.CentralizationEigenvector),
           ],
         ];
-        table2.clear();
-        table2.rows.add(dataCentral);
-        table2.draw();
+
         const data: MetricsTableData[] = fullData.CityData;
         const tableData = data.map((el) => [
           el.City,
@@ -322,9 +336,21 @@ function updateMetricsTable() {
           el.Eigenvector,
         ]);
 
-        table1.clear();
-        table1.rows.add(tableData);
-        table1.draw();
+        if (tables == "global") {
+          table2.clear();
+          table2.rows.add(dataCentral);
+          table2.draw();
+          table1.clear();
+          table1.rows.add(tableData);
+          table1.draw();
+        } else {
+          table4.clear();
+          table4.rows.add(dataCentral);
+          table4.draw();
+          table3.clear();
+          table3.rows.add(tableData);
+          table3.draw();
+        }
       },
     });
   }
@@ -451,6 +477,8 @@ function updateTab() {
       break;
     }
     case "local-metrics-graph": {
+      $("#local-metrics-graph a").trigger("click");
+      updateMetricsTable("local");
       break;
     }
     case "communities-graph": {
@@ -491,8 +519,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showOrderControl(false);
           showAppearenceControls(false);
           if (selectedTab === "global-metrics-graph" && initDTable) {
-            console.log("initial table");
-            initDataTable();
+            initDataTable("global");
           }
         }
         break;
@@ -507,10 +534,22 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
       }
       case "local-centrality": {
         activeMenu = "local-centrality";
-        showLayoutControl(false);
-        showDegreeControl(true);
-        showOrderControl(true);
-        showAppearenceControls(true);
+        if (selectedTab === "local-central-graph") {
+          showLayoutControl(true);
+          showDegreeControl(true);
+          showOrderControl(true);
+          showAppearenceControls(true);
+        } else {
+          showLayoutControl(false);
+          showDegreeControl(false);
+          showOrderControl(true);
+          showAppearenceControls(false);
+          if (selectedTab === "local-metrics-graph" && initDTableEgo) {
+            console.log("initial table LOCALLLLLL");
+            console.log("initial table");
+            initDataTable("local");
+          }
+        }
         break;
       }
     }
@@ -536,71 +575,138 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
   }
 }
 
-function initDataTable() {
-  table1 = $("#metrics-table").DataTable({
-    columnDefs: [
-      {
-        targets: [1],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-          });
+function initDataTable(dtType: string = "global") {
+  if (dtType === "global") {
+    table1 = $("#metrics-table").DataTable({
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
         },
-      },
-      {
-        targets: [2, 3, 4],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 6,
-          });
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
         },
-      },
-    ],
-    columns: [
-      { title: "Philosopher" },
-      { title: "Degree" },
-      { title: "Betweenness" },
-      { title: "Closeness" },
-      { title: "Eigenvector" },
-    ],
-  });
-  table2 = $("#centralization-table").DataTable({
-    retrieve: true,
-    columnDefs: [
-      {
-        targets: [1],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-          });
+      ],
+      columns: [
+        { title: "Philosopher" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+    });
+    table2 = $("#centralization-table").DataTable({
+      retrieve: true,
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
         },
-      },
-      {
-        targets: [2, 3, 4],
-        className: "dt-body-right",
-        render: (data, type, row) => {
-          return Number(data).toLocaleString(undefined, {
-            minimumFractionDigits: 6,
-          });
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
         },
-      },
-    ],
-    columns: [
-      { title: "" },
-      { title: "Degree" },
-      { title: "Betweenness" },
-      { title: "Closeness" },
-      { title: "Eigenvector" },
-    ],
-    paging: false,
-    ordering: false,
-    info: false,
-    searching: false,
-  });
-  initDTable = false;
+      ],
+      columns: [
+        { title: "" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+      paging: false,
+      ordering: false,
+      info: false,
+      searching: false,
+    });
+    initDTable = false;
+  } else {
+    table3 = $("#local-metrics-table").DataTable({
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
+        },
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
+        },
+      ],
+      columns: [
+        { title: "Philosopher" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+    });
+    table4 = $("#local-centralization-table").DataTable({
+      retrieve: true,
+      columnDefs: [
+        {
+          targets: [1],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+            });
+          },
+        },
+        {
+          targets: [2, 3, 4],
+          className: "dt-body-right",
+          render: (data, type, row) => {
+            return Number(data).toLocaleString(undefined, {
+              minimumFractionDigits: 6,
+            });
+          },
+        },
+      ],
+      columns: [
+        { title: "" },
+        { title: "Degree" },
+        { title: "Betweenness" },
+        { title: "Closeness" },
+        { title: "Eigenvector" },
+      ],
+      paging: false,
+      ordering: false,
+      info: false,
+      searching: false,
+    });
+    initDTableEgo = false;
+  }
 }
 
 function initRangeSlider(

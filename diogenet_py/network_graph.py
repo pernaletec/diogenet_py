@@ -807,6 +807,8 @@ class diogenetGraph:
         self.tabulate_subgraph_data()
         sub_travels_map_data = self.travels_subgraph_data
         subgraph = copy.deepcopy(self)
+        subgraph.local_phylosopher = self.local_phylosopher
+        subgraph.local_order = self.local_order
         subgraph.igraph_graph = sub_igraph
         subgraph.travels_graph_data = sub_travels_map_data
         return subgraph
