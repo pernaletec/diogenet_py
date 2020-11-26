@@ -33,7 +33,7 @@ import random
 ############
 
 # In case local or url method define file names
-GRAPH_TYPE = "global"
+GRAPH_TYPE = "communities"
 TRAVELS_BLACK_LIST_FILE = "travels_blacklist.csv"
 LOCATIONS_DATA_FILE = "locations_data.csv"
 NODES_DATA_FILE = "new_Nodes.csv"
@@ -118,6 +118,9 @@ class diogenetGraph:
     local_phylosopher = None
     local_order = None
 
+    # This is used only to create the communities
+    comm_alg = None
+
     def __init__(
         self,
         graph_type=GRAPH_TYPE,
@@ -162,6 +165,7 @@ class diogenetGraph:
         :local_phylosopher: Phylosopher for which the local graph is generated
         :local_order: Order of local graph   
 
+        :comm_alg: Algorith for calculating communities (community_infomap, etc...)   
         """
         # :return:
         # :rtype: :py:class:`pd.DataFrame`
@@ -365,7 +369,7 @@ class diogenetGraph:
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
 
-        if self.graph_type == "global" or self.graph_type == "local":
+        if self.graph_type == "global" or self.graph_type == "local" or self.graph_type == "communities":
             node_list = self.nodes_raw_data[
                 (self.nodes_raw_data.Groups == "Male")
                 | (self.nodes_raw_data.Groups == "Female")
@@ -925,6 +929,102 @@ class diogenetGraph:
                 self.igraph_localgraph = local_subgraph
         return local_subgraph
 
+    def fix_dendrogram(self, graph, cl):
+        already_merged = set()
+        for merge in cl.merges:
+            already_merged.update(merge)
+
+        num_dendrogram_nodes = graph.vcount() + len(cl.merges)
+        not_merged_yet = sorted(set(range(num_dendrogram_nodes)) - already_merged)
+        if len(not_merged_yet) < 2:
+            return
+
+        v1, v2 = not_merged_yet[:2]
+        cl._merges.append((v1, v2))
+        del not_merged_yet[:2]
+
+        missing_nodes = range(num_dendrogram_nodes,num_dendrogram_nodes + len(not_merged_yet))
+        cl._merges.extend(zip(not_merged_yet, missing_nodes))
+        cl._nmerges = graph.vcount()-1        
+        return(cl)
+
+    def identify_communities(self):
+        if (self.comm_alg == 'community_infomap'):
+            comm = self.igraph_graph.community_infomap()
+            print('community_infomap')
+            membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            print(membership)
+        if (self.comm_alg == 'community_edge_betweenness'):
+            comm = self.igraph_graph.community_edge_betweenness()
+            print('community_edge_betweenness')
+            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            clusters = comm.as_clustering()
+            #membership = clusters.membership
+            print(comm)
+            print(dir(comm))
+            print(comm.summary)
+            print(clusters)
+            #print(membership)
+        if (self.comm_alg == 'community_spinglass'):            
+            comm = self.igraph_graph.community_spinglass()
+            #membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            #print(membership)
+
+        if (self.comm_alg == 'community_walktrap'):
+            comm = self.igraph_graph.community_walktrap()
+            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            clusters = comm.as_clustering()
+            #membership = clusters.membership
+            print(comm)
+            print(dir(comm))
+            print(comm.summary)
+            print(clusters)
+
+        if (self.comm_alg == 'community_leiden'):
+            comm = self.igraph_graph.community_leiden()
+            membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            print(membership)
+
+        if (self.comm_alg == 'community_fastgreedy'):
+            comm = self.igraph_graph.community_fastgreedy()
+            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            clusters = comm.as_clustering()
+            #membership = clusters.membership
+            print(comm)
+            print(dir(comm))
+            print(comm.summary)
+            print(clusters)
+
+        if (self.comm_alg == 'community_leading_eigenvector'):
+            comm = self.igraph_graph.community_leading_eigenvector()
+            membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            print(membership)
+
+        if (self.comm_alg == 'community_label_propagation'):
+            comm = self.igraph_graph.community_label_propagation()
+            membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            print(membership)
+
+        if (self.comm_alg == 'community_multilevel'):
+            print('community_multilevel')
+            comm = self.igraph_graph.community_multilevel()
+            membership = comm.membership
+            print(dir(comm))
+            print(comm.summary)
+            print(membership)
+
+        return()
+
 
 global_graph = diogenetGraph(
     "global",
@@ -949,6 +1049,26 @@ local_graph = diogenetGraph(
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )
+
+communities_graph = diogenetGraph(
+    "communities",
+    NODES_DATA_FILE,
+    EDGES_DATA_FILE,
+    LOCATIONS_DATA_FILE,
+    TRAVELS_BLACK_LIST_FILE,
+)
+
+#communities_graph.comm_alg = 'community_infomap'                          # OK
+#communities_graph.comm_alg = 'community_edge_betweenness'                 # OK 
+communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
+#communities_graph.comm_alg = 'community_walktrap'	                       # OK 
+#communities_graph.comm_alg = 'community_leiden'                           # No clusters
+#communities_graph.comm_alg = 'community_fastgreedy'                       # OK
+#communities_graph.comm_alg = 'community_leading_eigenvector'              # OK 
+#communities_graph.comm_alg = 'community_label_propagation'                # OK
+#communities_graph.comm_alg = 'community_multilevel'                       # OK 
+
+communities_graph.identify_communities()
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()
