@@ -1025,6 +1025,10 @@ class diogenetGraph:
 
         return()
 
+    def get_cut_vertices(self):
+        cutVertices = self.igraph_subgraph.cut_vertices()
+        return(cutVertices)    
+
 
 global_graph = diogenetGraph(
     "global",
@@ -1058,17 +1062,22 @@ communities_graph = diogenetGraph(
     TRAVELS_BLACK_LIST_FILE,
 )
 
-#communities_graph.comm_alg = 'community_infomap'                          # OK
+communities_graph.comm_alg = 'community_infomap'                          # OK
 #communities_graph.comm_alg = 'community_edge_betweenness'                 # OK 
-communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
+#communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
 #communities_graph.comm_alg = 'community_walktrap'	                       # OK 
-#communities_graph.comm_alg = 'community_leiden'                           # No clusters
+#communities_graph.comm_alg = 'community_leiden'                           # No clusters. No go
 #communities_graph.comm_alg = 'community_fastgreedy'                       # OK
 #communities_graph.comm_alg = 'community_leading_eigenvector'              # OK 
 #communities_graph.comm_alg = 'community_label_propagation'                # OK
 #communities_graph.comm_alg = 'community_multilevel'                       # OK 
 
+
+communities_graph.set_edges_filter("is teacher of")
+communities_graph.create_subgraph()
 communities_graph.identify_communities()
+cut_vertices=communities_graph.get_cut_vertices()
+print(cut_vertices)
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()
