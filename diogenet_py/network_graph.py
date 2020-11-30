@@ -957,12 +957,12 @@ class diogenetGraph:
             modularity = comm.modularity
 
         if (self.comm_alg == 'community_edge_betweenness'):
-            comm = self.igraph_subgraph.community_edge_betweenness()
+            comm = self.igraph_graph.community_edge_betweenness()
             #print('community_edge_betweenness')
             comm = self.fix_dendrogram(self.igraph_graph, comm)   
-            clusters = comm.as_clustering()
-            clusters = clusters.as_cover()
-            modularity = comm._graph.modularity
+            clusters_ini = comm.as_clustering()
+            clusters = clusters_ini.as_cover()
+            modularity = clusters_ini.modularity
             #membership = clusters.membership
 
         if (self.comm_alg == 'community_spinglass'):            
@@ -974,8 +974,9 @@ class diogenetGraph:
         if (self.comm_alg == 'community_walktrap'):
             comm = self.igraph_graph.community_walktrap()
             comm = self.fix_dendrogram(self.igraph_graph, comm)   
-            clusters = comm.as_clustering()
-            modularity = comm._graph.modularity
+            clusters_ini = comm.as_clustering()
+            clusters = clusters.as_cover()
+            modularity = clusters_ini.modularity
             #membership = clusters.membership
 
         if (self.comm_alg == 'community_leiden'):
@@ -987,8 +988,9 @@ class diogenetGraph:
         if (self.comm_alg == 'community_fastgreedy'):
             comm = self.igraph_graph.community_fastgreedy()
             comm = self.fix_dendrogram(self.igraph_graph, comm)   
-            clusters = comm.as_clustering()
-            modularity = comm._graph.modularity
+            clusters_ini = comm.as_clustering()
+            clusters = clusters.as_cover()
+            modularity = clusters_ini.modularity
             #membership = clusters.membership
             
         if (self.comm_alg == 'community_leading_eigenvector'):
@@ -1009,30 +1011,19 @@ class diogenetGraph:
             modularity = comm.modularity            
             #membership = comm.membership
 
-        print(type(clusters))
-        print(len(clusters))
-        #print(clusters.items
-        print(clusters[len(clusters)-1])
-        #print(clusters)
         community_data = []
         community_names = []
         for i in range(len(clusters)):
             for j in range(len(clusters.subgraph(i).vs)):
                 community_data.append(i)
                 community_names.append(clusters.subgraph(i).vs[j]['name'])
-        print(community_data)
-        #comm_dataFrame = pd.DataFrame(community_data, index=community_names)
         comm_dataFrame = zip(community_names,community_data)
-        #print(comm_dataFrame)
-        #comm_Dict = comm_dataFrame.to_dict()
         comm_Dict = dict(comm_dataFrame)
-        print(comm_Dict['Zeno II'])
-        print(comm_Dict)
 
         return(modularity,comm_Dict)
 
     def get_cut_vertices(self):
-        cutVertices = self.igraph_subgraph.cut_vertices()
+        cutVertices = self.igraph_graph.cut_vertices()
         return(cutVertices)    
 
 
@@ -1083,7 +1074,8 @@ communities_graph.set_edges_filter("is teacher of")
 communities_graph.create_subgraph()
 modularity,clusters=communities_graph.identify_communities()
 cut_vertices=communities_graph.get_cut_vertices()
-
+print(modularity)
+print(clusters['Plato'])
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()
