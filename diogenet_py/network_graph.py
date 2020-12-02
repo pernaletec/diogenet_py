@@ -995,7 +995,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_walktrap()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters.as_cover()
+            clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
@@ -1009,7 +1009,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_fastgreedy()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters.as_cover()
+            clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
