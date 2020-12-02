@@ -103,6 +103,10 @@ class diogenetGraph:
     label_min_size = 4
     label_max_size = 6
     current_centrality_index = "Degree"
+    pyvis_title = ""
+    pyvis_heigh = "95%"
+    factor = 50
+    node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
 
@@ -527,6 +531,104 @@ class diogenetGraph:
         """
         return "%02x%02x%02x" % rgb
 
+    def get_graph_centrality_indexes(self):
+        centrality_indexes = []
+        if self.current_centrality_index == "Degree":
+            centrality_indexes = self.calculate_degree()
+        if self.current_centrality_index == "Betweeness":
+            centrality_indexes = self.calculate_betweenness()
+        if self.current_centrality_index == "Closeness":
+            centrality_indexes = self.calculate_closeness()
+        if self.current_centrality_index == "Eigenvector":
+            centrality_indexes = self.calculate_eigenvector()
+        if self.current_centrality_index == "communities":
+            (modularity, clusters_dict) = self.identify_communities()
+            self.pyvis_title = "MODULARITY: " + str(modularity)
+            self.pyvis_height = "88%"
+            for i in range(len(self.igraph_graph.vs)):
+                if self.igraph_graph.vs[i]["name"] in clusters_dict.keys():
+                    centrality_indexes.append(
+                        clusters_dict[self.igraph_graph.vs[i]["name"]]
+                    )
+
+        centrality_indexes_min = min(centrality_indexes)
+        centrality_indexes_max = max(centrality_indexes)
+
+        return (centrality_indexes, centrality_indexes_min, centrality_indexes_max)
+
+    def set_graph_layout(self, layout):
+        N = len(self.igraph_graph.vs)
+        if layout == "kk":
+            self.graph_layout = self.igraph_graph.layout_kamada_kawai()
+            self.graph_layout_name = "kk"
+        elif layout == "grid_fr":
+            self.graph_layout = self.igraph_graph.layout_grid()
+            self.graph_layout_name = "grid_fr"
+            self.factor = 150
+        elif layout == "circle":
+            self.graph_layout = self.igraph_graph.layout_circle()
+            self.graph_layout_name = "circle"
+            self.factor = 250
+            self.node_size_factor = 1
+        elif layout == "sphere":
+            self.graph_layout = self.igraph_graph.layout_sphere()
+            self.graph_layout_name = "sphere"
+            self.factor = 250
+            self.node_size_factor = 1
+        else:
+            self.graph_layout = self.igraph_graph.layout_fruchterman_reingold()
+            self.graph_layout_name = "fr"
+
+        self.Xn = [self.graph_layout[k][0] for k in range(N)]
+        self.Yn = [self.graph_layout[k][1] for k in range(N)]
+
+    def get_pyvis_options(
+        self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
+    ):
+        pyvis_map_options = {}
+        pyvis_map_options["nodes"] = {
+            "font": {"size": min_label_size + 8},
+            "scaling": {"min": min_label_size, "max": max_label_size},
+        }
+        show_arrows = True
+        if (
+            self.graph_type == "global"
+            or self.graph_type == "local"
+            or self.graph_type == "communities"
+            and len(self.edges_filter) > 1
+        ):
+            show_arrows = False
+
+        pyvis_map_options["edges"] = {
+            "arrows": {"to": {"enabled": show_arrows, "scaleFactor": 0.4}},
+            "color": {"inherit": True},
+            "smooth": True,
+            "scaling": {
+                "label": {
+                    "min": min_weight * 10,
+                    "max": max_weight * 10,
+                    "maxVisible": 18,
+                }
+            },
+        }
+        pyvis_map_options["physics"] = {"enabled": False}
+        pyvis_map_options["interaction"] = {
+            "dragNodes": True,
+            "hideEdgesOnDrag": True,
+            "hover": True,
+            "navigationButtons": True,
+            "selectable": True,
+            "multiselect": True,
+        }
+        pyvis_map_options["manipulation"] = {
+            "enabled": False,
+            "initiallyActive": True,
+        }
+        # Allow or remove PYVIS configure options
+        # pyvis_map_options["configure"] = {"enabled": True}
+        pyvis_map_options["configure"] = {"enabled": False}
+        return pyvis_map_options
+
     def get_pyvis(
         self,
         min_weight=4,
@@ -547,113 +649,25 @@ class diogenetGraph:
         :rtype: :py:class:`pyvis`
         """
         pv_graph = None
-        factor = 0
 
         random.seed(1234)
 
         if self.igraph_graph is not None:
-            pyvis_title = ""
-            pyvis_height = "95%"
-            modularity = 0
-            centrality_indexes = []
-            if self.current_centrality_index == "Degree":
-                centrality_indexes = self.calculate_degree()
-            if self.current_centrality_index == "Betweeness":
-                centrality_indexes = self.calculate_betweenness()
-            if self.current_centrality_index == "Closeness":
-                centrality_indexes = self.calculate_closeness()
-            if self.current_centrality_index == "Eigenvector":
-                centrality_indexes = self.calculate_eigenvector()
-            if self.current_centrality_index == "communities":
-                (modularity, clusters_dict) = self.identify_communities()
-                pyvis_title = "MODULARITY: " + str(modularity)
-                pyvis_height = "88%"
-                for i in range(len(self.igraph_graph.vs)):
-                    if self.igraph_graph.vs[i]["name"] in clusters_dict.keys():
-                        centrality_indexes.append(
-                            clusters_dict[self.igraph_graph.vs[i]["name"]]
-                        )
-
-            centrality_indexes_min = min(centrality_indexes)
-            centrality_indexes_max = max(centrality_indexes)
-
-            N = len(self.igraph_graph.vs)
-            # Spatial separation factor
-            factor = 50
-            node_size_factor = 2
+            (
+                centrality_indexes,
+                centrality_indexes_min,
+                centrality_indexes_max,
+            ) = self.get_graph_centrality_indexes()
 
             if (self.graph_layout is None) or (layout != self.graph_layout_name):
-                if layout == "kk":
-                    self.graph_layout = self.igraph_graph.layout_kamada_kawai()
-                    self.graph_layout_name = "kk"
-                elif layout == "grid_fr":
-                    self.graph_layout = self.igraph_graph.layout_grid()
-                    self.graph_layout_name = "grid_fr"
-                    factor = 150
-                elif layout == "circle":
-                    self.graph_layout = self.igraph_graph.layout_circle()
-                    self.graph_layout_name = "circle"
-                    factor = 250
-                    node_size_factor = 1
-                elif layout == "sphere":
-                    self.graph_layout = self.igraph_graph.layout_sphere()
-                    self.graph_layout_name = "sphere"
-                    factor = 250
-                    node_size_factor = 1
-                else:
-                    self.graph_layout = self.igraph_graph.layout_fruchterman_reingold()
-                    self.graph_layout_name = "fr"
-
-                self.Xn = [self.graph_layout[k][0] for k in range(N)]
-                self.Yn = [self.graph_layout[k][1] for k in range(N)]
-            else:
-                print("using same layout...")
+                self.set_graph_layout(layout)
 
             pv_graph = pyvis.network.Network(
-                height=pyvis_height, width="100%", heading=pyvis_title
+                height=self.pyvis_height, width="100%", heading=self.pyvis_title
             )
-            pyvis_map_options = {}
-            pyvis_map_options["nodes"] = {
-                "font": {"size": min_label_size + 8},
-                "scaling": {"min": min_label_size, "max": max_label_size},
-            }
-            show_arrows = True
-            if (
-                self.graph_type == "global"
-                or self.graph_type == "local"
-                or self.graph_type == "communities"
-                and len(self.edges_filter) > 1
-            ):
-                show_arrows = False
-
-            pyvis_map_options["edges"] = {
-                "arrows": {"to": {"enabled": show_arrows, "scaleFactor": 0.4}},
-                "color": {"inherit": True},
-                "smooth": True,
-                "scaling": {
-                    "label": {
-                        "min": min_weight * 10,
-                        "max": max_weight * 10,
-                        "maxVisible": 18,
-                    }
-                },
-            }
-            pyvis_map_options["physics"] = {"enabled": False}
-            pyvis_map_options["interaction"] = {
-                "dragNodes": True,
-                "hideEdgesOnDrag": True,
-                "hover": True,
-                "navigationButtons": True,
-                "selectable": True,
-                "multiselect": True,
-            }
-            pyvis_map_options["manipulation"] = {
-                "enabled": False,
-                "initiallyActive": True,
-            }
-            # Allow or remove PYVIS configure options
-            # pyvis_map_options["configure"] = {"enabled": True}
-            pyvis_map_options["configure"] = {"enabled": False}
+            pyvis_map_options = self.get_pyvis_options(
+                min_weight, max_weight, min_label_size, max_label_size
+            )
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # pv_graph.show_buttons()
 
@@ -682,13 +696,11 @@ class diogenetGraph:
                     node.index,
                     label=node["name"],
                     color=color,
-                    size=int(size * node_size_factor),
-                    x=int(self.Xn[node.index] * factor),
-                    y=int(self.Yn[node.index] * factor),
+                    size=int(size * self.node_size_factor),
+                    x=int(self.Xn[node.index] * self.factor),
+                    y=int(self.Yn[node.index] * self.factor),
                     shape="dot",
-                    title=node_title
-                    # x=int(Xn[node.index]),
-                    # y=int(Yn[node.index]),
+                    title=node_title,
                 )
             for edge in self.igraph_graph.es:
                 if self.graph_type == "map":
@@ -709,6 +721,17 @@ class diogenetGraph:
                     )
                 pv_graph.add_edge(edge.source, edge.target, title=title)
         return pv_graph
+
+    def get_igraph_plot(
+        self,
+        min_weight=4,
+        max_weight=6,
+        min_label_size=4,
+        max_label_size=6,
+        layout="fr",
+        avoid_centrality=False,
+    ):
+        return True
 
     def get_map_data(
         self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
@@ -995,7 +1018,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_walktrap()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters_ini.as_cover()
+            clusters = clusters.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
@@ -1009,7 +1032,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_fastgreedy()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters_ini.as_cover()
+            clusters = clusters.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
