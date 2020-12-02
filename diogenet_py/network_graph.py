@@ -369,7 +369,11 @@ class diogenetGraph:
             list_of_tuples_ = list(list(row[0:]) for row in list_of_tuples)
             self.travels_graph_data = list_of_tuples_
 
-        if self.graph_type == "global" or self.graph_type == "local" or self.graph_type == "communities":
+        if (
+            self.graph_type == "global"
+            or self.graph_type == "local"
+            or self.graph_type == "communities"
+        ):
             node_list = self.nodes_raw_data[
                 (self.nodes_raw_data.Groups == "Male")
                 | (self.nodes_raw_data.Groups == "Female")
@@ -548,6 +552,9 @@ class diogenetGraph:
         random.seed(1234)
 
         if self.igraph_graph is not None:
+            pyvis_title = ""
+            pyvis_height = "95%"
+            modularity = 0
             centrality_indexes = []
             if self.current_centrality_index == "Degree":
                 centrality_indexes = self.calculate_degree()
@@ -557,6 +564,15 @@ class diogenetGraph:
                 centrality_indexes = self.calculate_closeness()
             if self.current_centrality_index == "Eigenvector":
                 centrality_indexes = self.calculate_eigenvector()
+            if self.current_centrality_index == "communities":
+                (modularity, clusters_dict) = self.identify_communities()
+                pyvis_title = "MODULARITY: " + str(modularity)
+                pyvis_height = "88%"
+                for i in range(len(self.igraph_graph.vs)):
+                    if self.igraph_graph.vs[i]["name"] in clusters_dict.keys():
+                        centrality_indexes.append(
+                            clusters_dict[self.igraph_graph.vs[i]["name"]]
+                        )
 
             centrality_indexes_min = min(centrality_indexes)
             centrality_indexes_max = max(centrality_indexes)
@@ -566,8 +582,6 @@ class diogenetGraph:
             factor = 50
             node_size_factor = 2
 
-            print("Layout: " + repr(layout))
-            print("Graph layout name: " + repr(self.graph_layout_name))
             if (self.graph_layout is None) or (layout != self.graph_layout_name):
                 if layout == "kk":
                     self.graph_layout = self.igraph_graph.layout_kamada_kawai()
@@ -595,7 +609,9 @@ class diogenetGraph:
             else:
                 print("using same layout...")
 
-            pv_graph = pyvis.network.Network(height="95%", width="100%", heading="")
+            pv_graph = pyvis.network.Network(
+                height=pyvis_height, width="100%", heading=pyvis_title
+            )
             pyvis_map_options = {}
             pyvis_map_options["nodes"] = {
                 "font": {"size": min_label_size + 8},
@@ -605,6 +621,7 @@ class diogenetGraph:
             if (
                 self.graph_type == "global"
                 or self.graph_type == "local"
+                or self.graph_type == "communities"
                 and len(self.edges_filter) > 1
             ):
                 show_arrows = False
@@ -615,8 +632,8 @@ class diogenetGraph:
                 "smooth": True,
                 "scaling": {
                     "label": {
-                        "min": min_weight + 8,
-                        "max": max_weight + 8,
+                        "min": min_weight * 10,
+                        "max": max_weight * 10,
                         "maxVisible": 18,
                     }
                 },
@@ -943,88 +960,91 @@ class diogenetGraph:
         cl._merges.append((v1, v2))
         del not_merged_yet[:2]
 
-        missing_nodes = range(num_dendrogram_nodes,num_dendrogram_nodes + len(not_merged_yet))
+        missing_nodes = range(
+            num_dendrogram_nodes, num_dendrogram_nodes + len(not_merged_yet)
+        )
         cl._merges.extend(zip(not_merged_yet, missing_nodes))
-        cl._nmerges = graph.vcount()-1        
-        return(cl)
+        cl._nmerges = graph.vcount() - 1
+        return cl
 
     def identify_communities(self):
-        if (self.comm_alg == 'community_infomap'):
+        clusters = []
+        if self.comm_alg == "community_infomap":
             comm = self.igraph_graph.community_infomap()
-            #print('community_infomap')
-            #membership = comm.membership
-            clusters = comm.as_cover() 
+            # print('community_infomap')
+            # membership = comm.membership
+            clusters = comm.as_cover()
             modularity = comm.modularity
 
-        if (self.comm_alg == 'community_edge_betweenness'):
+        if self.comm_alg == "community_edge_betweenness":
             comm = self.igraph_graph.community_edge_betweenness()
-            #print('community_edge_betweenness')
-            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            # print('community_edge_betweenness')
+            comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
-            #membership = clusters.membership
+            # membership = clusters.membership
 
-        if (self.comm_alg == 'community_spinglass'):            
+        if self.comm_alg == "community_spinglass":
             comm = self.igraph_graph.community_spinglass()
-            clusters = comm.as_cover() 
+            clusters = comm.as_cover()
             modularity = comm.modularity
-            #membership = comm.membership
-            
-        if (self.comm_alg == 'community_walktrap'):
+            # membership = comm.membership
+
+        if self.comm_alg == "community_walktrap":
             comm = self.igraph_graph.community_walktrap()
-            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
             clusters = clusters.as_cover()
             modularity = clusters_ini.modularity
-            #membership = clusters.membership
+            # membership = clusters.membership
 
-        if (self.comm_alg == 'community_leiden'):
+        if self.comm_alg == "community_leiden":
             comm = self.igraph_graph.community_leiden()
-            #membership = comm.membership
-            clusters = comm.as_cover() 
+            # membership = comm.membership
+            clusters = comm.as_cover()
             modularity = comm.modularity
 
-        if (self.comm_alg == 'community_fastgreedy'):
+        if self.comm_alg == "community_fastgreedy":
             comm = self.igraph_graph.community_fastgreedy()
-            comm = self.fix_dendrogram(self.igraph_graph, comm)   
+            comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
             clusters = clusters.as_cover()
             modularity = clusters_ini.modularity
-            #membership = clusters.membership
-            
-        if (self.comm_alg == 'community_leading_eigenvector'):
-            comm = self.igraph_graph.community_leading_eigenvector()
-            clusters = comm.as_cover() 
-            modularity = comm.modularity            
-            #membership = comm.membership
+            # membership = clusters.membership
 
-        if (self.comm_alg == 'community_label_propagation'):
+        if self.comm_alg == "community_leading_eigenvector":
+            comm = self.igraph_graph.community_leading_eigenvector()
+            clusters = comm.as_cover()
+            modularity = comm.modularity
+            # membership = comm.membership
+
+        if self.comm_alg == "community_label_propagation":
             comm = self.igraph_graph.community_label_propagation()
-            #membership = comm.membership
-            clusters = comm.as_cover() 
+            # membership = comm.membership
+            clusters = comm.as_cover()
             modularity = comm.modularity
 
-        if (self.comm_alg == 'community_multilevel'):
+        if self.comm_alg == "community_multilevel":
             comm = self.igraph_graph.community_multilevel()
-            clusters = comm.as_cover() 
-            modularity = comm.modularity            
-            #membership = comm.membership
+            clusters = comm.as_cover()
+            modularity = comm.modularity
+            # membership = comm.membership
 
         community_data = []
         community_names = []
         for i in range(len(clusters)):
             for j in range(len(clusters.subgraph(i).vs)):
                 community_data.append(i)
-                community_names.append(clusters.subgraph(i).vs[j]['name'])
-        comm_dataFrame = zip(community_names,community_data)
+                community_names.append(clusters.subgraph(i).vs[j]["name"])
+        comm_dataFrame = zip(community_names, community_data)
         comm_Dict = dict(comm_dataFrame)
 
-        return(modularity,comm_Dict)
+        return (modularity, comm_Dict)
 
     def get_cut_vertices(self):
         cutVertices = self.igraph_graph.cut_vertices()
-        return(cutVertices)    
+        return cutVertices
 
 
 global_graph = diogenetGraph(
@@ -1059,23 +1079,24 @@ communities_graph = diogenetGraph(
     TRAVELS_BLACK_LIST_FILE,
 )
 
-#communities_graph.comm_alg = 'community_infomap'                          # OK
-communities_graph.comm_alg = 'community_edge_betweenness'                 # OK 
-#communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
-#communities_graph.comm_alg = 'community_walktrap'	                       # OK 
-#communities_graph.comm_alg = 'community_leiden'                           # No clusters. No go
-#communities_graph.comm_alg = 'community_fastgreedy'                       # OK
-#communities_graph.comm_alg = 'community_leading_eigenvector'              # OK 
-#communities_graph.comm_alg = 'community_label_propagation'                # OK
-#communities_graph.comm_alg = 'community_multilevel'                       # OK 
+# communities_graph.comm_alg = 'community_infomap'                          # OK
+communities_graph.comm_alg = "community_edge_betweenness"  # OK
+# communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
+# communities_graph.comm_alg = 'community_walktrap'	                       # OK
+# communities_graph.comm_alg = 'community_leiden'                           # No clusters. No go
+# communities_graph.comm_alg = 'community_fastgreedy'                       # OK
+# communities_graph.comm_alg = 'community_leading_eigenvector'              # OK
+# communities_graph.comm_alg = 'community_label_propagation'                # OK
+# communities_graph.comm_alg = 'community_multilevel'                       # OK
 
 
-communities_graph.set_edges_filter("is teacher of")
-communities_graph.create_subgraph()
-modularity,clusters=communities_graph.identify_communities()
-cut_vertices=communities_graph.get_cut_vertices()
-print(modularity)
-print(clusters['Plato'])
+# communities_graph.set_edges_filter("is teacher of")
+# communities_graph.create_subgraph()
+# modularity, clusters = communities_graph.identify_communities()
+# cut_vertices = communities_graph.get_cut_vertices()
+# print(modularity)
+# print(clusters["Plato"])
+# print(repr(clusters))
 
 # grafo.centralization_degree()
 # grafo.centralization_betweenness()

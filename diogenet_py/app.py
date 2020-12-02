@@ -7,7 +7,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from .network_graph import global_graph, map_graph, local_graph
+from .network_graph import global_graph, map_graph, local_graph, communities_graph
 import os
 import tempfile
 import random
@@ -296,11 +296,19 @@ def horus_get_graph():
     graph_type = str(request.args.get("graph_type"))
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
+    algorithm_value = str(request.args.get("algorithm"))
 
     if graph_type == "local":
         grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
+    elif graph_type == "community":
+        grafo = communities_graph
+        algorithm_value = (
+            algorithm_value if algorithm_value != "" else "community_edge_betweenness"
+        )
+        print("Algoritm value = {}".format(algorithm_value))
+        grafo.comm_alg = algorithm_value
     else:
         grafo = global_graph
 
@@ -470,6 +478,78 @@ def horus_get_heatmap():
             colorscale="Viridis",
         )
     )
+
+    plotly_graph.update_layout(
+        legend_font_size=12, legend_title_font_size=12, font_size=8
+    )
+
+    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    full_filename = os.path.join(app.root_path, "temp", temp_file_name)
+    plotly_graph.write_html(full_filename)
+    print("Sending " + full_filename + " file")
+    return send_from_directory("temp", temp_file_name)
+
+
+@app.route("/horus/get/treemap")
+def horus_get_treemap():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    centrality_index = "communities"
+    graph_filter = str(request.args.get("filter"))
+    graph_type = "community"
+    algorithm_value = str(request.args.get("algorithm"))
+
+    grafo = communities_graph
+    algorithm_value = (
+        algorithm_value
+        if (algorithm_value and algorithm_value != "")
+        else "community_edge_betweenness"
+    )
+    grafo.comm_alg = algorithm_value
+
+    if not graph_filter:
+        graph_filter = "is teacher of"
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
+    subgraph = grafo.get_subgraph()
+
+    modularity, clusters_dict = subgraph.identify_communities()
+
+    communities_index = []
+
+    for i in range(len(subgraph.igraph_graph.vs)):
+        if subgraph.igraph_graph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(clusters_dict[subgraph.igraph_graph.vs[i]["name"]])
+
+    data = {
+        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Community": communities_index,
+    }
+
+    df = pd.DataFrame(data=data)
+    df1 = df.sort_values(by=["Community", "Degree"]).set_index(
+        "Philosopher", drop=False
+    )
+
+    # plotly_graph = go.Figure(
+    #     data=go.Heatmap(
+    #         z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
+    #         y=df1.Philosopher,
+    #         x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
+    #         hoverongaps=False,
+    #         type="heatmap",
+    #         colorscale="Viridis",
+    #     )
+    # )
+    print(df1)
+    plotly_graph = px.treemap(df1, path=["Philosopher", "Degree"], values="Community",)
 
     plotly_graph.update_layout(
         legend_font_size=12, legend_title_font_size=12, font_size=8
