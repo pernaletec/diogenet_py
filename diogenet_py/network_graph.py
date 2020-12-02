@@ -104,7 +104,7 @@ class diogenetGraph:
     label_max_size = 6
     current_centrality_index = "Degree"
     pyvis_title = ""
-    pyvis_heigh = "95%"
+    pyvis_height = "95%"
     factor = 50
     node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
@@ -543,7 +543,7 @@ class diogenetGraph:
             centrality_indexes = self.calculate_eigenvector()
         if self.current_centrality_index == "communities":
             (modularity, clusters_dict) = self.identify_communities()
-            self.pyvis_title = "MODULARITY: " + str(modularity)
+            self.pyvis_title = "MODULARITY: {:0.4f}".format(modularity)
             self.pyvis_height = "88%"
             for i in range(len(self.igraph_graph.vs)):
                 if self.igraph_graph.vs[i]["name"] in clusters_dict.keys():
@@ -1018,7 +1018,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_walktrap()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters.as_cover()
+            clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
@@ -1032,7 +1032,7 @@ class diogenetGraph:
             comm = self.igraph_graph.community_fastgreedy()
             comm = self.fix_dendrogram(self.igraph_graph, comm)
             clusters_ini = comm.as_clustering()
-            clusters = clusters.as_cover()
+            clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 

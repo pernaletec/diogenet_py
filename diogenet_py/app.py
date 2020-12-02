@@ -549,7 +549,7 @@ def horus_get_treemap():
     #     )
     # )
     print(df1)
-    plotly_graph = px.treemap(df1, path=["Philosopher", "Degree"], values="Community",)
+    plotly_graph = px.treemap(df1, path=["Community", "Philosopher"], values="Degree",)
 
     plotly_graph.update_layout(
         legend_font_size=12, legend_title_font_size=12, font_size=8
