@@ -1070,16 +1070,16 @@ class diogenetGraph:
         return cutVertices
 
 
-global_graph = diogenetGraph(
-    "global",
+map_graph = diogenetGraph(
+    "map",
     NODES_DATA_FILE,
     EDGES_DATA_FILE,
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )
 
-map_graph = diogenetGraph(
-    "map",
+global_graph = diogenetGraph(
+    "global",
     NODES_DATA_FILE,
     EDGES_DATA_FILE,
     LOCATIONS_DATA_FILE,
@@ -1102,8 +1102,20 @@ communities_graph = diogenetGraph(
     TRAVELS_BLACK_LIST_FILE,
 )
 
+
+def map_graph_change_dataset(dataset):
+    if dataset == "life_of_pithagoras":
+        map_graph = diogenetGraph(
+            "map",
+            "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
+            "new_Nodes_Life_of_Pythagoras_Iamblichus.csv",
+            LOCATIONS_DATA_FILE,
+            TRAVELS_BLACK_LIST_FILE,
+        )
+
+
 # communities_graph.comm_alg = 'community_infomap'                          # OK
-communities_graph.comm_alg = "community_edge_betweenness"  # OK
+# communities_graph.comm_alg = "community_edge_betweenness"  # OK
 # communities_graph.comm_alg = 'community_spinglass'                        # Not for unconnected graphs
 # communities_graph.comm_alg = 'community_walktrap'	                       # OK
 # communities_graph.comm_alg = 'community_leiden'                           # No clusters. No go

@@ -22,7 +22,14 @@ page_style %}
   type="text/javascript"
 ></script>
 {% endblock head %} {% block sidebar %}
-<div class="form-group my-5">
+<div class="form-group my-2">
+  <label class="label" for="dataset_selector">Select Dataset:</label>
+  <select class="custom-select" id="dataset_selector">
+    <option>Diogenes Laertius, Lives of Philosophers</option>
+    <option>Iamblichus, Life of Pythagoras</option>
+  </select>
+</div>
+<div class="form-group my-3">
   <label class="label" for="traveler">Filter by Travelers:</label>
   <div class="input-group mb-3">
     <select class="custom-select" name="traveler" id="traveler"></select>
@@ -62,7 +69,7 @@ page_style %}
     Apply Filters
   </button>
 </div>
-<div class="form-group my-5">
+<div class="form-group my-3">
   <label class="label" for="centrality-index">Centrality index:</label>
   <select class="custom-select" name="centrality-index" id="centrality-index">
     <option value="1">Degree</option>
@@ -71,7 +78,7 @@ page_style %}
     <option value="4">Eigenvector</option>
   </select>
 </div>
-<div class="my-5">
+<div class="my-3">
   <h5 id="appareance-label">Appareance:</h5>
   <div class="form-group" id="node-size-div">
     <label class="label" for="node-size" style="padding-bottom: 15px"

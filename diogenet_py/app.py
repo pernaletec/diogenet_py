@@ -7,6 +7,8 @@ from flask import (
     send_from_directory,
     jsonify,
 )
+import igraph
+from igraph import layout
 from .network_graph import global_graph, map_graph, local_graph, communities_graph
 import os
 import tempfile
@@ -15,6 +17,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import igraph
 
 app = Flask(__name__)
 
@@ -297,6 +300,10 @@ def horus_get_graph():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
     algorithm_value = str(request.args.get("algorithm"))
+    plot_type = str(request.args.get("plot"))
+
+    if not plot_type or plot_type == "" or plot_type == "None":
+        plot_type = "pyvis"
 
     if graph_type == "local":
         grafo = local_graph
@@ -304,11 +311,10 @@ def horus_get_graph():
         grafo.local_order = int(order_value) if order_value else 1
     elif graph_type == "community":
         grafo = communities_graph
-        algorithm_value = (
-            algorithm_value if algorithm_value != "" else "community_edge_betweenness"
-        )
-        print("Algoritm value = {}".format(algorithm_value))
+        if algorithm_value == "" or algorithm_value == "None":
+            algorithm_value = "community_edge_betweenness"
         grafo.comm_alg = algorithm_value
+
     else:
         grafo = global_graph
 
@@ -349,18 +355,30 @@ def horus_get_graph():
 
     subgraph = grafo.get_subgraph()
 
-    pvis_graph = subgraph.get_pyvis(
-        min_weight=node_min_size,
-        max_weight=node_max_size,
-        min_label_size=label_min_size,
-        max_label_size=label_max_size,
-        layout=graph_layout,
-        avoid_centrality=not_centrality,
-    )
-    if pvis_graph:
-        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    pvis_graph = None
+    if plot_type == "pyvis":
+        pvis_graph = subgraph.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+            avoid_centrality=not_centrality,
+        )
+    if pvis_graph or plot_type == "igraph":
+        suffix = ".svg" if plot_type == "igraph" else ".html"
+        temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
-        pvis_graph.write_html(full_filename)
+        if plot_type == "igraph":
+            igraph.plot(
+                subgraph.igraph_graph,
+                full_filename,
+                layout=subgraph.graph_layout,
+                bbox=(900, 600),
+                margin=20,
+            )
+        else:
+            pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -548,7 +566,7 @@ def horus_get_treemap():
     #         colorscale="Viridis",
     #     )
     # )
-    print(df1)
+
     plotly_graph = px.treemap(df1, path=["Community", "Philosopher"], values="Degree",)
 
     plotly_graph.update_layout(
