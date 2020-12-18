@@ -1105,11 +1105,19 @@ communities_graph = diogenetGraph(
 
 
 def map_graph_change_dataset(dataset):
-    if dataset == "life_of_pithagoras":
+    if dataset == "iamblichus":
         map_graph = diogenetGraph(
             "map",
             "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
             "new_Nodes_Life_of_Pythagoras_Iamblichus.csv",
+            LOCATIONS_DATA_FILE,
+            TRAVELS_BLACK_LIST_FILE,
+        )
+    else:
+        map_graph = diogenetGraph(
+            "map",
+            NODES_DATA_FILE,
+            EDGES_DATA_FILE,
             LOCATIONS_DATA_FILE,
             TRAVELS_BLACK_LIST_FILE,
         )

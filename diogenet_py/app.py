@@ -9,7 +9,8 @@ from flask import (
 )
 from igraph import *
 from igraph import layout
-from .network_graph import global_graph, map_graph, local_graph, communities_graph
+from .network_graph import *
+
 import os
 import tempfile
 import random
@@ -616,9 +617,16 @@ def horus_get_treemap():
     return send_from_directory("temp", temp_file_name)
 
 
-@app.route("/horus/set/dataset")
+@app.route("/map/set/dataset")
 def horus_set_dataset():
-    graph_filter = str(request.args.get("filter"))
-    graph_type = str(request.args.get("graph_type"))
-    ego_value = str(request.args.get("ego"))
-    order_value = str(request.args.get("order"))
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    dataset = str(request.args.get("dataset"))
+
+    if not dataset or dataset != "iamblichus":
+        map_graph_change_dataset("diogenes_laertius")
+    else:
+        map_graph_change_dataset("iamblichus")
+
+    return make_response("Success", 200)

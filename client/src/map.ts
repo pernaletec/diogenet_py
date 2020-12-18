@@ -624,22 +624,23 @@ $(() => {
   activeTab = "#map";
   updateAll();
 
-  $("#dataset_selector-index").on("change", (event) => {
-    let currentFilter = getFilter();
-    if (currentFilter === "") {
-      currentFilter = "All";
+  $("#dataset_selector").on("change", (event) => {
+    let currentDataset = $("#dataset_selector").val();
+    if (currentDataset === "") {
+      currentDataset = "diogenes_laertius";
     }
     const urlBase = encodeURI(
-      BASE_URL + "/map/get/table?filter=" + currentFilter
+      BASE_URL + "/map/set/dataset?dataset=" + currentDataset
     );
 
     $.ajax({
       dataType: "text json",
       url: urlBase,
-      success: (fullData) => {},
+      success: (fullData) => {
+        console.log("Dataset changed");
+        updateAll();
+      },
     });
-
-    updateAll();
   });
   $("#centrality-index").change((event) => {
     updateAll();
