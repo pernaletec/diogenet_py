@@ -7,7 +7,7 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-import igraph
+from igraph import *
 from igraph import layout
 from .network_graph import global_graph, map_graph, local_graph, communities_graph
 import os
@@ -33,6 +33,23 @@ setup_app(app)
 
 MALFORMED_REQUEST = "Malformed request"
 MAP_GRAPH_ERROR = "Error accessing MapGraph Object"
+HTML_PLOT_CONTENT = """<!DOCTYPE html>
+<html>
+    <head>
+        <title>Communities iGraph Plot</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    </head>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-11">
+            {file}
+        </div>
+    </div>
+</body>
+</html> 
+"""
 
 
 @app.route("/")
@@ -312,7 +329,7 @@ def horus_get_graph():
     elif graph_type == "community":
         grafo = communities_graph
         if algorithm_value == "" or algorithm_value == "None":
-            algorithm_value = "community_edge_betweenness"
+            algorithm_value = "community_infomap"
         grafo.comm_alg = algorithm_value
 
     else:
@@ -365,18 +382,37 @@ def horus_get_graph():
             layout=graph_layout,
             avoid_centrality=not_centrality,
         )
+    full_filename = ""
     if pvis_graph or plot_type == "igraph":
         suffix = ".svg" if plot_type == "igraph" else ".html"
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
-            igraph.plot(
-                subgraph.igraph_graph,
+            modularity, clusters = subgraph.identify_communities()
+            subgraph.igraph_graph.vs["label"] = subgraph.igraph_graph.vs["name"]
+            plot(
+                subgraph.comm,
                 full_filename,
                 layout=subgraph.graph_layout,
-                bbox=(900, 600),
+                bbox=(450, 450),
                 margin=20,
+                mark_groups=True,
+                vertex_label_size=7,
+                vertex_label_angle=200,
+                vertex_label_dist=1,
+                vertex_size=8,
             )
+            with open(full_filename, "r") as file:
+                data = file.read().replace('width="450pt"', 'width="100%"')
+                full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
+                temp_html_file_name = next(tempfile._get_candidate_names()) + ".html"
+                full_html_filename = os.path.join(
+                    app.root_path, "temp", temp_html_file_name
+                )
+                full_html_file = open(full_html_filename, "w")
+                _ = full_html_file.write(full_html_file_content)
+                full_html_file.close()
+                full_filename = full_html_filename
         else:
             pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
@@ -578,3 +614,11 @@ def horus_get_treemap():
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")
     return send_from_directory("temp", temp_file_name)
+
+
+@app.route("/horus/set/dataset")
+def horus_set_dataset():
+    graph_filter = str(request.args.get("filter"))
+    graph_type = str(request.args.get("graph_type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))

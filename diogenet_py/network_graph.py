@@ -124,6 +124,7 @@ class diogenetGraph:
 
     # This is used only to create the communities
     comm_alg = None
+    comm_igraph = None
 
     def __init__(
         self,
@@ -993,66 +994,66 @@ class diogenetGraph:
     def identify_communities(self):
         clusters = []
         if self.comm_alg == "community_infomap":
-            comm = self.igraph_graph.community_infomap()
+            self.comm = self.igraph_graph.community_infomap()
             # print('community_infomap')
             # membership = comm.membership
-            clusters = comm.as_cover()
-            modularity = comm.modularity
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
 
         if self.comm_alg == "community_edge_betweenness":
-            comm = self.igraph_graph.community_edge_betweenness()
+            self.comm = self.igraph_graph.community_edge_betweenness()
             # print('community_edge_betweenness')
-            comm = self.fix_dendrogram(self.igraph_graph, comm)
-            clusters_ini = comm.as_clustering()
+            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = self.comm.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_spinglass":
-            comm = self.igraph_graph.community_spinglass()
-            clusters = comm.as_cover()
-            modularity = comm.modularity
+            self.comm = self.igraph_graph.community_spinglass()
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
             # membership = comm.membership
 
         if self.comm_alg == "community_walktrap":
-            comm = self.igraph_graph.community_walktrap()
-            comm = self.fix_dendrogram(self.igraph_graph, comm)
-            clusters_ini = comm.as_clustering()
+            self.comm = self.igraph_graph.community_walktrap()
+            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = self.comm.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_leiden":
-            comm = self.igraph_graph.community_leiden()
-            # membership = comm.membership
-            clusters = comm.as_cover()
-            modularity = comm.modularity
+            self.comm = self.igraph_graph.community_leiden()
+            # membership = self.comm.membership
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
 
         if self.comm_alg == "community_fastgreedy":
-            comm = self.igraph_graph.community_fastgreedy()
-            comm = self.fix_dendrogram(self.igraph_graph, comm)
-            clusters_ini = comm.as_clustering()
+            self.comm = self.igraph_graph.community_fastgreedy()
+            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = self.comm.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_leading_eigenvector":
-            comm = self.igraph_graph.community_leading_eigenvector()
-            clusters = comm.as_cover()
-            modularity = comm.modularity
-            # membership = comm.membership
+            self.comm = self.igraph_graph.community_leading_eigenvector()
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
+            # membership = self.comm.membership
 
         if self.comm_alg == "community_label_propagation":
-            comm = self.igraph_graph.community_label_propagation()
-            # membership = comm.membership
-            clusters = comm.as_cover()
-            modularity = comm.modularity
+            self.comm = self.igraph_graph.community_label_propagation()
+            # membership = self.comm.membership
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
 
         if self.comm_alg == "community_multilevel":
-            comm = self.igraph_graph.community_multilevel()
-            clusters = comm.as_cover()
-            modularity = comm.modularity
-            # membership = comm.membership
+            self.comm = self.igraph_graph.community_multilevel()
+            clusters = self.comm.as_cover()
+            modularity = self.comm.modularity
+            # membership = self.comm.membership
 
         community_data = []
         community_names = []
@@ -1120,7 +1121,7 @@ def map_graph_change_dataset(dataset):
 # communities_graph.comm_alg = 'community_walktrap'	                       # OK
 # communities_graph.comm_alg = 'community_leiden'                           # No clusters. No go
 # communities_graph.comm_alg = 'community_fastgreedy'                       # OK
-# communities_graph.comm_alg = 'community_leading_eigenvector'              # OK
+# communities_graph.comm_alg = 'communitmodularity, clusters = communities_graph.identify_communities()y_leading_eigenvector'              # OK
 # communities_graph.comm_alg = 'community_label_propagation'                # OK
 # communities_graph.comm_alg = 'community_multilevel'                       # OK
 

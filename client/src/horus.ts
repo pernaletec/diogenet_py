@@ -83,6 +83,10 @@ function getAlgorithm() {
   return $("#community-alg-index").val();
 }
 
+function getPlotType() {
+  return $("#community-library-index").val();
+}
+
 function showAppearenceControls(show: boolean) {
   if (show) {
     $("#appareance-size-div").show();
@@ -141,8 +145,12 @@ function showOrderControl(show: boolean) {
 function showCommunitiesControls(show: boolean) {
   if (show) {
     $("#communities-div").show();
+    if (activeMenu === "communities") {
+      $("#communities-viz-div").show();
+    }
   } else {
     $("#communities-div").hide();
+    $("#communities-viz-div").hide();
   }
 }
 
@@ -262,7 +270,9 @@ function updateGraph(
             currentLayout +
             "&graph_type=community" +
             "&algorithm=" +
-            getAlgorithm()
+            getAlgorithm() +
+            "&plot=" +
+            getPlotType()
         );
       }
       console.log(srcURL);
@@ -791,6 +801,10 @@ $(() => {
   });
 
   $("#community-alg-index").on("change", (event) => {
+    updateTab();
+  });
+
+  $("#community-library-index").on("change", (event) => {
     updateTab();
   });
 
