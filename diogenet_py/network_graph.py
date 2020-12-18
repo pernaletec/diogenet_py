@@ -1003,8 +1003,8 @@ class diogenetGraph:
         if self.comm_alg == "community_edge_betweenness":
             self.comm = self.igraph_graph.community_edge_betweenness()
             # print('community_edge_betweenness')
-            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
-            clusters_ini = self.comm.as_clustering()
+            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = aux.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
@@ -1017,8 +1017,8 @@ class diogenetGraph:
 
         if self.comm_alg == "community_walktrap":
             self.comm = self.igraph_graph.community_walktrap()
-            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
-            clusters_ini = self.comm.as_clustering()
+            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = aux.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
@@ -1031,8 +1031,8 @@ class diogenetGraph:
 
         if self.comm_alg == "community_fastgreedy":
             self.comm = self.igraph_graph.community_fastgreedy()
-            self.comm = self.fix_dendrogram(self.igraph_graph, self.comm)
-            clusters_ini = self.comm.as_clustering()
+            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            clusters_ini = aux.as_clustering()
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
