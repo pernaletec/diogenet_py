@@ -75,6 +75,18 @@ function getOrder() {
   return $("#order-size").val() as string;
 }
 
+function getAlgorithm() {
+  //   let strValue: string = "";
+  //   if ($("#community-alg-index").val()) {
+  //     strValue = $("#community-alg-index  option:selected").text();
+  //   }
+  return $("#community-alg-index").val();
+}
+
+function getPlotType() {
+  return $("#community-library-index").val();
+}
+
 function showAppearenceControls(show: boolean) {
   if (show) {
     $("#appareance-size-div").show();
@@ -127,6 +139,18 @@ function showOrderControl(show: boolean) {
     }
   } else {
     $("#ego-div").hide();
+  }
+}
+
+function showCommunitiesControls(show: boolean) {
+  if (show) {
+    $("#communities-div").show();
+    if (activeMenu === "communities") {
+      $("#communities-viz-div").show();
+    }
+  } else {
+    $("#communities-div").hide();
+    $("#communities-viz-div").hide();
   }
 }
 
@@ -225,6 +249,36 @@ function updateGraph(
       break;
     }
     case "communities": {
+      currentLayout = "fr";
+      const communityCentrality = "communities";
+      currentFilter = getCheckedRelations();
+      let srcURL: string;
+      if (currentFilter === "") {
+        srcURL = "";
+      } else {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/graph?centrality=" +
+            communityCentrality +
+            "&node_min_max=" +
+            nodeSizes +
+            "&label_min_max=" +
+            labelSizes +
+            "&filter=" +
+            currentFilter +
+            "&layout=" +
+            currentLayout +
+            "&graph_type=community" +
+            "&algorithm=" +
+            getAlgorithm() +
+            "&plot=" +
+            getPlotType()
+        );
+      }
+      console.log(srcURL);
+      targetIFrame.src = srcURL;
+      if (srcURL === "")
+        alert("Please select at least one relation from Network Ties!");
       break;
     }
   }
@@ -263,6 +317,15 @@ function updateHeatMap(
         break;
       }
       case "communities": {
+        srcURL = encodeURI(
+          BASE_URL +
+            "/horus/get/treemap?filter=" +
+            currentFilter +
+            "&graph_type=community" +
+            "&algorithm=" +
+            getAlgorithm()
+        );
+        targetIFrame.src = srcURL;
         break;
       }
     }
@@ -357,68 +420,6 @@ function updateMetricsTable(tables = "global") {
   //
 }
 
-function updateLocalMetricsTable() {
-  type MetricsTableData = {
-    City: string;
-    Degree: number;
-    Betweenness: number;
-    Closeness: number;
-    Eigenvector: number;
-  };
-  type DataMapTable = {
-    CentralizationDegree: number;
-    CentralizationBetweenness: number;
-    CentralizationCloseness: number;
-    CentralizationEigenvector: number;
-    CityData: MetricsTableData[];
-  };
-
-  let currentFilter = getCheckedRelations();
-  if (currentFilter === "") {
-    table3.clear();
-    table3.draw();
-    table4.clear();
-    table4.draw();
-    alert("Please select at least one relation from Network Ties!");
-  } else {
-    const urlBase = encodeURI(
-      BASE_URL + "/map/get/table?filter=" + currentFilter + "&type=global"
-    );
-
-    $.ajax({
-      dataType: "text json",
-      url: urlBase,
-      success: (fullData: DataMapTable) => {
-        const dataCentral = [
-          [
-            "Graph",
-            String(fullData.CentralizationDegree),
-            String(fullData.CentralizationBetweenness),
-            String(fullData.CentralizationCloseness),
-            String(fullData.CentralizationEigenvector),
-          ],
-        ];
-        table4.clear();
-        table4.rows.add(dataCentral);
-        table4.draw();
-        const data: MetricsTableData[] = fullData.CityData;
-        const tableData = data.map((el) => [
-          el.City,
-          el.Degree,
-          el.Betweenness,
-          el.Closeness,
-          el.Eigenvector,
-        ]);
-
-        table3.clear();
-        table3.rows.add(tableData);
-        table3.draw();
-      },
-    });
-  }
-  //
-}
-
 function updateTab() {
   switch (activeTab) {
     case "global-graph": {
@@ -489,6 +490,10 @@ function updateTab() {
       break;
     }
     case "communities-treemap-graph": {
+      updateHeatMap(
+        $("#graph-treemap-communities")[0] as HTMLIFrameElement,
+        "communities"
+      );
       break;
     }
   }
@@ -504,6 +509,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
         showDegreeControl(false);
         showOrderControl(false);
         showAppearenceControls(true);
+        showCommunitiesControls(false);
         break;
       }
       case "global-centrality": {
@@ -513,11 +519,13 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showDegreeControl(true);
           showOrderControl(false);
           showAppearenceControls(true);
+          showCommunitiesControls(false);
         } else {
           showLayoutControl(false);
           showDegreeControl(false);
           showOrderControl(false);
           showAppearenceControls(false);
+          showCommunitiesControls(false);
           if (selectedTab === "global-metrics-graph" && initDTable) {
             initDataTable("global");
           }
@@ -530,6 +538,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
         showDegreeControl(false);
         showOrderControl(true);
         showAppearenceControls(true);
+        showCommunitiesControls(false);
         break;
       }
       case "local-centrality": {
@@ -539,17 +548,37 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
           showDegreeControl(true);
           showOrderControl(true);
           showAppearenceControls(true);
+          showCommunitiesControls(false);
         } else {
           showLayoutControl(false);
           showDegreeControl(false);
           showOrderControl(true);
           showAppearenceControls(false);
+          showCommunitiesControls(false);
           if (selectedTab === "local-metrics-graph" && initDTableEgo) {
             console.log("initial table LOCALLLLLL");
             console.log("initial table");
             initDataTable("local");
           }
         }
+        break;
+      }
+      case "communities": {
+        activeMenu = "communities";
+        showLayoutControl(false);
+        showDegreeControl(false);
+        showOrderControl(false);
+        showAppearenceControls(true);
+        showCommunitiesControls(true);
+        break;
+      }
+      case "communities-treemap": {
+        activeMenu = "communities-treemap";
+        showLayoutControl(false);
+        showDegreeControl(false);
+        showOrderControl(false);
+        showAppearenceControls(false);
+        showCommunitiesControls(true);
         break;
       }
     }
@@ -771,6 +800,14 @@ $(() => {
     updateTab();
   });
 
+  $("#community-alg-index").on("change", (event) => {
+    updateTab();
+  });
+
+  $("#community-library-index").on("change", (event) => {
+    updateTab();
+  });
+
   $("#global-btn").on("click", () => {
     drawScreen("global", "global-graph");
   });
@@ -783,6 +820,13 @@ $(() => {
   $("#local-centrality-btn").on("click", () => {
     drawScreen("local-centrality", "local-central-graph");
   });
+  $("#communities-btn").on("click", () => {
+    drawScreen("communities", "communities-graph");
+  });
+  $("#communities-treemap-btn").on("click", () => {
+    drawScreen("communities-treemap", "communities-treemap-graph");
+  });
+
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
     const activedTab = <HTMLAnchorElement>e.target;
     //const leavedTab = <HTMLAnchorElement>e.relatedTarget;

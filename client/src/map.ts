@@ -624,6 +624,23 @@ $(() => {
   activeTab = "#map";
   updateAll();
 
+  $("#dataset_selector-index").on("change", (event) => {
+    let currentFilter = getFilter();
+    if (currentFilter === "") {
+      currentFilter = "All";
+    }
+    const urlBase = encodeURI(
+      BASE_URL + "/map/get/table?filter=" + currentFilter
+    );
+
+    $.ajax({
+      dataType: "text json",
+      url: urlBase,
+      success: (fullData) => {},
+    });
+
+    updateAll();
+  });
   $("#centrality-index").change((event) => {
     updateAll();
   });

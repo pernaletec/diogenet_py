@@ -7,7 +7,9 @@ from flask import (
     send_from_directory,
     jsonify,
 )
-from .network_graph import global_graph, map_graph, local_graph
+from igraph import *
+from igraph import layout
+from .network_graph import global_graph, map_graph, local_graph, communities_graph
 import os
 import tempfile
 import random
@@ -15,6 +17,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import igraph
 
 app = Flask(__name__)
 
@@ -30,6 +33,23 @@ setup_app(app)
 
 MALFORMED_REQUEST = "Malformed request"
 MAP_GRAPH_ERROR = "Error accessing MapGraph Object"
+HTML_PLOT_CONTENT = """<!DOCTYPE html>
+<html>
+    <head>
+        <title>Communities iGraph Plot</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    </head>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-11">
+            {file}
+        </div>
+    </div>
+</body>
+</html> 
+"""
 
 
 @app.route("/")
@@ -296,11 +316,22 @@ def horus_get_graph():
     graph_type = str(request.args.get("graph_type"))
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
+    algorithm_value = str(request.args.get("algorithm"))
+    plot_type = str(request.args.get("plot"))
+
+    if not plot_type or plot_type == "" or plot_type == "None":
+        plot_type = "pyvis"
 
     if graph_type == "local":
         grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
+    elif graph_type == "community":
+        grafo = communities_graph
+        if algorithm_value == "" or algorithm_value == "None":
+            algorithm_value = "community_infomap"
+        grafo.comm_alg = algorithm_value
+
     else:
         grafo = global_graph
 
@@ -341,18 +372,49 @@ def horus_get_graph():
 
     subgraph = grafo.get_subgraph()
 
-    pvis_graph = subgraph.get_pyvis(
-        min_weight=node_min_size,
-        max_weight=node_max_size,
-        min_label_size=label_min_size,
-        max_label_size=label_max_size,
-        layout=graph_layout,
-        avoid_centrality=not_centrality,
-    )
-    if pvis_graph:
-        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    pvis_graph = None
+    if plot_type == "pyvis":
+        pvis_graph = subgraph.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+            avoid_centrality=not_centrality,
+        )
+    full_filename = ""
+    if pvis_graph or plot_type == "igraph":
+        suffix = ".svg" if plot_type == "igraph" else ".html"
+        temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
-        pvis_graph.write_html(full_filename)
+        if plot_type == "igraph":
+            modularity, clusters = subgraph.identify_communities()
+            subgraph.igraph_graph.vs["label"] = subgraph.igraph_graph.vs["name"]
+            plot(
+                subgraph.comm,
+                full_filename,
+                layout=subgraph.graph_layout,
+                bbox=(450, 450),
+                margin=20,
+                mark_groups=True,
+                vertex_label_size=7,
+                vertex_label_angle=200,
+                vertex_label_dist=1,
+                vertex_size=8,
+            )
+            with open(full_filename, "r") as file:
+                data = file.read().replace('width="450pt"', 'width="100%"')
+                full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
+                temp_html_file_name = next(tempfile._get_candidate_names()) + ".html"
+                full_html_filename = os.path.join(
+                    app.root_path, "temp", temp_html_file_name
+                )
+                full_html_file = open(full_html_filename, "w")
+                _ = full_html_file.write(full_html_file_content)
+                full_html_file.close()
+                full_filename = full_html_filename
+        else:
+            pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -480,3 +542,83 @@ def horus_get_heatmap():
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")
     return send_from_directory("temp", temp_file_name)
+
+
+@app.route("/horus/get/treemap")
+def horus_get_treemap():
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    centrality_index = "communities"
+    graph_filter = str(request.args.get("filter"))
+    graph_type = "community"
+    algorithm_value = str(request.args.get("algorithm"))
+
+    grafo = communities_graph
+    algorithm_value = (
+        algorithm_value
+        if (algorithm_value and algorithm_value != "")
+        else "community_edge_betweenness"
+    )
+    grafo.comm_alg = algorithm_value
+
+    if not graph_filter:
+        graph_filter = "is teacher of"
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
+    subgraph = grafo.get_subgraph()
+
+    modularity, clusters_dict = subgraph.identify_communities()
+
+    communities_index = []
+
+    for i in range(len(subgraph.igraph_graph.vs)):
+        if subgraph.igraph_graph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(clusters_dict[subgraph.igraph_graph.vs[i]["name"]])
+
+    data = {
+        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Community": communities_index,
+    }
+
+    df = pd.DataFrame(data=data)
+    df1 = df.sort_values(by=["Community", "Degree"]).set_index(
+        "Philosopher", drop=False
+    )
+
+    # plotly_graph = go.Figure(
+    #     data=go.Heatmap(
+    #         z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
+    #         y=df1.Philosopher,
+    #         x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
+    #         hoverongaps=False,
+    #         type="heatmap",
+    #         colorscale="Viridis",
+    #     )
+    # )
+
+    plotly_graph = px.treemap(df1, path=["Community", "Philosopher"], values="Degree",)
+
+    plotly_graph.update_layout(
+        legend_font_size=12, legend_title_font_size=12, font_size=8
+    )
+
+    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    full_filename = os.path.join(app.root_path, "temp", temp_file_name)
+    plotly_graph.write_html(full_filename)
+    print("Sending " + full_filename + " file")
+    return send_from_directory("temp", temp_file_name)
+
+
+@app.route("/horus/set/dataset")
+def horus_set_dataset():
+    graph_filter = str(request.args.get("filter"))
+    graph_type = str(request.args.get("graph_type"))
+    ego_value = str(request.args.get("ego"))
+    order_value = str(request.args.get("order"))

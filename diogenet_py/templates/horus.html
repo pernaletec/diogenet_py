@@ -142,6 +142,43 @@ page_style %}
   </div>
 </div>
 
+<div id="communities-div" class="my-4" style="display: none">
+  <h3>Community Detection</h3>
+  <label class="label" for="community-alg-index">Algorithm</label>
+  <select
+    class="custom-select"
+    name="community-alg-index"
+    id="community-alg-index"
+  >
+    <option value="community_edge_betweenness">Cluster Edge Betweenness</option>
+    <option value="community_infomap">Cluster Infomap</option>
+    <!-- <option value="community_spinglass">Cluster Spinglass</option> -->
+    <option value="community_walktrap">Cluster Walktrap</option>
+    <!-- <option value="community_leiden">Cluster Leiden</option> -->
+    <option value="community_fastgreedy">Cluster Fast Greedy</option>
+    <option value="community_leading_eigenvector">
+      Cluster Leading Eigenvector
+    </option>
+    <option value="community_label_propagation">
+      Cluster Label Propagation
+    </option>
+    <option value="community_multilevel">Cluster Multilevel</option>
+  </select>
+</div>
+
+<div id="communities-viz-div" class="my-4" style="display: none">
+  <h3>Visualization</h3>
+  <label class="label" for="community-library-index">Library</label>
+  <select
+    class="custom-select"
+    name="community-library-index"
+    id="community-library-index"
+  >
+    <option value="pyvis" selected>visNetwork</option>
+    <option value="igraph">iGraph</option>
+  </select>
+</div>
+
 <div class="my-4" id="appareance-size-div">
   <label class="label">Appareance:</label>
   <div class="form-group" id="node-size-div">
