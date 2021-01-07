@@ -247,6 +247,8 @@ class diogenetGraph:
 
         """
         node_place = self.nodes_raw_data["Groups"] == "Place"
+        print("node_place")
+        print(node_place)
         self.located_nodes = self.nodes_raw_data.loc[
             node_place,
         ]
@@ -1108,8 +1110,8 @@ def map_graph_change_dataset(dataset):
     if dataset == "iamblichus":
         map_graph = diogenetGraph(
             "map",
-            "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
             "new_Nodes_Life_of_Pythagoras_Iamblichus.csv",
+            "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
             LOCATIONS_DATA_FILE,
             TRAVELS_BLACK_LIST_FILE,
         )
