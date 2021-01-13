@@ -247,8 +247,8 @@ class diogenetGraph:
 
         """
         node_place = self.nodes_raw_data["Groups"] == "Place"
-        print("node_place")
-        print(node_place)
+        #print("node_place")
+        #print(node_place)
         self.located_nodes = self.nodes_raw_data.loc[
             node_place,
         ]
@@ -818,7 +818,8 @@ class diogenetGraph:
         self.edges_filter.append(edges_filter)
 
     def create_subgraph(self):
-        """Create subgraph depending on edges selected (i.e travellers)
+        """Create subgraph depending on edges selected (i.e travellers in case of)
+           the map and type of relations in case of the graph 
         """
         subgraph = None
         if self.igraph_graph is not None:
@@ -955,18 +956,23 @@ class diogenetGraph:
         """Create local subgraph depending on vertex selected (i.e phylosophers)
         """
         local_subgraph = None
+        actual_graph = None
         if self.igraph_graph is not None:
             if self.graph_type == "local":
+                actual_graph = self.create_subgraph()
                 # If no vertex selected return global graph
                 if not self.local_phylosopher:
                     print("LocalPhilosoher")
                     # print(self.igraph_graph.vs["name"][2])
-                    local_subgraph = self.igraph_graph
+                    local_subgraph = actual_graph
                 else:
-                    neighbour_vertex = self.igraph_graph.neighborhood(
+                    neighbour_vertex = actual_graph.neighborhood(
                         self.local_phylosopher, self.local_order
                     )
-                    local_subgraph = self.igraph_graph.induced_subgraph(
+                    #for number in neighbour_vertex:
+                    #    print(actual_graph.vs["name"][number])
+                    #print(neighbour_vertex)
+                    local_subgraph = actual_graph.induced_subgraph(
                         neighbour_vertex
                     )
                 self.igraph_localgraph = local_subgraph
