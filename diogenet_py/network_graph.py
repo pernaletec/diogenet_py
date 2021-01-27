@@ -70,9 +70,9 @@ VIRIDIS_COLORMAP = [
     (253, 231, 37),
 ]
 
-R_PATH = "C:\\Users\\elinarezv\\r.bat"
-R_SCRIPT_IN = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\centralization.r"
-R_SCRIPT_OUT = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\centralization.txt"
+R_PATH = "C:\\Users\\Ivanyk\\r.bat"
+R_SCRIPT_IN = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.r"
+R_SCRIPT_OUT = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.txt"
 
 FULL_CMD = R_PATH + " <" + R_SCRIPT_IN + "> " + R_SCRIPT_OUT
 

@@ -1,25 +1,32 @@
 
-R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
-Copyright (C) 2020 The R Foundation for Statistical Computing
+C:\Users\Ivanyk\Documents\proyectos\src\diogenet_py\diogenet_py>"C:\Program Files\R\R-3.6.1\bin\x64\Rterm" --vanilla 
+
+R version 3.6.1 (2019-07-05) -- "Action of the Toes"
+Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 
-R is free software and comes with ABSOLUTELY NO WARRANTY.
-You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
+R es un software libre y viene sin GARANTIA ALGUNA.
+Usted puede redistribuirlo bajo ciertas circunstancias.
+Escriba 'license()' o 'licence()' para detalles de distribucion.
 
-  Natural language support but running in an English locale
+R es un proyecto colaborativo con muchos contribuyentes.
+Escriba 'contributors()' para obtener más información y
+'citation()' para saber cómo citar R o paquetes de R en publicaciones.
 
-R is a collaborative project with many contributors.
-Type 'contributors()' for more information and
-'citation()' on how to cite R or R packages in publications.
+Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,
+o 'help.start()' para abrir el sistema de ayuda HTML con su navegador.
+Escriba 'q()' para salir de R.
 
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for an HTML browser interface to help.
-Type 'q()' to quit R.
-
-> n <- 1e3
-> for(i in 1:10)
-+ {
-+   qr.solve(matrix(runif(n*n), nrow = n), seq_len(n)/(n+1))  
-+ }
+> #n <- 1e3
+> #for(i in 1:10)
+> #{
+> #  qr.solve(matrix(runif(n*n), nrow = n), seq_len(n)/(n+1))  
+> #}
+> library(causaleffect)
+> a = parse.graphml('C://Users//Ivanyk//Documents//proyectos//src//diogenet_py//diogenet_py//grafo1.graphml')
+> degree = as.numeric(format(igraph::centralization.degree(a)$centralization[1],digits = 3, nsmall = 3))
+> fileConn<-file("output.txt")
+> writeLines(as.character(degree), fileConn)
+> close(fileConn)
+> 
 > 
