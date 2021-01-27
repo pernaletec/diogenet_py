@@ -18,6 +18,7 @@ import networkx as nx
 from dataclasses import dataclass
 from . import data_access as da
 import random
+import os
 
 # import cairocffi
 #  I need to see how to handle the locations
@@ -68,6 +69,12 @@ VIRIDIS_COLORMAP = [
     (180, 222, 44),
     (253, 231, 37),
 ]
+
+R_PATH = "C:\\Users\\elinarezv\\r.bat"
+R_SCRIPT_IN = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\centralization.r"
+R_SCRIPT_OUT = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\centralization.txt"
+
+FULL_CMD = R_PATH + " <" + R_SCRIPT_IN + "> " + R_SCRIPT_OUT
 
 
 @dataclass
@@ -247,8 +254,8 @@ class diogenetGraph:
 
         """
         node_place = self.nodes_raw_data["Groups"] == "Place"
-        #print("node_place")
-        #print(node_place)
+        # print("node_place")
+        # print(node_place)
         self.located_nodes = self.nodes_raw_data.loc[
             node_place,
         ]
@@ -440,12 +447,19 @@ class diogenetGraph:
         """Calculate unnormalized centralization degree for the graph
         """
         if self.igraph_graph is not None:
-            degree = self.calculate_degree()
-            max_degree = max(degree)
-            cent_degree = 0
-            for centrality in degree:
-                cent_degree = cent_degree + (max_degree - centrality)
-            return cent_degree
+            self.igraph_graph.write_graphmlz("grafo1.graphml", 1)
+
+            # EJECUTO EL SCRIPT R
+            os.system(FULL_CMD)
+
+            # Leemos el resultado
+
+            # degree = self.calculate_degree()
+            # max_degree = max(degree)
+            # cent_degree = 0
+            # for centrality in degree:
+            #     cent_degree = cent_degree + (max_degree - centrality)
+            return 1
 
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
@@ -969,12 +983,10 @@ class diogenetGraph:
                     neighbour_vertex = actual_graph.neighborhood(
                         self.local_phylosopher, self.local_order
                     )
-                    #for number in neighbour_vertex:
+                    # for number in neighbour_vertex:
                     #    print(actual_graph.vs["name"][number])
-                    #print(neighbour_vertex)
-                    local_subgraph = actual_graph.induced_subgraph(
-                        neighbour_vertex
-                    )
+                    # print(neighbour_vertex)
+                    local_subgraph = actual_graph.induced_subgraph(neighbour_vertex)
                 self.igraph_localgraph = local_subgraph
         return local_subgraph
 
@@ -1011,7 +1023,7 @@ class diogenetGraph:
 
         if self.comm_alg == "community_edge_betweenness":
             self.comm = actual_graph.community_edge_betweenness()
-            print('community_edge_betweenness')
+            print("community_edge_betweenness")
             print(vars(self.comm))
             aux = self.fix_dendrogram(actual_graph, self.comm)
             clusters_ini = aux.as_clustering()
