@@ -72,9 +72,16 @@ VIRIDIS_COLORMAP = [
 
 R_PATH = "C:\\Users\\Ivanyk\\r.bat"
 R_SCRIPT_IN = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.r"
+R_SCRIPT_IN_DEG = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_degree.R"
+R_SCRIPT_IN_BTW = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_betweenness.R"
+R_SCRIPT_IN_CLS = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_closeness.R"
+R_SCRIPT_IN_EGV = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_eigenvector.R"
 R_SCRIPT_OUT = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.txt"
 
-FULL_CMD = R_PATH + " <" + R_SCRIPT_IN + "> " + R_SCRIPT_OUT
+FULL_CMD_DEG = R_PATH + " <" + R_SCRIPT_IN_DEG + "> " + R_SCRIPT_OUT
+FULL_CMD_BTW = R_PATH + " <" + R_SCRIPT_IN_BTW + "> " + R_SCRIPT_OUT
+FULL_CMD_CLS = R_PATH + " <" + R_SCRIPT_IN_CLS + "> " + R_SCRIPT_OUT
+FULL_CMD_EGV = R_PATH + " <" + R_SCRIPT_IN_EGV + "> " + R_SCRIPT_OUT
 
 
 @dataclass
@@ -447,11 +454,13 @@ class diogenetGraph:
         """Calculate unnormalized centralization degree for the graph
         """
         if self.igraph_graph is not None:
-            self.igraph_graph.write_graphmlz("grafo1.graphml", 1)
+            self.igraph_graph.write_graphmlz("g.graphml", 1)
 
             # EJECUTO EL SCRIPT R
-            os.system(FULL_CMD)
+            os.system(FULL_CMD_DEG)
 
+            with open('degree.val', 'r') as reader:
+                cent_degree = reader.readline()
             # Leemos el resultado
 
             # degree = self.calculate_degree()
@@ -459,39 +468,66 @@ class diogenetGraph:
             # cent_degree = 0
             # for centrality in degree:
             #     cent_degree = cent_degree + (max_degree - centrality)
-            return 1
+            return cent_degree
 
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
         """
         if self.igraph_graph is not None:
-            betweenness = self.calculate_betweenness()
-            max_betweenness = max(betweenness)
-            cent_betweenness = 0
-            for centrality in betweenness:
-                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
+
+            self.igraph_graph.write_graphmlz("g.graphml", 1)
+
+            # EJECUTO EL SCRIPT R
+            os.system(FULL_CMD_BTW)
+            with open('betweenness.val', 'r') as reader:
+                cent_betweenness = reader.readline()
+
+#            betweenness = self.calculate_betweenness()
+#            max_betweenness = max(betweenness)
+#            cent_betweenness = 0
+#            for centrality in betweenness:
+#                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
             return cent_betweenness
 
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
         """
         if self.igraph_graph is not None:
-            closeness = self.calculate_closeness()
-            max_closeness = max(closeness)
-            cent_closeness = 0
-            for centrality in closeness:
-                cent_closeness = cent_closeness + (max_closeness - centrality)
+
+            self.igraph_graph.write_graphmlz("g.graphml", 1)
+
+            # EJECUTO EL SCRIPT R
+            os.system(FULL_CMD_CLS)
+
+            with open('closeness.val', 'r') as reader:
+                cent_closeness = reader.readline()
+
+#            closeness = self.calculate_closeness()
+#            max_closeness = max(closeness)
+#            cent_closeness = 0
+#            for centrality in closeness:
+#                cent_closeness = cent_closeness + (max_closeness - centrality)
+             
             return cent_closeness
 
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
         """
         if self.igraph_graph is not None:
-            eigenvector = self.calculate_eigenvector()
-            max_eigenvector = max(eigenvector)
-            cent_eigenvector = 0
-            for centrality in eigenvector:
-                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
+
+            self.igraph_graph.write_graphmlz("g.graphml", 1)
+
+            # EJECUTO EL SCRIPT R
+            os.system(FULL_CMD_EGV)
+
+            with open('eigenvector.val', 'r') as reader:
+                cent_eigenvector = reader.readline()
+
+#            eigenvector = self.calculate_eigenvector()
+#            max_eigenvector = max(eigenvector)
+#            cent_eigenvector = 0
+#            for centrality in eigenvector:
+#                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
             return cent_eigenvector
 
     def get_vertex_names(self):

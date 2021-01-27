@@ -17,16 +17,15 @@ Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,
 o 'help.start()' para abrir el sistema de ayuda HTML con su navegador.
 Escriba 'q()' para salir de R.
 
-> #n <- 1e3
-> #for(i in 1:10)
-> #{
-> #  qr.solve(matrix(runif(n*n), nrow = n), seq_len(n)/(n+1))  
-> #}
 > library(causaleffect)
-> a = parse.graphml('C://Users//Ivanyk//Documents//proyectos//src//diogenet_py//diogenet_py//grafo1.graphml')
-> degree = as.numeric(format(igraph::centralization.degree(a)$centralization[1],digits = 3, nsmall = 3))
-> fileConn<-file("output.txt")
-> writeLines(as.character(degree), fileConn)
-> close(fileConn)
 > 
+> g = parse.graphml('C://Users//Ivanyk//Documents//proyectos//src//diogenet_py//diogenet_py//g.graphml')
+> 
+> eigenvector = as.numeric(format(igraph::centralization.evcent(g)$centralization[1],digits = 3, nsmall = 3))
+> 
+> fileConn<-file("eigenvector.val")
+> 
+> writeLines(as.character(eigenvector), fileConn)
+> 
+> close(fileConn)
 > 
