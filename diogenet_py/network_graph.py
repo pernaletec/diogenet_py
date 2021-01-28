@@ -430,31 +430,36 @@ class diogenetGraph:
         """Calculate degree for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.degree()
+            actual_graph = self.create_subgraph()
+            return actual_graph.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.closeness()
+            actual_graph = self.create_subgraph()
+            return actual_graph.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.betweenness()
+            actual_graph = self.create_subgraph()
+            return actual_graph.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.evcent()
+            actual_graph = self.create_subgraph()
+            return actual_graph.evcent()
 
     def centralization_degree(self):
         """Calculate unnormalized centralization degree for the graph
         """
         if self.igraph_graph is not None:
-            self.igraph_graph.write_graphmlz("g.graphml", 1)
+            actual_graph = self.create_subgraph()
+            actual_graph.write_graphmlz("g.graphml", 1)
 
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_DEG)
@@ -474,8 +479,8 @@ class diogenetGraph:
         """Calculate unnormalized centralization betweenness for the graph
         """
         if self.igraph_graph is not None:
-
-            self.igraph_graph.write_graphmlz("g.graphml", 1)
+            actual_graph = self.create_subgraph()
+            actual_graph.write_graphmlz("g.graphml", 1)
 
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_BTW)
@@ -493,8 +498,8 @@ class diogenetGraph:
         """Calculate unnormalized centralization closeness for the graph
         """
         if self.igraph_graph is not None:
-
-            self.igraph_graph.write_graphmlz("g.graphml", 1)
+            actual_graph = self.create_subgraph()
+            actual_graph.write_graphmlz("g.graphml", 1)
 
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_CLS)
@@ -514,8 +519,8 @@ class diogenetGraph:
         """Calculate unnormalized centralization eigen vector for the graph
         """
         if self.igraph_graph is not None:
-
-            self.igraph_graph.write_graphmlz("g.graphml", 1)
+            actual_graph = self.create_subgraph()
+            actual_graph.write_graphmlz("g.graphml", 1)
 
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_EGV)
