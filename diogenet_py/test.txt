@@ -1,29 +1,29 @@
 
-C:\Users\Ivanyk\Documents\proyectos\src\diogenet_py\diogenet_py>"C:\Program Files\R\R-3.6.1\bin\x64\Rterm" --vanilla 
-
-R version 3.6.1 (2019-07-05) -- "Action of the Toes"
-Copyright (C) 2019 The R Foundation for Statistical Computing
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 
-R es un software libre y viene sin GARANTIA ALGUNA.
-Usted puede redistribuirlo bajo ciertas circunstancias.
-Escriba 'license()' o 'licence()' para detalles de distribucion.
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
 
-R es un proyecto colaborativo con muchos contribuyentes.
-Escriba 'contributors()' para obtener más información y
-'citation()' para saber cómo citar R o paquetes de R en publicaciones.
+  Natural language support but running in an English locale
 
-Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,
-o 'help.start()' para abrir el sistema de ayuda HTML con su navegador.
-Escriba 'q()' para salir de R.
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
 
 > library(causaleffect)
 > 
-> g = parse.graphml('C://Users//Ivanyk//Documents//proyectos//src//diogenet_py//diogenet_py//g.graphml')
+> g = parse.graphml('C://Users//elinarezv//Sources//diogenet//diogenet_py//g.graphml')
 > 
 > eigenvector = as.numeric(format(igraph::centralization.evcent(g)$centralization[1],digits = 3, nsmall = 3))
 > 
-> fileConn<-file("eigenvector.val")
+> fileConn<-file("C://Users//elinarezv//Sources//diogenet//diogenet_py//eigenvector.val")
 > 
 > writeLines(as.character(eigenvector), fileConn)
 > 

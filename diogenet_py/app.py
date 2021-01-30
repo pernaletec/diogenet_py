@@ -9,7 +9,7 @@ from flask import (
 )
 from igraph import *
 from igraph import layout
-from .network_graph import *
+from .network_graph import global_graph, map_graph, local_graph, communities_graph
 
 import os
 import tempfile
@@ -51,6 +51,9 @@ HTML_PLOT_CONTENT = """<!DOCTYPE html>
 </body>
 </html> 
 """
+JSON_HEADER = {"Content-Type": "application/json"}
+HTML_SUFFIX = ".html"
+DEFAULT_FILTER_VALUE = "is teacher of"
 
 
 @app.route("/")
@@ -97,7 +100,7 @@ def get_map_data():
         all_data = subgraph.get_max_min()
     if data:
         all_data["data"] = data
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(all_data), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -147,8 +150,15 @@ def get_local_data_table(filter_string, ego_value, order_value):
     graph = local_graph
     subgraph = None
 
-    graph.local_phylosopher = ego_value if ego_value else "Plato"
-    graph.local_order = int(order_value) if order_value else 1
+    if ego_value not in [None, "None"]:
+        graph.local_phylosopher = ego_value
+    else:
+        graph.local_phylosopher = "Plato"
+
+    if order_value not in [None, "None"]:
+        graph.local_order = int(order_value)
+    else:
+        graph.local_order = 1
 
     filters = filter_string.split(";")
     for m_filter in filters:
@@ -177,9 +187,9 @@ def get_metrics_table():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
-    if not graph_type:
+    if graph_type in [None, "None"]:
         graph_type = "map"
-    if not map_filter:
+    if map_filter in [None, "None"]:
         map_filter = "All"
 
     data = []
@@ -187,14 +197,10 @@ def get_metrics_table():
     cities = degree = betweeness = closeness = eigenvector = []
 
     if graph_type == "map":
-        (
-            grafo,
-            cities,
-            degree,
-            betweeness,
-            closeness,
-            eigenvector,
-        ) = get_map_data_table(map_filter)
+        (cities, degree, betweeness, closeness, eigenvector,) = get_map_data_table(
+            map_filter
+        )
+        grafo = map_graph
     elif graph_type == "global":
         (
             grafo,
@@ -238,7 +244,7 @@ def get_metrics_table():
     data_table["CityData"] = data
 
     if data:
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(data_table), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -254,7 +260,7 @@ def get_graph_data():
     label_min_max = str(request.args.get("label_min_max"))
     map_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
-    selected_edges = str(request.args.get("edges"))
+    # selected_edges = str(request.args.get("edges"))
 
     grafo = map_graph
 
@@ -290,7 +296,7 @@ def get_graph_data():
         subgraph = grafo.get_subgraph()
         pvis_graph = subgraph.get_pyvis()
     if pvis_graph:
-        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+        temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
@@ -352,7 +358,7 @@ def horus_get_graph():
         label_min_max = "4,6"
 
     if not graph_filter:
-        graph_filter = "is teacher of"
+        graph_filter = DEFAULT_FILTER_VALUE
         grafo.set_edges_filter(graph_filter)
     else:
         grafo.edges_filter = []
@@ -385,7 +391,7 @@ def horus_get_graph():
         )
     full_filename = ""
     if pvis_graph or plot_type == "igraph":
-        suffix = ".svg" if plot_type == "igraph" else ".html"
+        suffix = ".svg" if plot_type == "igraph" else HTML_SUFFIX
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
@@ -406,7 +412,9 @@ def horus_get_graph():
             with open(full_filename, "r") as file:
                 data = file.read().replace('width="450pt"', 'width="100%"')
                 full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
-                temp_html_file_name = next(tempfile._get_candidate_names()) + ".html"
+                temp_html_file_name = (
+                    next(tempfile._get_candidate_names()) + HTML_SUFFIX
+                )
                 full_html_filename = os.path.join(
                     app.root_path, "temp", temp_html_file_name
                 )
@@ -431,7 +439,7 @@ def horus_get_filosophers():
 
     sorted_data = sorted(data, key=lambda k: k["name"])
     if data:
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(sorted_data), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -466,7 +474,7 @@ def horus_get_heatmap():
     #     grafo = global_graph
 
     if not graph_filter:
-        graph_filter = "is teacher of"
+        graph_filter = DEFAULT_FILTER_VALUE
         grafo.set_edges_filter(graph_filter)
     else:
         grafo.edges_filter = []
@@ -538,7 +546,7 @@ def horus_get_heatmap():
         legend_font_size=12, legend_title_font_size=12, font_size=8
     )
 
-    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")
@@ -564,7 +572,7 @@ def horus_get_treemap():
     grafo.comm_alg = algorithm_value
 
     if not graph_filter:
-        graph_filter = "is teacher of"
+        graph_filter = DEFAULT_FILTER_VALUE
         grafo.set_edges_filter(graph_filter)
     else:
         grafo.edges_filter = []
@@ -610,7 +618,7 @@ def horus_get_treemap():
         legend_font_size=12, legend_title_font_size=12, font_size=8
     )
 
-    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")

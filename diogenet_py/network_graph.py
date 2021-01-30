@@ -70,13 +70,32 @@ VIRIDIS_COLORMAP = [
     (253, 231, 37),
 ]
 
-R_PATH = "C:\\Users\\Ivanyk\\r.bat"
-R_SCRIPT_IN = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.r"
-R_SCRIPT_IN_DEG = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_degree.R"
-R_SCRIPT_IN_BTW = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_betweenness.R"
-R_SCRIPT_IN_CLS = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_closeness.R"
-R_SCRIPT_IN_EGV = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\cent_eigenvector.R"
-R_SCRIPT_OUT = "C:\\Users\\Ivanyk\\Documents\\proyectos\\src\\diogenet_py\\diogenet_py\\diogenet_py\\test.txt"
+EDGES_COLORS = [
+    "#fff100",
+    "#ff8c00",
+    "#e81123",
+    "#ec008c",
+    "#68217a",
+    "#00188f",
+    "#00bcf2",
+    "#00b294",
+    "#009e49",
+    "#bad80a",
+]
+
+R_PATH = "C:\\Users\\elinarezv\\r.bat"
+R_SCRIPT_IN = (
+    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\test.r"
+)
+R_SCRIPT_IN_DEG = (
+    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_degree.R"
+)
+R_SCRIPT_IN_BTW = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_betweenness.R"
+R_SCRIPT_IN_CLS = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_closeness.R"
+R_SCRIPT_IN_EGV = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_eigenvector.R"
+R_SCRIPT_OUT = (
+    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\test.txt"
+)
 
 FULL_CMD_DEG = R_PATH + " <" + R_SCRIPT_IN_DEG + "> " + R_SCRIPT_OUT
 FULL_CMD_BTW = R_PATH + " <" + R_SCRIPT_IN_BTW + "> " + R_SCRIPT_OUT
@@ -464,8 +483,10 @@ class diogenetGraph:
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_DEG)
 
-            with open('degree.val', 'r') as reader:
-                cent_degree = reader.readline()
+            with open(
+                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\degree.val", "r"
+            ) as reader:
+                cent_degree = str(reader.readline()).rstrip("\n")
             # Leemos el resultado
 
             # degree = self.calculate_degree()
@@ -484,14 +505,17 @@ class diogenetGraph:
 
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_BTW)
-            with open('betweenness.val', 'r') as reader:
-                cent_betweenness = reader.readline()
+            with open(
+                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\betweenness.val",
+                "r",
+            ) as reader:
+                cent_betweenness = str(reader.readline()).rstrip("\n")
 
-#            betweenness = self.calculate_betweenness()
-#            max_betweenness = max(betweenness)
-#            cent_betweenness = 0
-#            for centrality in betweenness:
-#                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
+            #            betweenness = self.calculate_betweenness()
+            #            max_betweenness = max(betweenness)
+            #            cent_betweenness = 0
+            #            for centrality in betweenness:
+            #                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
             return cent_betweenness
 
     def centralization_closeness(self):
@@ -504,15 +528,18 @@ class diogenetGraph:
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_CLS)
 
-            with open('closeness.val', 'r') as reader:
-                cent_closeness = reader.readline()
+            with open(
+                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\closeness.val",
+                "r",
+            ) as reader:
+                cent_closeness = str(reader.readline()).rstrip("\n")
 
-#            closeness = self.calculate_closeness()
-#            max_closeness = max(closeness)
-#            cent_closeness = 0
-#            for centrality in closeness:
-#                cent_closeness = cent_closeness + (max_closeness - centrality)
-             
+            #            closeness = self.calculate_closeness()
+            #            max_closeness = max(closeness)
+            #            cent_closeness = 0
+            #            for centrality in closeness:
+            #                cent_closeness = cent_closeness + (max_closeness - centrality)
+
             return cent_closeness
 
     def centralization_eigenvector(self):
@@ -525,14 +552,17 @@ class diogenetGraph:
             # EJECUTO EL SCRIPT R
             os.system(FULL_CMD_EGV)
 
-            with open('eigenvector.val', 'r') as reader:
-                cent_eigenvector = reader.readline()
+            with open(
+                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\eigenvector.val",
+                "r",
+            ) as reader:
+                cent_eigenvector = str(reader.readline()).rstrip("\n")
 
-#            eigenvector = self.calculate_eigenvector()
-#            max_eigenvector = max(eigenvector)
-#            cent_eigenvector = 0
-#            for centrality in eigenvector:
-#                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
+            #            eigenvector = self.calculate_eigenvector()
+            #            max_eigenvector = max(eigenvector)
+            #            cent_eigenvector = 0
+            #            for centrality in eigenvector:
+            #                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
             return cent_eigenvector
 
     def get_vertex_names(self):
@@ -674,7 +704,7 @@ class diogenetGraph:
             "dragNodes": True,
             "hideEdgesOnDrag": True,
             "hover": True,
-            "navigationButtons": True,
+            "navigationButtons": False,
             "selectable": True,
             "multiselect": True,
         }
@@ -760,6 +790,9 @@ class diogenetGraph:
                     shape="dot",
                     title=node_title,
                 )
+
+            edges = {}
+            i = 0
             for edge in self.igraph_graph.es:
                 if self.graph_type == "map":
                     title = (
@@ -769,6 +802,7 @@ class diogenetGraph:
                         + " to: "
                         + self.igraph_graph.vs[edge.target]["name"]
                     )
+                    edge_color = "#ff6347"
                 else:
                     title = (
                         self.igraph_graph.vs[edge.source]["name"]
@@ -777,7 +811,14 @@ class diogenetGraph:
                         + " "
                         + self.igraph_graph.vs[edge.target]["name"]
                     )
-                pv_graph.add_edge(edge.source, edge.target, title=title)
+                    relation = edge["edge_name"]
+                    if relation not in edges.keys():
+                        edges[relation] = i
+                        i = i + 1
+                    edge_color = EDGES_COLORS[edges[relation]]
+                pv_graph.add_edge(
+                    edge.source, edge.target, title=title, color=edge_color
+                )
         return pv_graph
 
     def get_igraph_plot(
