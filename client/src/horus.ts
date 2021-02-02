@@ -826,6 +826,9 @@ $(() => {
   $("#communities-treemap-btn").on("click", () => {
     drawScreen("communities-treemap", "communities-treemap-graph");
   });
+  $("#showGender").on("change", (event) => {
+    updateTab();
+  });
 
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {
     const activedTab = <HTMLAnchorElement>e.target;

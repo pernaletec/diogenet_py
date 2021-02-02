@@ -139,6 +139,7 @@ class diogenetGraph:
     pyvis_title = ""
     pyvis_height = "95%"
     factor = 50
+    pyvis_show_gender = True
     node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
@@ -348,6 +349,7 @@ class diogenetGraph:
         lon_source = []
         lat_target = []
         lon_target = []
+
         multi_origin = []  # Phylosopher with more than one origin city
         Source = []
         Target = []
@@ -444,6 +446,19 @@ class diogenetGraph:
             self.igraph_graph = igraph.Graph.TupleList(
                 self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
             )
+
+            def search_group_attribute(node_name):
+                group_name = ""
+                # for node in
+                return group_name
+
+            attributes = []
+            self.nodes_raw_data.set_index(["Name"])
+            for node in self.igraph_graph.vs:
+                rows = self.nodes_raw_data.loc[
+                    self.nodes_raw_data["Name"] == node["name"]
+                ]
+                node["group"] = rows.iloc[0]["Groups"]
 
     def calculate_degree(self):
         """Calculate degree for the graph
@@ -780,6 +795,13 @@ class diogenetGraph:
                     min_weight,
                     max_weight,
                 )
+                node_shape = "dot"
+                if self.pyvis_show_gender:
+                    if node["group"] == "Female":
+                        node_shape = "star"
+                    elif node["group"] == "God":
+                        node_shape = "triangle"
+
                 pv_graph.add_node(
                     node.index,
                     label=node["name"],
@@ -787,12 +809,12 @@ class diogenetGraph:
                     size=int(size * self.node_size_factor),
                     x=int(self.Xn[node.index] * self.factor),
                     y=int(self.Yn[node.index] * self.factor),
-                    shape="dot",
+                    shape=node_shape,
                     title=node_title,
                 )
 
             edges = {}
-            i = 0
+            i = 1
             for edge in self.igraph_graph.es:
                 if self.graph_type == "map":
                     title = (
