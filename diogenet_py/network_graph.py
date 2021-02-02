@@ -501,6 +501,8 @@ class diogenetGraph:
 
             # run R script
             cent_degree = self.centralization_degree_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
 
             return cent_degree[0]
 
@@ -514,6 +516,8 @@ class diogenetGraph:
 
             # run R script
             cent_betweenness = self.centralization_betweenness_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
 
             return cent_betweenness[0]
 
@@ -527,6 +531,8 @@ class diogenetGraph:
 
             # run R script
             cent_closeness = self.centralization_closeness_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
 
             return cent_closeness[0]
 
@@ -540,6 +546,8 @@ class diogenetGraph:
 
             # run R script
             cent_eigenvector = self.centralization_eigenvector_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
 
             return cent_eigenvector[0]
 
