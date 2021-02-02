@@ -5,7 +5,7 @@
     from one location to another
 
 .. platform:: Unix, Windows, Mac
-.. moduleauthor:: César Pernalete <pernalete.cg@gmail.com>
+.. moduleauthor:: César Pernalete <pernalete.cg@gmail.com> and Elio Linárez <elinarezv@gmail.com>
 """
 
 import igraph
@@ -14,11 +14,14 @@ import json
 import copy
 import pandas as pd
 import numpy as np
-import networkx as nx
 from dataclasses import dataclass
 from . import data_access as da
 import random
 import os
+import tempfile
+import pathlib
+
+import rpy2.robjects as robjects
 
 # import cairocffi
 #  I need to see how to handle the locations
@@ -83,24 +86,15 @@ EDGES_COLORS = [
     "#bad80a",
 ]
 
-R_PATH = "C:\\Users\\elinarezv\\r.bat"
-R_SCRIPT_IN = (
-    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\test.r"
-)
-R_SCRIPT_IN_DEG = (
-    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_degree.R"
-)
-R_SCRIPT_IN_BTW = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_betweenness.R"
-R_SCRIPT_IN_CLS = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_closeness.R"
-R_SCRIPT_IN_EGV = "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\cent_eigenvector.R"
-R_SCRIPT_OUT = (
-    "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\diogenet_py\\test.txt"
-)
+GRAPHML_SUFFIX = ".graphml"
 
-FULL_CMD_DEG = R_PATH + " <" + R_SCRIPT_IN_DEG + "> " + R_SCRIPT_OUT
-FULL_CMD_BTW = R_PATH + " <" + R_SCRIPT_IN_BTW + "> " + R_SCRIPT_OUT
-FULL_CMD_CLS = R_PATH + " <" + R_SCRIPT_IN_CLS + "> " + R_SCRIPT_OUT
-FULL_CMD_EGV = R_PATH + " <" + R_SCRIPT_IN_EGV + "> " + R_SCRIPT_OUT
+
+def get_graphml_temp_file():
+    temp_file_name = next(tempfile._get_candidate_names()) + GRAPHML_SUFFIX
+    full_filename = os.path.join(
+        pathlib.Path().absolute(), "diogenet_py", temp_file_name
+    )
+    return full_filename
 
 
 @dataclass
@@ -159,6 +153,15 @@ class diogenetGraph:
     # This is used only to create the communities
     comm_alg = None
     comm_igraph = None
+
+    # Load the R subsystem
+    r = robjects.r
+    r["source"]("diogenet_py//igraph_libraries.R")
+    # Loading the R functions
+    centralization_degree_r = robjects.globalenv["get_degree"]
+    centralization_closeness_r = robjects.globalenv["get_closeness"]
+    centralization_betweenness_r = robjects.globalenv["get_betweenness"]
+    centralization_eigenvector_r = robjects.globalenv["get_eigenvector"]
 
     def __init__(
         self,
@@ -493,92 +496,52 @@ class diogenetGraph:
         """
         if self.igraph_graph is not None:
             actual_graph = self.create_subgraph()
-            actual_graph.write_graphmlz("g.graphml", 1)
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
 
-            # EJECUTO EL SCRIPT R
-            os.system(FULL_CMD_DEG)
+            # run R script
+            cent_degree = self.centralization_degree_r(full_filename)
 
-            with open(
-                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\degree.val", "r"
-            ) as reader:
-                cent_degree = str(reader.readline()).rstrip("\n")
-            # Leemos el resultado
-
-            # degree = self.calculate_degree()
-            # max_degree = max(degree)
-            # cent_degree = 0
-            # for centrality in degree:
-            #     cent_degree = cent_degree + (max_degree - centrality)
-            return cent_degree
+            return cent_degree[0]
 
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
         """
         if self.igraph_graph is not None:
             actual_graph = self.create_subgraph()
-            actual_graph.write_graphmlz("g.graphml", 1)
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
 
-            # EJECUTO EL SCRIPT R
-            os.system(FULL_CMD_BTW)
-            with open(
-                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\betweenness.val",
-                "r",
-            ) as reader:
-                cent_betweenness = str(reader.readline()).rstrip("\n")
+            # run R script
+            cent_betweenness = self.centralization_betweenness_r(full_filename)
 
-            #            betweenness = self.calculate_betweenness()
-            #            max_betweenness = max(betweenness)
-            #            cent_betweenness = 0
-            #            for centrality in betweenness:
-            #                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
-            return cent_betweenness
+            return cent_betweenness[0]
 
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
         """
         if self.igraph_graph is not None:
             actual_graph = self.create_subgraph()
-            actual_graph.write_graphmlz("g.graphml", 1)
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
 
-            # EJECUTO EL SCRIPT R
-            os.system(FULL_CMD_CLS)
+            # run R script
+            cent_closeness = self.centralization_closeness_r(full_filename)
 
-            with open(
-                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\closeness.val",
-                "r",
-            ) as reader:
-                cent_closeness = str(reader.readline()).rstrip("\n")
-
-            #            closeness = self.calculate_closeness()
-            #            max_closeness = max(closeness)
-            #            cent_closeness = 0
-            #            for centrality in closeness:
-            #                cent_closeness = cent_closeness + (max_closeness - centrality)
-
-            return cent_closeness
+            return cent_closeness[0]
 
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
         """
         if self.igraph_graph is not None:
             actual_graph = self.create_subgraph()
-            actual_graph.write_graphmlz("g.graphml", 1)
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
 
-            # EJECUTO EL SCRIPT R
-            os.system(FULL_CMD_EGV)
+            # run R script
+            cent_eigenvector = self.centralization_eigenvector_r(full_filename)
 
-            with open(
-                "C:\\Users\\elinarezv\\Sources\\diogenet\\diogenet_py\\eigenvector.val",
-                "r",
-            ) as reader:
-                cent_eigenvector = str(reader.readline()).rstrip("\n")
-
-            #            eigenvector = self.calculate_eigenvector()
-            #            max_eigenvector = max(eigenvector)
-            #            cent_eigenvector = 0
-            #            for centrality in eigenvector:
-            #                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
-            return cent_eigenvector
+            return cent_eigenvector[0]
 
     def get_vertex_names(self):
         """Return names for each vertex of the graph
