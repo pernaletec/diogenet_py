@@ -632,7 +632,7 @@ class diogenetGraph:
 
     def set_graph_layout(self, layout):
         if self.igraph_graph is not None:
-            self.create_subgraph()
+            # self.create_subgraph()
             N = len(self.igraph_subgraph.vs)
             if layout == "kk":
                 self.graph_layout = self.igraph_subgraph.layout_kamada_kawai()
@@ -747,7 +747,7 @@ class diogenetGraph:
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # pv_graph.show_buttons()
 
-            self.create_subgraph()
+            # self.create_subgraph()
             # Add Nodes
             for node in self.igraph_subgraph.vs:
                 node_title = node["name"]
@@ -921,19 +921,26 @@ class diogenetGraph:
             else:
                 edges = self.igraph_graph.es
                 edge_names = self.igraph_graph.es["edge_name"]
-                travellers = self.edges_filter if self.edges_filter else edges_filter
-                print('travellers')
+                if not self.edges_filter:
+                    if self.graph_type == "map":
+                        self.edges_filter = edge_names
+                    elif self.graph_type == "global":
+                        self.edges_filter = "is teacher of"
+                    else:
+                        self.edges_filter = "Plato"
+                travellers = self.edges_filter
+                print("travellers")
                 print(travellers)
                 edge_indexes = [
                     j.index for i, j in zip(edge_names, edges) if i in travellers
                 ]
                 subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
-                
+
             """Create local subgraph depending on vertex selected (i.e phylosophers)
             """
-            #local_subgraph = subgraph
+            # local_subgraph = subgraph
             actual_graph = subgraph
-            self.igraph_subgraph  = subgraph
+            self.igraph_subgraph = subgraph
 
             if self.graph_type == "local":
                 # If no vertex selected return global graph
@@ -952,7 +959,7 @@ class diogenetGraph:
                 self.igraph_localgraph = local_subgraph
                 self.igraph_subgraph = local_subgraph
                 subgraph = local_subgraph
-        
+
         return subgraph
 
     def get_subgraph(self):
@@ -964,7 +971,7 @@ class diogenetGraph:
         #     subgraph = copy.deepcopy(self)
         #     subgraph.igraph_graph = sub_igraph
         #     subgraph.travels_graph_data = sub_travels_map_data
-        subgraph = self.igraph_subgraph     
+        subgraph = self.igraph_subgraph
         return subgraph
 
     def get_localgraph(self):

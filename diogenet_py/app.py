@@ -96,7 +96,7 @@ def get_map_data():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
         grafo.create_subgraph()
-        #subgraph = grafo.get_subgraph()
+        # subgraph = grafo.get_subgraph()
         data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
         all_data = grafo.get_max_min()
     if data:
@@ -115,7 +115,7 @@ def get_map_data_table(filter_string):
         for m_filter in filters:
             graph.set_edges_filter(m_filter)
         graph.create_subgraph()
-        #graph = subgraph
+        # graph = subgraph
     return (
         graph.get_vertex_names(),
         graph.calculate_degree(),
@@ -124,22 +124,23 @@ def get_map_data_table(filter_string):
         graph.calculate_eigenvector(),
     )
 
+
 def get_global_data_table(filter_string):
     graph = None
     graph = global_graph
-    #print('graph')
-    #print(graph)
+    # print('graph')
+    # print(graph)
     subgraph = None
 
     filters = filter_string.split(";")
     for m_filter in filters:
         graph.set_edges_filter(m_filter)
     print("graph.current_edges")
-    print(graph.current_edges)    
-    graph.create_subgraph()   
-    #subgraph = graph.get_subgraph()
-    #print('subgraph')
-    #print(subgraph)
+    print(graph.current_edges)
+    graph.create_subgraph()
+    # subgraph = graph.get_subgraph()
+    # print('subgraph')
+    # print(subgraph)
 
     return (
         graph,
@@ -152,7 +153,7 @@ def get_global_data_table(filter_string):
 
 
 def get_local_data_table(filter_string, ego_value, order_value):
-    
+
     graph = local_graph
     subgraph = None
 
@@ -170,9 +171,9 @@ def get_local_data_table(filter_string, ego_value, order_value):
     for m_filter in filters:
         graph.set_edges_filter(m_filter)
 
-    graph.create_subgraph()    
-    #graph = graph.get_localgraph()
-    #subgraph = graph.get_subgraph()
+    graph.create_subgraph()
+    # graph = graph.get_localgraph()
+    # subgraph = graph.get_subgraph()
 
     return (
         graph,
@@ -301,7 +302,7 @@ def get_graph_data():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
         grafo.create_subgraph()
-        #subgraph = grafo.get_subgraph()
+        # subgraph = grafo.get_subgraph()
         pvis_graph = grafo.get_pyvis()
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
@@ -341,7 +342,6 @@ def horus_get_graph():
         grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
-        grafo.create_local_graph()
     elif graph_type == "community":
         grafo = communities_graph
         if algorithm_value == "" or algorithm_value == "None":
@@ -350,7 +350,6 @@ def horus_get_graph():
         grafo.identify_communities()
     else:
         grafo = global_graph
-        grafo.create_subgraph()
 
     not_centrality = False
 
@@ -384,10 +383,11 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
-#    if graph_type == "local":
-#        grafo.create_local_graph()
-#        grafo = grafo.get_localgraph()
+    #    if graph_type == "local":
+    #        grafo.create_local_graph()
+    #        grafo = grafo.get_localgraph()
 
+    grafo.create_subgraph()
     subgraph = grafo
 
     pvis_graph = None
@@ -479,11 +479,11 @@ def horus_get_heatmap():
             grafo.set_edges_filter(m_filter)
 
     if graph_type == "local":
-        #grafo = local_graph
+        # grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
         grafo.create_local_graph()
-    #else:
+    # else:
     #    grafo = global_graph
 
     # if graph_type == "local":
@@ -496,11 +496,10 @@ def horus_get_heatmap():
     # else:
     #     grafo = global_graph
 
-
-    #if graph_type == "local":
+    # if graph_type == "local":
     #    grafo.create_local_graph()
-        #grafo = grafo.get_localgraph()
-    #subgraph = grafo.get_subgraph()
+    # grafo = grafo.get_localgraph()
+    # subgraph = grafo.get_subgraph()
     subgraph = grafo
 
     data = {
@@ -597,7 +596,7 @@ def horus_get_treemap():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
 
-    #subgraph = grafo.get_subgraph()
+    # subgraph = grafo.get_subgraph()
     grafo.create_subgraph()
     subgraph = grafo
 
@@ -607,7 +606,9 @@ def horus_get_treemap():
 
     for i in range(len(subgraph.igraph_subgraph.vs)):
         if subgraph.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
-            communities_index.append(clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]])
+            communities_index.append(
+                clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]]
+            )
 
     data = {
         "Philosopher": subgraph.igraph_subgraph.vs["name"],
