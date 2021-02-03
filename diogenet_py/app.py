@@ -95,9 +95,10 @@ def get_map_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        subgraph = grafo.get_subgraph()
-        data = subgraph.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
-        all_data = subgraph.get_max_min()
+        grafo.create_subgraph()
+        #subgraph = grafo.get_subgraph()
+        data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
+        all_data = grafo.get_max_min()
     if data:
         all_data["data"] = data
         headers = JSON_HEADER
@@ -113,9 +114,8 @@ def get_map_data_table(filter_string):
         filters = filter_string.split(";")
         for m_filter in filters:
             graph.set_edges_filter(m_filter)
-        subgraph = graph.get_subgraph()
-        graph = subgraph
-
+        graph.create_subgraph()
+        #graph = subgraph
     return (
         graph.get_vertex_names(),
         graph.calculate_degree(),
@@ -124,29 +124,35 @@ def get_map_data_table(filter_string):
         graph.calculate_eigenvector(),
     )
 
-
 def get_global_data_table(filter_string):
     graph = None
     graph = global_graph
+    #print('graph')
+    #print(graph)
     subgraph = None
 
     filters = filter_string.split(";")
     for m_filter in filters:
         graph.set_edges_filter(m_filter)
-    subgraph = graph.get_subgraph()
+    print("graph.current_edges")
+    print(graph.current_edges)    
+    graph.create_subgraph()   
+    #subgraph = graph.get_subgraph()
+    #print('subgraph')
+    #print(subgraph)
 
     return (
-        subgraph,
-        subgraph.get_vertex_names(),
-        subgraph.calculate_degree(),
-        subgraph.calculate_betweenness(),
-        subgraph.calculate_closeness(),
-        subgraph.calculate_eigenvector(),
+        graph,
+        graph.get_vertex_names(),
+        graph.calculate_degree(),
+        graph.calculate_betweenness(),
+        graph.calculate_closeness(),
+        graph.calculate_eigenvector(),
     )
 
 
 def get_local_data_table(filter_string, ego_value, order_value):
-    graph = None
+    
     graph = local_graph
     subgraph = None
 
@@ -164,16 +170,17 @@ def get_local_data_table(filter_string, ego_value, order_value):
     for m_filter in filters:
         graph.set_edges_filter(m_filter)
 
-    graph = graph.get_localgraph()
-    subgraph = graph.get_subgraph()
+    graph.create_subgraph()    
+    #graph = graph.get_localgraph()
+    #subgraph = graph.get_subgraph()
 
     return (
-        subgraph,
-        subgraph.get_vertex_names(),
-        subgraph.calculate_degree(),
-        subgraph.calculate_betweenness(),
-        subgraph.calculate_closeness(),
-        subgraph.calculate_eigenvector(),
+        graph,
+        graph.get_vertex_names(),
+        graph.calculate_degree(),
+        graph.calculate_betweenness(),
+        graph.calculate_closeness(),
+        graph.calculate_eigenvector(),
     )
 
 
@@ -293,8 +300,9 @@ def get_graph_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        subgraph = grafo.get_subgraph()
-        pvis_graph = subgraph.get_pyvis()
+        grafo.create_subgraph()
+        #subgraph = grafo.get_subgraph()
+        pvis_graph = grafo.get_pyvis()
     if pvis_graph:
         temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
@@ -333,14 +341,16 @@ def horus_get_graph():
         grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
+        grafo.create_local_graph()
     elif graph_type == "community":
         grafo = communities_graph
         if algorithm_value == "" or algorithm_value == "None":
             algorithm_value = "community_infomap"
         grafo.comm_alg = algorithm_value
-
+        grafo.identify_communities()
     else:
         grafo = global_graph
+        grafo.create_subgraph()
 
     not_centrality = False
 
@@ -374,10 +384,11 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
-    if graph_type == "local":
-        grafo = grafo.get_localgraph()
+#    if graph_type == "local":
+#        grafo.create_local_graph()
+#        grafo = grafo.get_localgraph()
 
-    subgraph = grafo.get_subgraph()
+    subgraph = grafo
 
     pvis_graph = None
     if plot_type == "pyvis":
@@ -396,11 +407,11 @@ def horus_get_graph():
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
             modularity, clusters = subgraph.identify_communities()
-            subgraph.igraph_graph.vs["label"] = subgraph.igraph_graph.vs["name"]
+            subgraph.igraph_subgraph.vs["label"] = subgraph.igraph_subgraph.vs["name"]
             plot(
-                subgraph.comm,
+                grafo.comm,
                 full_filename,
-                layout=subgraph.graph_layout,
+                layout=grafo.graph_layout,
                 bbox=(450, 450),
                 margin=20,
                 mark_groups=True,
@@ -434,7 +445,7 @@ def horus_get_filosophers():
     if request.method != "GET":
         return make_response(MALFORMED_REQUEST, 400)
     data = []
-    for philosopher in global_graph.igraph_graph.vs:
+    for philosopher in global_graph.igraph_subgraph.vs:
         data.append({"name": philosopher["name"]})
 
     sorted_data = sorted(data, key=lambda k: k["name"])
@@ -456,22 +467,7 @@ def horus_get_heatmap():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
-    if graph_type == "local":
-        grafo = local_graph
-        grafo.local_phylosopher = ego_value if ego_value else "Plato"
-        grafo.local_order = int(order_value) if order_value else 1
-    else:
-        grafo = global_graph
-
-    # if graph_type == "local":
-    #     grafo = local_graph
-    #     grafo.local_phylosopher = ego_value if ego_value else "Plato"
-    #     if order_value and order_value != "None":
-    #         grafo.local_order = int(order_value)
-    #     else:
-    #         grafo.local_order = 4
-    # else:
-    #     grafo = global_graph
+    grafo = global_graph
 
     if not graph_filter:
         graph_filter = DEFAULT_FILTER_VALUE
@@ -483,11 +479,32 @@ def horus_get_heatmap():
             grafo.set_edges_filter(m_filter)
 
     if graph_type == "local":
-        grafo = grafo.get_localgraph()
-    subgraph = grafo.get_subgraph()
+        #grafo = local_graph
+        grafo.local_phylosopher = ego_value if ego_value else "Plato"
+        grafo.local_order = int(order_value) if order_value else 1
+        grafo.create_local_graph()
+    #else:
+    #    grafo = global_graph
+
+    # if graph_type == "local":
+    #     grafo = local_graph
+    #     grafo.local_phylosopher = ego_value if ego_value else "Plato"
+    #     if order_value and order_value != "None":
+    #         grafo.local_order = int(order_value)
+    #     else:
+    #         grafo.local_order = 4
+    # else:
+    #     grafo = global_graph
+
+
+    #if graph_type == "local":
+    #    grafo.create_local_graph()
+        #grafo = grafo.get_localgraph()
+    #subgraph = grafo.get_subgraph()
+    subgraph = grafo
 
     data = {
-        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
         "Degree": subgraph.calculate_degree(),
         "Betweeness": subgraph.calculate_betweenness(),
         "Closeness": subgraph.calculate_closeness(),
@@ -580,18 +597,20 @@ def horus_get_treemap():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
 
-    subgraph = grafo.get_subgraph()
+    #subgraph = grafo.get_subgraph()
+    grafo.create_subgraph()
+    subgraph = grafo
 
     modularity, clusters_dict = subgraph.identify_communities()
 
     communities_index = []
 
-    for i in range(len(subgraph.igraph_graph.vs)):
-        if subgraph.igraph_graph.vs[i]["name"] in clusters_dict.keys():
-            communities_index.append(clusters_dict[subgraph.igraph_graph.vs[i]["name"]])
+    for i in range(len(subgraph.igraph_subgraph.vs)):
+        if subgraph.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]])
 
     data = {
-        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
         "Degree": subgraph.calculate_degree(),
         "Community": communities_index,
     }
