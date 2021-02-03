@@ -126,57 +126,62 @@ def get_map_data_table(filter_string):
 
 
 def get_global_data_table(filter_string):
-    #graph = None
-    #graph = global_graph
-    # print('graph')
-    # print(graph)
-    # subgraph = None
+    
+    if (global_graph):
+        #graph = None
+        #graph = global_graph
+        # print('graph')
+        # print(graph)
+        # subgraph = None
 
-    filters = filter_string.split(";")
-    print(filters)
-    for m_filter in filters:
-        global_graph.set_edges_filter(m_filter)
-    #print("graph.current_edges")
-    #print(graph.current_edges)
-    global_graph.create_subgraph()
-    # subgraph = graph.get_subgraph()
-    # print('subgraph')
-    # print(subgraph)
-    #graph = global_graph
+        filters = filter_string.split(";")
+        #print(filters)
+        global_graph.edges_filter = []
+        for m_filter in filters:
+            global_graph.set_edges_filter(m_filter)
+        #print("graph.current_edges")
+        #print(graph.current_edges)
+        global_graph.create_subgraph()
+        # subgraph = graph.get_subgraph()
+        # print('subgraph')
+        # print(subgraph)
+        #graph = global_graph
+        #global_graph.get_vertex_names()
 
-    return (
-        global_graph,
-        global_graph.get_vertex_names(),
-        global_graph.calculate_degree(),
-        global_graph.calculate_betweenness(),
-        global_graph.calculate_closeness(),
-        global_graph.calculate_eigenvector(),
-    )
+        return (
+            global_graph,
+            global_graph.get_vertex_names(),
+            global_graph.calculate_degree(),
+            global_graph.calculate_betweenness(),
+            global_graph.calculate_closeness(),
+            global_graph.calculate_eigenvector(),
+        )
 
 
 def get_local_data_table(filter_string, ego_value, order_value):
 
-    #graph = local_graph
+    if (local_graph):
     #subgraph = None
 
-    if ego_value not in [None, "None"]:
-        local_graph.local_phylosopher = ego_value
-    else:
-        local_graph.local_phylosopher = "Plato"
+        if ego_value not in [None, "None"]:
+            local_graph.local_phylosopher = ego_value
+        else:
+            local_graph.local_phylosopher = "Plato"
 
-    if order_value not in [None, "None"]:
-        local_graph.local_order = int(order_value)
-    else:
-        local_graph.local_order = 1
+        if order_value not in [None, "None"]:
+            local_graph.local_order = int(order_value)
+        else:
+            local_graph.local_order = 1
 
-    filters = filter_string.split(";")
-    for m_filter in filters:
-        local_graph.set_edges_filter(m_filter)
+        filters = filter_string.split(";")
+        local_graph.edges_filter = []
+        for m_filter in filters:
+            local_graph.set_edges_filter(m_filter)
 
-    local_graph.create_subgraph()
-    # graph = graph.get_localgraph()
-    # subgraph = graph.get_subgraph()
-    # graph = local_graph
+        local_graph.create_subgraph()
+        # graph = graph.get_localgraph()
+        # subgraph = graph.get_subgraph()
+        # graph = local_graph
 
     return (
         local_graph,

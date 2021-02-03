@@ -555,6 +555,7 @@ class diogenetGraph:
         """Return names for each vertex of the graph
         """
         if self.igraph_graph is not None:
+            self.create_subgraph()
             vertex_names = []
             for vertex in self.igraph_subgraph.vs:
                 vertex_names.append(vertex["name"])
@@ -908,7 +909,7 @@ class diogenetGraph:
         """Create subgraph depending on vertex selected
         """
         #if (edges_filter  not in self.edges_filter):
-        self.edges_filter = []
+        #self.edges_filter = []
         self.edges_filter.append(edges_filter)
 
     def create_subgraph(self):
@@ -949,7 +950,7 @@ class diogenetGraph:
                     # for number in neighbour_vertex:
                     #    print(actual_graph.vs["name"][number])
                     # print(neighbour_vertex)
-                    subgraph = actual_graph.induced_subgraph(neighbour_vertex)
+                    subgraph = subgraph.induced_subgraph(neighbour_vertex)
                 self.igraph_subgraph = subgraph    
         return subgraph
 
