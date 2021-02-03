@@ -126,62 +126,65 @@ def get_map_data_table(filter_string):
 
 
 def get_global_data_table(filter_string):
-    graph = None
-    graph = global_graph
+    #graph = None
+    #graph = global_graph
     # print('graph')
     # print(graph)
-    subgraph = None
+    # subgraph = None
 
     filters = filter_string.split(";")
+    print(filters)
     for m_filter in filters:
-        graph.set_edges_filter(m_filter)
-    print("graph.current_edges")
-    print(graph.current_edges)
-    graph.create_subgraph()
+        global_graph.set_edges_filter(m_filter)
+    #print("graph.current_edges")
+    #print(graph.current_edges)
+    global_graph.create_subgraph()
     # subgraph = graph.get_subgraph()
     # print('subgraph')
     # print(subgraph)
+    #graph = global_graph
 
     return (
-        graph,
-        graph.get_vertex_names(),
-        graph.calculate_degree(),
-        graph.calculate_betweenness(),
-        graph.calculate_closeness(),
-        graph.calculate_eigenvector(),
+        global_graph,
+        global_graph.get_vertex_names(),
+        global_graph.calculate_degree(),
+        global_graph.calculate_betweenness(),
+        global_graph.calculate_closeness(),
+        global_graph.calculate_eigenvector(),
     )
 
 
 def get_local_data_table(filter_string, ego_value, order_value):
 
-    graph = local_graph
-    subgraph = None
+    #graph = local_graph
+    #subgraph = None
 
     if ego_value not in [None, "None"]:
-        graph.local_phylosopher = ego_value
+        local_graph.local_phylosopher = ego_value
     else:
-        graph.local_phylosopher = "Plato"
+        local_graph.local_phylosopher = "Plato"
 
     if order_value not in [None, "None"]:
-        graph.local_order = int(order_value)
+        local_graph.local_order = int(order_value)
     else:
-        graph.local_order = 1
+        local_graph.local_order = 1
 
     filters = filter_string.split(";")
     for m_filter in filters:
-        graph.set_edges_filter(m_filter)
+        local_graph.set_edges_filter(m_filter)
 
-    graph.create_subgraph()
+    local_graph.create_subgraph()
     # graph = graph.get_localgraph()
     # subgraph = graph.get_subgraph()
+    # graph = local_graph
 
     return (
-        graph,
-        graph.get_vertex_names(),
-        graph.calculate_degree(),
-        graph.calculate_betweenness(),
-        graph.calculate_closeness(),
-        graph.calculate_eigenvector(),
+        local_graph,
+        local_graph.get_vertex_names(),
+        local_graph.calculate_degree(),
+        local_graph.calculate_betweenness(),
+        local_graph.calculate_closeness(),
+        local_graph.calculate_eigenvector(),
     )
 
 

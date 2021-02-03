@@ -556,7 +556,7 @@ class diogenetGraph:
         """
         if self.igraph_graph is not None:
             vertex_names = []
-            for vertex in self.igraph_graph.vs:
+            for vertex in self.igraph_subgraph.vs:
                 vertex_names.append(vertex["name"])
             return vertex_names
 
@@ -637,7 +637,7 @@ class diogenetGraph:
             if layout == "kk":
                 self.graph_layout = self.igraph_subgraph.layout_kamada_kawai()
                 self.graph_layout_name = "kk"
-            elif layout == "grid_fr":
+            elif layout == "gr  id_fr":
                 self.graph_layout = self.igraph_subgraph.layout_grid()
                 self.graph_layout_name = "grid_fr"
                 self.factor = 150
@@ -735,8 +735,8 @@ class diogenetGraph:
                 centrality_indexes_max,
             ) = self.get_graph_centrality_indexes()
 
-            if (self.graph_layout is None) or (layout != self.graph_layout_name):
-                self.set_graph_layout(layout)
+            #if (self.graph_layout is None) or (layout != self.graph_layout_name):
+            self.set_graph_layout(layout)
 
             pv_graph = pyvis.network.Network(
                 height=self.pyvis_height, width="100%", heading=self.pyvis_title
@@ -907,6 +907,8 @@ class diogenetGraph:
     def set_edges_filter(self, edges_filter):
         """Create subgraph depending on vertex selected
         """
+        #if (edges_filter  not in self.edges_filter):
+        self.edges_filter = []
         self.edges_filter.append(edges_filter)
 
     def create_subgraph(self):
@@ -916,50 +918,39 @@ class diogenetGraph:
 
         subgraph = None
         if self.igraph_graph is not None:
+            edges = self.igraph_graph.es
+            edge_names = self.igraph_graph.es["edge_name"]
             if not self.edges_filter:
-                subgraph = self.igraph_graph
+                if self.graph_type == "map":
+                    edges_filter = edge_names
+                else:
+                    edges_filter = "is teacher of"
             else:
-                edges = self.igraph_graph.es
-                edge_names = self.igraph_graph.es["edge_name"]
-                if not self.edges_filter:
-                    if self.graph_type == "map":
-                        self.edges_filter = edge_names
-                    elif self.graph_type == "global":
-                        self.edges_filter = "is teacher of"
-                    else:
-                        self.edges_filter = "Plato"
-                travellers = self.edges_filter
-                print("travellers")
-                print(travellers)
-                edge_indexes = [
-                    j.index for i, j in zip(edge_names, edges) if i in travellers
-                ]
-                subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
+                #if not self.edges_filter:
+                edges_filter = self.edges_filter
+                #print("travellers")
+                #print(travellers)
+            edge_indexes = [
+                j.index for i, j in zip(edge_names, edges) if i in edges_filter
+            ]
+            subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
+
+            self.igraph_subgraph = subgraph
 
             """Create local subgraph depending on vertex selected (i.e phylosophers)
             """
-            # local_subgraph = subgraph
-            actual_graph = subgraph
-            self.igraph_subgraph = subgraph
 
             if self.graph_type == "local":
                 # If no vertex selected return global graph
-                if not self.local_phylosopher:
-                    print("LocalPhilosoher")
-                    # print(self.igraph_graph.vs["name"][2])
-                    local_subgraph = actual_graph
-                else:
-                    neighbour_vertex = actual_graph.neighborhood(
+                if self.local_phylosopher:
+                    neighbour_vertex = subgraph.neighborhood(
                         self.local_phylosopher, self.local_order
                     )
                     # for number in neighbour_vertex:
                     #    print(actual_graph.vs["name"][number])
                     # print(neighbour_vertex)
-                    local_subgraph = actual_graph.induced_subgraph(neighbour_vertex)
-                self.igraph_localgraph = local_subgraph
-                self.igraph_subgraph = local_subgraph
-                subgraph = local_subgraph
-
+                    subgraph = actual_graph.induced_subgraph(neighbour_vertex)
+                self.igraph_subgraph = subgraph    
         return subgraph
 
     def get_subgraph(self):
