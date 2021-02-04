@@ -179,6 +179,13 @@ function setActiveLayout(item: string) {
   });
 }
 
+function getDiffCheck() {
+  if ($("#showGender").is(":checked")) {
+    return "True";
+  }
+  return "False";
+}
+
 function updateGraph(
   targetIFrame: HTMLIFrameElement,
   type: string = "global",
@@ -191,11 +198,13 @@ function updateGraph(
   let currentFilter: string = "";
   const nodeSizes = getNodesSize();
   const labelSizes = getLabelsSize();
+  const differentiateGenderandGods = getDiffCheck();
 
   switch (type) {
     case "global": {
       currentLayout = getGraphLayout();
       currentFilter = getCheckedRelations();
+
       let srcURL: string;
       if (currentFilter === "") {
         srcURL = "";
@@ -211,7 +220,9 @@ function updateGraph(
             "&filter=" +
             currentFilter +
             "&layout=" +
-            currentLayout
+            currentLayout +
+            "&diffGodGender=" +
+            differentiateGenderandGods
         );
       }
       targetIFrame.src = srcURL;
@@ -239,7 +250,9 @@ function updateGraph(
             "&ego=" +
             getEgo() +
             "&order=" +
-            getOrder()
+            getOrder() +
+            "&diffGodGender=" +
+            differentiateGenderandGods
         );
       }
       console.log(srcURL);
@@ -272,7 +285,9 @@ function updateGraph(
             "&algorithm=" +
             getAlgorithm() +
             "&plot=" +
-            getPlotType()
+            getPlotType() +
+            "&diffGodGender=" +
+            differentiateGenderandGods
         );
       }
       console.log(srcURL);
