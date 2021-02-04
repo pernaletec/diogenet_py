@@ -759,7 +759,12 @@ class diogenetGraph:
                         centrality_indexes[node.index],
                     )
                     color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                    node_title += "<br />" + str(centrality_indexes[node.index])
+                    node_title += (
+                        " - "
+                        + self.current_centrality_index
+                        + ": "
+                        + "{:.3f}".format(centrality_indexes[node.index])
+                    )
                 else:
                     color = "#ff6347"
 
