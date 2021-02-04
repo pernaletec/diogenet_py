@@ -1119,8 +1119,8 @@ class diogenetGraph:
 
         if self.comm_alg == "community_edge_betweenness":
             self.comm = actual_graph.community_edge_betweenness()
-            print("community_edge_betweenness")
-            print(vars(self.comm))
+            # print("community_edge_betweenness")
+            # print(vars(self.comm))
             aux = self.fix_dendrogram(actual_graph, self.comm)
             clusters_ini = aux.as_clustering()
             clusters = clusters_ini.as_cover()

@@ -409,11 +409,11 @@ def horus_get_graph():
         grafo.pyvis_show_gender = False
 
     grafo.create_subgraph()
-    subgraph = grafo
+    #subgraph = grafo
 
     pvis_graph = None
     if plot_type == "pyvis":
-        pvis_graph = subgraph.get_pyvis(
+        pvis_graph = grafo.get_pyvis(
             min_weight=node_min_size,
             max_weight=node_max_size,
             min_label_size=label_min_size,
@@ -427,8 +427,8 @@ def horus_get_graph():
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
-            modularity, clusters = subgraph.identify_communities()
-            subgraph.igraph_subgraph.vs["label"] = subgraph.igraph_subgraph.vs["name"]
+            modularity, clusters = grafo.identify_communities()
+            grafo.igraph_subgraph.vs["label"] = grafo.igraph_subgraph.vs["name"]
             plot(
                 grafo.comm,
                 full_filename,
