@@ -668,12 +668,7 @@ class diogenetGraph:
             "scaling": {"min": min_label_size, "max": max_label_size},
         }
         show_arrows = True
-        if (
-            self.graph_type == "global"
-            or self.graph_type == "local"
-            or self.graph_type == "communities"
-            and len(self.edges_filter) > 1
-        ):
+        if self.graph_type == "communities" and len(self.edges_filter) > 1:
             show_arrows = False
 
         pyvis_map_options["edges"] = {
