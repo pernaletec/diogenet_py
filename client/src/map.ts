@@ -638,6 +638,7 @@ $(() => {
       url: urlBase,
       success: (fullData) => {
         console.log("Dataset changed");
+        console.log(fullData);
         updateAll();
       },
     });

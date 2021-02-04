@@ -9,7 +9,13 @@ from flask import (
 )
 from igraph import *
 from igraph import layout
-from .network_graph import global_graph, map_graph, local_graph, communities_graph
+from .network_graph import (
+    global_graph,
+    map_graph,
+    local_graph,
+    communities_graph,
+    map_graph_change_dataset,
+)
 
 import os
 import tempfile
@@ -126,27 +132,27 @@ def get_map_data_table(filter_string):
 
 
 def get_global_data_table(filter_string):
-    
-    if (global_graph):
-        #graph = None
-        #graph = global_graph
+
+    if global_graph:
+        # graph = None
+        # graph = global_graph
         # print('graph')
         # print(graph)
         # subgraph = None
 
         filters = filter_string.split(";")
-        #print(filters)
+        # print(filters)
         global_graph.edges_filter = []
         for m_filter in filters:
             global_graph.set_edges_filter(m_filter)
-        #print("graph.current_edges")
-        #print(graph.current_edges)
+        # print("graph.current_edges")
+        # print(graph.current_edges)
         global_graph.create_subgraph()
         # subgraph = graph.get_subgraph()
         # print('subgraph')
         # print(subgraph)
-        #graph = global_graph
-        #global_graph.get_vertex_names()
+        # graph = global_graph
+        # global_graph.get_vertex_names()
 
         return (
             global_graph,
@@ -160,8 +166,8 @@ def get_global_data_table(filter_string):
 
 def get_local_data_table(filter_string, ego_value, order_value):
 
-    if (local_graph):
-    #subgraph = None
+    if local_graph:
+        # subgraph = None
 
         if ego_value not in [None, "None"]:
             local_graph.local_phylosopher = ego_value
@@ -276,6 +282,7 @@ def get_graph_data():
     label_min_max = str(request.args.get("label_min_max"))
     map_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
+
     # selected_edges = str(request.args.get("edges"))
 
     grafo = map_graph
@@ -342,6 +349,7 @@ def horus_get_graph():
     order_value = str(request.args.get("order"))
     algorithm_value = str(request.args.get("algorithm"))
     plot_type = str(request.args.get("plot"))
+    differentiate_gender = str(request.args.get("diffGodGender"))
 
     if not plot_type or plot_type == "" or plot_type == "None":
         plot_type = "pyvis"
@@ -394,6 +402,11 @@ def horus_get_graph():
     #    if graph_type == "local":
     #        grafo.create_local_graph()
     #        grafo = grafo.get_localgraph()
+
+    if differentiate_gender in ["True", "true"]:
+        grafo.pyvis_show_gender = True
+    else:
+        grafo.pyvis_show_gender = False
 
     grafo.create_subgraph()
     subgraph = grafo
@@ -665,4 +678,5 @@ def horus_set_dataset():
     else:
         map_graph_change_dataset("iamblichus")
 
-    return make_response("Success", 200)
+    return make_response(jsonify({"success": True}), 200, JSON_HEADER)
+

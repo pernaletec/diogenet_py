@@ -133,7 +133,7 @@ class diogenetGraph:
     pyvis_title = ""
     pyvis_height = "95%"
     factor = 50
-    pyvis_show_gender = True
+    pyvis_show_gender = False
     node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
@@ -736,7 +736,7 @@ class diogenetGraph:
                 centrality_indexes_max,
             ) = self.get_graph_centrality_indexes()
 
-            #if (self.graph_layout is None) or (layout != self.graph_layout_name):
+            # if (self.graph_layout is None) or (layout != self.graph_layout_name):
             self.set_graph_layout(layout)
 
             pv_graph = pyvis.network.Network(
@@ -774,8 +774,12 @@ class diogenetGraph:
                 if self.pyvis_show_gender:
                     if node["group"] == "Female":
                         node_shape = "star"
+                        node_title += " - Female"
                     elif node["group"] == "God":
                         node_shape = "triangle"
+                        node_title += " - God"
+                    else:
+                        node_title += " - Male"
 
                 pv_graph.add_node(
                     node.index,
@@ -790,6 +794,14 @@ class diogenetGraph:
 
             edges = {}
             i = 1
+            edges_colors_list = {
+                "is teacher of": "#411271",
+                "is friend of": "#4542B9",
+                "is family of": "#1FC3CD",
+                "is benefactor of": "#01AA31",
+                "studied the work of": "#F5C603",
+                "sent letters to": "#D62226",
+            }
             for edge in self.igraph_subgraph.es:
                 if self.graph_type == "map":
                     title = (
@@ -808,11 +820,7 @@ class diogenetGraph:
                         + " "
                         + self.igraph_subgraph.vs[edge.target]["name"]
                     )
-                    relation = edge["edge_name"]
-                    if relation not in edges.keys():
-                        edges[relation] = i
-                        i = i + 1
-                    edge_color = EDGES_COLORS[edges[relation]]
+                    edge_color = edges_colors_list[edge["edge_name"]]
                 pv_graph.add_edge(
                     edge.source, edge.target, title=title, color=edge_color
                 )
@@ -908,8 +916,8 @@ class diogenetGraph:
     def set_edges_filter(self, edges_filter):
         """Create subgraph depending on vertex selected
         """
-        #if (edges_filter  not in self.edges_filter):
-        #self.edges_filter = []
+        # if (edges_filter  not in self.edges_filter):
+        # self.edges_filter = []
         self.edges_filter.append(edges_filter)
 
     def create_subgraph(self):
@@ -927,10 +935,10 @@ class diogenetGraph:
                 else:
                     edges_filter = "is teacher of"
             else:
-                #if not self.edges_filter:
+                # if not self.edges_filter:
                 edges_filter = self.edges_filter
-                #print("travellers")
-                #print(travellers)
+                # print("travellers")
+                # print(travellers)
             edge_indexes = [
                 j.index for i, j in zip(edge_names, edges) if i in edges_filter
             ]
@@ -951,7 +959,7 @@ class diogenetGraph:
                     #    print(actual_graph.vs["name"][number])
                     # print(neighbour_vertex)
                     subgraph = subgraph.induced_subgraph(neighbour_vertex)
-                self.igraph_subgraph = subgraph    
+                self.igraph_subgraph = subgraph
         return subgraph
 
     def get_subgraph(self):
@@ -1210,6 +1218,7 @@ communities_graph = diogenetGraph(
 
 
 def map_graph_change_dataset(dataset):
+    global map_graph
     if dataset == "iamblichus":
         map_graph = diogenetGraph(
             "map",
@@ -1226,6 +1235,7 @@ def map_graph_change_dataset(dataset):
             LOCATIONS_DATA_FILE,
             TRAVELS_BLACK_LIST_FILE,
         )
+    return map_graph
 
 
 # communities_graph.comm_alg = 'community_infomap'                          # OK
