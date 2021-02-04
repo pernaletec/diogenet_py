@@ -1180,7 +1180,7 @@ class diogenetGraph:
         return (modularity, comm_Dict)
 
     def get_cut_vertices(self):
-        cutVertices = self.igraph_graph.cut_vertices()
+        cutVertices = self.igraph_subgraph.cut_vertices()
         return cutVertices
 
 
