@@ -118,10 +118,14 @@ function showOrderControl(show: boolean) {
       name: string;
     };
     if (!egoFilled) {
-      const urlBase = encodeURI(BASE_URL + "/horus/get/ego");
+      let currentFilter = getCheckedRelations();
+      const urlBase = encodeURI(
+        BASE_URL + "/horus/get/ego" + "?filter=" + currentFilter
+      );
       const egoSelect: HTMLSelectElement = <HTMLSelectElement>(
         document.getElementById("ego-index")
       );
+
       $.ajax({
         dataType: "text json",
         url: urlBase,
@@ -806,6 +810,13 @@ $(() => {
     updateTab();
   });
   $("input:checkbox[name=edgesFilter]").on("change", (event) => {
+    if (activeMenu == "local" || activeMenu == "local-centrality") {
+      // Drop all options in select
+      if (egoFilled) {
+        $("#ego-index").empty();
+      }
+      egoFilled = false;
+    }
     updateTab();
   });
   $(".node-range-slider").on("change", (event) => {

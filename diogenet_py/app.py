@@ -9,6 +9,7 @@ from flask import (
 )
 from igraph import *
 from igraph import layout
+from traitlets.traitlets import Undefined
 from .network_graph import (
     global_graph,
     map_graph,
@@ -357,8 +358,17 @@ def horus_get_graph():
 
     if graph_type == "local":
         grafo = local_graph
-        grafo.local_phylosopher = ego_value if ego_value else "Plato"
-        grafo.local_order = int(order_value) if order_value else 1
+
+        if ego_value not in [Undefined, None, "undefined"]:
+            grafo.local_phylosopher = ego_value
+        else:
+            grafo.local_phylosopher = "Plato"
+
+        if order_value not in [None, Undefined, "undefined"]:
+            grafo.local_order = int(order_value)
+        else:
+            grafo.local_order = 1
+
     elif graph_type == "community":
         grafo = communities_graph
         if algorithm_value == "" or algorithm_value == "None":
@@ -470,8 +480,24 @@ def horus_get_graph():
 def horus_get_filosophers():
     if request.method != "GET":
         return make_response(MALFORMED_REQUEST, 400)
+
+    graph_filter = str(request.args.get("filter"))
+
+    grafo = global_graph
+
+    if not graph_filter:
+        graph_filter = DEFAULT_FILTER_VALUE
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
     data = []
-    for philosopher in global_graph.igraph_subgraph.vs:
+    grafo.create_subgraph()
+
+    for philosopher in grafo.igraph_subgraph.vs:
         data.append({"name": philosopher["name"]})
 
     sorted_data = sorted(data, key=lambda k: k["name"])
