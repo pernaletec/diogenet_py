@@ -186,6 +186,13 @@ function getDiffCheck() {
   return "False";
 }
 
+function getCrossingTies() {
+  if ($("#showCrossingTies").is(":checked")) {
+    return "True";
+  }
+  return "False";
+}
+
 function updateGraph(
   targetIFrame: HTMLIFrameElement,
   type: string = "global",
@@ -266,6 +273,7 @@ function updateGraph(
       const communityCentrality = "communities";
       currentFilter = getCheckedRelations();
       let srcURL: string;
+      const showCrossingTies = getCrossingTies();
       if (currentFilter === "") {
         srcURL = "";
       } else {
@@ -287,7 +295,9 @@ function updateGraph(
             "&plot=" +
             getPlotType() +
             "&diffGodGender=" +
-            differentiateGenderandGods
+            differentiateGenderandGods +
+            "&showCrossingTies=" +
+            showCrossingTies
         );
       }
       console.log(srcURL);
@@ -842,6 +852,9 @@ $(() => {
     drawScreen("communities-treemap", "communities-treemap-graph");
   });
   $("#showGender").on("change", (event) => {
+    updateTab();
+  });
+  $("#showCrossingTies").on("change", (event) => {
     updateTab();
   });
 

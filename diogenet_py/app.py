@@ -350,6 +350,7 @@ def horus_get_graph():
     algorithm_value = str(request.args.get("algorithm"))
     plot_type = str(request.args.get("plot"))
     differentiate_gender = str(request.args.get("diffGodGender"))
+    show_crossing_ties = str(request.args.get("showCrossingTies"))
 
     if not plot_type or plot_type == "" or plot_type == "None":
         plot_type = "pyvis"
@@ -364,6 +365,10 @@ def horus_get_graph():
             algorithm_value = "community_infomap"
         grafo.comm_alg = algorithm_value
         grafo.identify_communities()
+        if show_crossing_ties in ["True", "true"]:
+            grafo.pyvis_show_crossing_ties = True
+        else:
+            grafo.pyvis_show_crossing_ties = False
     else:
         grafo = global_graph
 
@@ -409,7 +414,7 @@ def horus_get_graph():
         grafo.pyvis_show_gender = False
 
     grafo.create_subgraph()
-    #subgraph = grafo
+    # subgraph = grafo
 
     pvis_graph = None
     if plot_type == "pyvis":

@@ -134,6 +134,7 @@ class diogenetGraph:
     pyvis_height = "95%"
     factor = 50
     pyvis_show_gender = False
+    pyvis_show_crossing_ties = False
     node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
@@ -745,15 +746,31 @@ class diogenetGraph:
 
             # self.create_subgraph()
             # Add Nodes
+            cut_vertex = []
+            if self.graph_type == "communities":
+                cut_vertex = self.igraph_subgraph.cut_vertices()
+
             for node in self.igraph_subgraph.vs:
                 node_title = node["name"]
                 if not avoid_centrality:
-                    color_index = self.get_interpolated_index(
-                        centrality_indexes_min,
-                        centrality_indexes_max,
-                        centrality_indexes[node.index],
-                    )
-                    color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                    if self.pyvis_show_crossing_ties:
+                        if node.index in cut_vertex:
+                            color_index = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[node.index],
+                            )
+                            color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                        else:
+                            color = "#bbbbbb"
+                    else:
+                        color_index = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[node.index],
+                        )
+                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+
                     node_title += (
                         " - "
                         + self.current_centrality_index
@@ -820,7 +837,14 @@ class diogenetGraph:
                         + " "
                         + self.igraph_subgraph.vs[edge.target]["name"]
                     )
-                    edge_color = edges_colors_list[edge["edge_name"]]
+                    edge_color = ""
+                    if self.pyvis_show_crossing_ties:
+                        if edge.source in cut_vertex and edge.target in cut_vertex:
+                            edge_color = edges_colors_list[edge["edge_name"]]
+                        else:
+                            edge_color = "#888888"
+                    else:
+                        edge_color = edges_colors_list[edge["edge_name"]]
                 pv_graph.add_edge(
                     edge.source, edge.target, title=title, color=edge_color
                 )
