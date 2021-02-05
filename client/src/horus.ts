@@ -268,6 +268,7 @@ function updateGraph(
       }
       console.log(srcURL);
       targetIFrame.src = srcURL;
+      showOrderControl(true);
       if (srcURL === "")
         alert("Please select at least one relation from Network Ties!");
       break;
