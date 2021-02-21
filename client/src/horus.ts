@@ -118,10 +118,14 @@ function showOrderControl(show: boolean) {
       name: string;
     };
     if (!egoFilled) {
-      const urlBase = encodeURI(BASE_URL + "/horus/get/ego");
+      let currentFilter = getCheckedRelations();
+      const urlBase = encodeURI(
+        BASE_URL + "/horus/get/ego" + "?filter=" + currentFilter
+      );
       const egoSelect: HTMLSelectElement = <HTMLSelectElement>(
         document.getElementById("ego-index")
       );
+
       $.ajax({
         dataType: "text json",
         url: urlBase,
@@ -179,6 +183,20 @@ function setActiveLayout(item: string) {
   });
 }
 
+function getDiffCheck() {
+  if ($("#showGender").is(":checked")) {
+    return "True";
+  }
+  return "False";
+}
+
+function getCrossingTies() {
+  if ($("#showCrossingTies").is(":checked")) {
+    return "True";
+  }
+  return "False";
+}
+
 function updateGraph(
   targetIFrame: HTMLIFrameElement,
   type: string = "global",
@@ -191,11 +209,13 @@ function updateGraph(
   let currentFilter: string = "";
   const nodeSizes = getNodesSize();
   const labelSizes = getLabelsSize();
+  const differentiateGenderandGods = getDiffCheck();
 
   switch (type) {
     case "global": {
       currentLayout = getGraphLayout();
       currentFilter = getCheckedRelations();
+
       let srcURL: string;
       if (currentFilter === "") {
         srcURL = "";
@@ -211,7 +231,9 @@ function updateGraph(
             "&filter=" +
             currentFilter +
             "&layout=" +
-            currentLayout
+            currentLayout +
+            "&diffGodGender=" +
+            differentiateGenderandGods
         );
       }
       targetIFrame.src = srcURL;
@@ -239,11 +261,14 @@ function updateGraph(
             "&ego=" +
             getEgo() +
             "&order=" +
-            getOrder()
+            getOrder() +
+            "&diffGodGender=" +
+            differentiateGenderandGods
         );
       }
       console.log(srcURL);
       targetIFrame.src = srcURL;
+      showOrderControl(true);
       if (srcURL === "")
         alert("Please select at least one relation from Network Ties!");
       break;
@@ -253,6 +278,7 @@ function updateGraph(
       const communityCentrality = "communities";
       currentFilter = getCheckedRelations();
       let srcURL: string;
+      const showCrossingTies = getCrossingTies();
       if (currentFilter === "") {
         srcURL = "";
       } else {
@@ -272,7 +298,11 @@ function updateGraph(
             "&algorithm=" +
             getAlgorithm() +
             "&plot=" +
-            getPlotType()
+            getPlotType() +
+            "&diffGodGender=" +
+            differentiateGenderandGods +
+            "&showCrossingTies=" +
+            showCrossingTies
         );
       }
       console.log(srcURL);
@@ -781,6 +811,13 @@ $(() => {
     updateTab();
   });
   $("input:checkbox[name=edgesFilter]").on("change", (event) => {
+    if (activeMenu == "local" || activeMenu == "local-centrality") {
+      // Drop all options in select
+      if (egoFilled) {
+        $("#ego-index").empty();
+      }
+      egoFilled = false;
+    }
     updateTab();
   });
   $(".node-range-slider").on("change", (event) => {
@@ -825,6 +862,12 @@ $(() => {
   });
   $("#communities-treemap-btn").on("click", () => {
     drawScreen("communities-treemap", "communities-treemap-graph");
+  });
+  $("#showGender").on("change", (event) => {
+    updateTab();
+  });
+  $("#showCrossingTies").on("change", (event) => {
+    updateTab();
   });
 
   $('a[data-toggle="tab"]').on("shown.bs.tab", (e) => {

@@ -5,7 +5,7 @@
     from one location to another
 
 .. platform:: Unix, Windows, Mac
-.. moduleauthor:: César Pernalete <pernalete.cg@gmail.com>
+.. moduleauthor:: César Pernalete <pernalete.cg@gmail.com> and Elio Linárez <elinarezv@gmail.com>
 """
 
 import igraph
@@ -14,10 +14,14 @@ import json
 import copy
 import pandas as pd
 import numpy as np
-import networkx as nx
 from dataclasses import dataclass
 from . import data_access as da
 import random
+import os
+import tempfile
+import pathlib
+
+import rpy2.robjects as robjects
 
 # import cairocffi
 #  I need to see how to handle the locations
@@ -69,6 +73,29 @@ VIRIDIS_COLORMAP = [
     (253, 231, 37),
 ]
 
+EDGES_COLORS = [
+    "#fff100",
+    "#ff8c00",
+    "#e81123",
+    "#ec008c",
+    "#68217a",
+    "#00188f",
+    "#00bcf2",
+    "#00b294",
+    "#009e49",
+    "#bad80a",
+]
+
+GRAPHML_SUFFIX = ".graphml"
+
+
+def get_graphml_temp_file():
+    temp_file_name = next(tempfile._get_candidate_names()) + GRAPHML_SUFFIX
+    full_filename = os.path.join(
+        pathlib.Path().absolute(), "diogenet_py", temp_file_name
+    )
+    return full_filename
+
 
 @dataclass
 class diogenetGraph:
@@ -106,6 +133,8 @@ class diogenetGraph:
     pyvis_title = ""
     pyvis_height = "95%"
     factor = 50
+    pyvis_show_gender = False
+    pyvis_show_crossing_ties = False
     node_size_factor = 2
     graph_color_map = VIRIDIS_COLORMAP
     vertex_filter = None
@@ -125,6 +154,15 @@ class diogenetGraph:
     # This is used only to create the communities
     comm_alg = None
     comm_igraph = None
+
+    # Load the R subsystem
+    r = robjects.r
+    r["source"]("diogenet_py//igraph_libraries.R")
+    # Loading the R functions
+    centralization_degree_r = robjects.globalenv["get_degree"]
+    centralization_closeness_r = robjects.globalenv["get_closeness"]
+    centralization_betweenness_r = robjects.globalenv["get_betweenness"]
+    centralization_eigenvector_r = robjects.globalenv["get_eigenvector"]
 
     def __init__(
         self,
@@ -247,6 +285,8 @@ class diogenetGraph:
 
         """
         node_place = self.nodes_raw_data["Groups"] == "Place"
+        # print("node_place")
+        # print(node_place)
         self.located_nodes = self.nodes_raw_data.loc[
             node_place,
         ]
@@ -313,6 +353,7 @@ class diogenetGraph:
         lon_source = []
         lat_target = []
         lon_target = []
+
         multi_origin = []  # Phylosopher with more than one origin city
         Source = []
         Target = []
@@ -410,80 +451,114 @@ class diogenetGraph:
                 self.travels_graph_data, directed=False, edge_attrs=["edge_name"]
             )
 
+            def search_group_attribute(node_name):
+                group_name = ""
+                # for node in
+                return group_name
+
+            attributes = []
+            self.nodes_raw_data.set_index(["Name"])
+            for node in self.igraph_graph.vs:
+                rows = self.nodes_raw_data.loc[
+                    self.nodes_raw_data["Name"] == node["name"]
+                ]
+                node["group"] = rows.iloc[0]["Groups"]
+
     def calculate_degree(self):
         """Calculate degree for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.degree()
+            actual_graph = self.create_subgraph()
+            return actual_graph.degree()
 
     def calculate_closeness(self):
         """Create closeness for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.closeness()
+            actual_graph = self.create_subgraph()
+            return actual_graph.closeness()
 
     def calculate_betweenness(self):
         """Calculate betweenness for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.betweenness()
+            actual_graph = self.create_subgraph()
+            return actual_graph.betweenness()
 
     def calculate_eigenvector(self):
         """Create degree for the graph
         """
         if self.igraph_graph is not None:
-            return self.igraph_graph.evcent()
+            actual_graph = self.create_subgraph()
+            return actual_graph.evcent()
 
     def centralization_degree(self):
         """Calculate unnormalized centralization degree for the graph
         """
         if self.igraph_graph is not None:
-            degree = self.calculate_degree()
-            max_degree = max(degree)
-            cent_degree = 0
-            for centrality in degree:
-                cent_degree = cent_degree + (max_degree - centrality)
-            return cent_degree
+            actual_graph = self.create_subgraph()
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
+
+            # run R script
+            cent_degree = self.centralization_degree_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
+
+            return cent_degree[0]
 
     def centralization_betweenness(self):
         """Calculate unnormalized centralization betweenness for the graph
         """
         if self.igraph_graph is not None:
-            betweenness = self.calculate_betweenness()
-            max_betweenness = max(betweenness)
-            cent_betweenness = 0
-            for centrality in betweenness:
-                cent_betweenness = cent_betweenness + (max_betweenness - centrality)
-            return cent_betweenness
+            actual_graph = self.create_subgraph()
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
+
+            # run R script
+            cent_betweenness = self.centralization_betweenness_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
+
+            return cent_betweenness[0]
 
     def centralization_closeness(self):
         """Calculate unnormalized centralization closeness for the graph
         """
         if self.igraph_graph is not None:
-            closeness = self.calculate_closeness()
-            max_closeness = max(closeness)
-            cent_closeness = 0
-            for centrality in closeness:
-                cent_closeness = cent_closeness + (max_closeness - centrality)
-            return cent_closeness
+            actual_graph = self.create_subgraph()
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
+
+            # run R script
+            cent_closeness = self.centralization_closeness_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
+
+            return cent_closeness[0]
 
     def centralization_eigenvector(self):
         """Calculate unnormalized centralization eigen vector for the graph
         """
         if self.igraph_graph is not None:
-            eigenvector = self.calculate_eigenvector()
-            max_eigenvector = max(eigenvector)
-            cent_eigenvector = 0
-            for centrality in eigenvector:
-                cent_eigenvector = cent_eigenvector + (max_eigenvector - centrality)
-            return cent_eigenvector
+            actual_graph = self.create_subgraph()
+            full_filename = get_graphml_temp_file()
+            actual_graph.write_graphmlz(full_filename, 1)
+
+            # run R script
+            cent_eigenvector = self.centralization_eigenvector_r(full_filename)
+            # Delete temp file
+            os.remove(full_filename)
+
+            return cent_eigenvector[0]
 
     def get_vertex_names(self):
         """Return names for each vertex of the graph
         """
         if self.igraph_graph is not None:
+            self.create_subgraph()
             vertex_names = []
-            for vertex in self.igraph_graph.vs:
+            for vertex in self.igraph_subgraph.vs:
                 vertex_names.append(vertex["name"])
             return vertex_names
 
@@ -546,10 +621,10 @@ class diogenetGraph:
             (modularity, clusters_dict) = self.identify_communities()
             self.pyvis_title = "MODULARITY: {:0.4f}".format(modularity)
             self.pyvis_height = "88%"
-            for i in range(len(self.igraph_graph.vs)):
-                if self.igraph_graph.vs[i]["name"] in clusters_dict.keys():
+            for i in range(len(self.igraph_subgraph.vs)):
+                if self.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
                     centrality_indexes.append(
-                        clusters_dict[self.igraph_graph.vs[i]["name"]]
+                        clusters_dict[self.igraph_subgraph.vs[i]["name"]]
                     )
 
         centrality_indexes_min = min(centrality_indexes)
@@ -558,30 +633,32 @@ class diogenetGraph:
         return (centrality_indexes, centrality_indexes_min, centrality_indexes_max)
 
     def set_graph_layout(self, layout):
-        N = len(self.igraph_graph.vs)
-        if layout == "kk":
-            self.graph_layout = self.igraph_graph.layout_kamada_kawai()
-            self.graph_layout_name = "kk"
-        elif layout == "grid_fr":
-            self.graph_layout = self.igraph_graph.layout_grid()
-            self.graph_layout_name = "grid_fr"
-            self.factor = 150
-        elif layout == "circle":
-            self.graph_layout = self.igraph_graph.layout_circle()
-            self.graph_layout_name = "circle"
-            self.factor = 250
-            self.node_size_factor = 1
-        elif layout == "sphere":
-            self.graph_layout = self.igraph_graph.layout_sphere()
-            self.graph_layout_name = "sphere"
-            self.factor = 250
-            self.node_size_factor = 1
-        else:
-            self.graph_layout = self.igraph_graph.layout_fruchterman_reingold()
-            self.graph_layout_name = "fr"
+        if self.igraph_graph is not None:
+            # self.create_subgraph()
+            N = len(self.igraph_subgraph.vs)
+            if layout == "kk":
+                self.graph_layout = self.igraph_subgraph.layout_kamada_kawai()
+                self.graph_layout_name = "kk"
+            elif layout == "gr  id_fr":
+                self.graph_layout = self.igraph_subgraph.layout_grid()
+                self.graph_layout_name = "grid_fr"
+                self.factor = 150
+            elif layout == "circle":
+                self.graph_layout = self.igraph_subgraph.layout_circle()
+                self.graph_layout_name = "circle"
+                self.factor = 250
+                self.node_size_factor = 1
+            elif layout == "sphere":
+                self.graph_layout = self.igraph_subgraph.layout_sphere()
+                self.graph_layout_name = "sphere"
+                self.factor = 250
+                self.node_size_factor = 1
+            else:
+                self.graph_layout = self.igraph_subgraph.layout_fruchterman_reingold()
+                self.graph_layout_name = "fr"
 
-        self.Xn = [self.graph_layout[k][0] for k in range(N)]
-        self.Yn = [self.graph_layout[k][1] for k in range(N)]
+            self.Xn = [self.graph_layout[k][0] for k in range(N)]
+            self.Yn = [self.graph_layout[k][1] for k in range(N)]
 
     def get_pyvis_options(
         self, min_weight=4, max_weight=6, min_label_size=4, max_label_size=6,
@@ -592,12 +669,7 @@ class diogenetGraph:
             "scaling": {"min": min_label_size, "max": max_label_size},
         }
         show_arrows = True
-        if (
-            self.graph_type == "global"
-            or self.graph_type == "local"
-            or self.graph_type == "communities"
-            and len(self.edges_filter) > 1
-        ):
+        if self.graph_type == "communities" and len(self.edges_filter) > 1:
             show_arrows = False
 
         pyvis_map_options["edges"] = {
@@ -617,7 +689,7 @@ class diogenetGraph:
             "dragNodes": True,
             "hideEdgesOnDrag": True,
             "hover": True,
-            "navigationButtons": True,
+            "navigationButtons": False,
             "selectable": True,
             "multiselect": True,
         }
@@ -660,8 +732,8 @@ class diogenetGraph:
                 centrality_indexes_max,
             ) = self.get_graph_centrality_indexes()
 
-            if (self.graph_layout is None) or (layout != self.graph_layout_name):
-                self.set_graph_layout(layout)
+            # if (self.graph_layout is None) or (layout != self.graph_layout_name):
+            self.set_graph_layout(layout)
 
             pv_graph = pyvis.network.Network(
                 height=self.pyvis_height, width="100%", heading=self.pyvis_title
@@ -672,17 +744,39 @@ class diogenetGraph:
             pv_graph.set_options(json.dumps(pyvis_map_options))
             # pv_graph.show_buttons()
 
+            # self.create_subgraph()
             # Add Nodes
-            for node in self.igraph_graph.vs:
+            cut_vertex = []
+            if self.graph_type == "communities":
+                cut_vertex = self.igraph_subgraph.cut_vertices()
+
+            for node in self.igraph_subgraph.vs:
                 node_title = node["name"]
                 if not avoid_centrality:
-                    color_index = self.get_interpolated_index(
-                        centrality_indexes_min,
-                        centrality_indexes_max,
-                        centrality_indexes[node.index],
+                    if self.pyvis_show_crossing_ties:
+                        if node.index in cut_vertex:
+                            color_index = self.get_interpolated_index(
+                                centrality_indexes_min,
+                                centrality_indexes_max,
+                                centrality_indexes[node.index],
+                            )
+                            color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+                        else:
+                            color = "#bbbbbb"
+                    else:
+                        color_index = self.get_interpolated_index(
+                            centrality_indexes_min,
+                            centrality_indexes_max,
+                            centrality_indexes[node.index],
+                        )
+                        color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
+
+                    node_title += (
+                        " - "
+                        + self.current_centrality_index
+                        + ": "
+                        + "{:.3f}".format(centrality_indexes[node.index])
                     )
-                    color = "#" + self.rgb_to_hex(VIRIDIS_COLORMAP[color_index])
-                    node_title += "<br />" + str(centrality_indexes[node.index])
                 else:
                     color = "#ff6347"
 
@@ -693,6 +787,17 @@ class diogenetGraph:
                     min_weight,
                     max_weight,
                 )
+                node_shape = "dot"
+                if self.pyvis_show_gender:
+                    if node["group"] == "Female":
+                        node_shape = "star"
+                        node_title += " - Female"
+                    elif node["group"] == "God":
+                        node_shape = "triangle"
+                        node_title += " - God"
+                    else:
+                        node_title += " - Male"
+
                 pv_graph.add_node(
                     node.index,
                     label=node["name"],
@@ -700,27 +805,49 @@ class diogenetGraph:
                     size=int(size * self.node_size_factor),
                     x=int(self.Xn[node.index] * self.factor),
                     y=int(self.Yn[node.index] * self.factor),
-                    shape="dot",
+                    shape=node_shape,
                     title=node_title,
                 )
-            for edge in self.igraph_graph.es:
+
+            edges = {}
+            i = 1
+            edges_colors_list = {
+                "is teacher of": "#411271",
+                "is friend of": "#4542B9",
+                "is family of": "#1FC3CD",
+                "is benefactor of": "#01AA31",
+                "studied the work of": "#F5C603",
+                "sent letters to": "#D62226",
+            }
+            for edge in self.igraph_subgraph.es:
                 if self.graph_type == "map":
                     title = (
                         edge["edge_name"]
                         + " travels from: "
-                        + self.igraph_graph.vs[edge.source]["name"]
+                        + self.igraph_subgraph.vs[edge.source]["name"]
                         + " to: "
-                        + self.igraph_graph.vs[edge.target]["name"]
+                        + self.igraph_subgraph.vs[edge.target]["name"]
                     )
+                    edge_color = "#ff6347"
                 else:
                     title = (
-                        self.igraph_graph.vs[edge.source]["name"]
+                        self.igraph_subgraph.vs[edge.source]["name"]
                         + " "
                         + edge["edge_name"]
                         + " "
-                        + self.igraph_graph.vs[edge.target]["name"]
+                        + self.igraph_subgraph.vs[edge.target]["name"]
                     )
-                pv_graph.add_edge(edge.source, edge.target, title=title)
+                    edge_color = ""
+                    if self.pyvis_show_crossing_ties:
+                        if edge.source in cut_vertex and edge.target in cut_vertex:
+                            edge_color = edges_colors_list[edge["edge_name"]]
+                        else:
+                            edge_color = "#888888"
+                    else:
+                        edge_color = edges_colors_list[edge["edge_name"]]
+                pv_graph.add_edge(
+                    edge.source, edge.target, title=title, color=edge_color
+                )
         return pv_graph
 
     def get_igraph_plot(
@@ -813,49 +940,75 @@ class diogenetGraph:
     def set_edges_filter(self, edges_filter):
         """Create subgraph depending on vertex selected
         """
+        # if (edges_filter  not in self.edges_filter):
+        # self.edges_filter = []
         self.edges_filter.append(edges_filter)
 
     def create_subgraph(self):
-        """Create subgraph depending on edges selected (i.e travellers)
+        """Create subgraph depending on edges selected (i.e travellers in case of)
+           the map and type of relations in case of the graph 
         """
+
         subgraph = None
         if self.igraph_graph is not None:
+            edges = self.igraph_graph.es
+            edge_names = self.igraph_graph.es["edge_name"]
             if not self.edges_filter:
-                subgraph = self.igraph_graph
+                if self.graph_type == "map":
+                    edges_filter = edge_names
+                else:
+                    edges_filter = "is teacher of"
             else:
-                edges = self.igraph_graph.es
-                edge_names = self.igraph_graph.es["edge_name"]
-                travellers = self.edges_filter if self.edges_filter else edges_filter
-                edge_indexes = [
-                    j.index for i, j in zip(edge_names, edges) if i in travellers
-                ]
-                subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
+                # if not self.edges_filter:
+                edges_filter = self.edges_filter
+                # print("travellers")
+                # print(travellers)
+            edge_indexes = [
+                j.index for i, j in zip(edge_names, edges) if i in edges_filter
+            ]
+            subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
 
             self.igraph_subgraph = subgraph
 
+            """Create local subgraph depending on vertex selected (i.e phylosophers)
+            """
+
+            if self.graph_type == "local":
+                # If no vertex selected return global graph
+                if self.local_phylosopher:
+                    neighbour_vertex = subgraph.neighborhood(
+                        self.local_phylosopher, self.local_order
+                    )
+                    # for number in neighbour_vertex:
+                    #    print(actual_graph.vs["name"][number])
+                    # print(neighbour_vertex)
+                    subgraph = subgraph.induced_subgraph(neighbour_vertex)
+                self.igraph_subgraph = subgraph
         return subgraph
 
     def get_subgraph(self):
         subgraph = None
-        if self.edges_filter:
-            sub_igraph = self.create_subgraph()
-            self.tabulate_subgraph_data()
-            sub_travels_map_data = self.travels_subgraph_data
-            subgraph = copy.deepcopy(self)
-            subgraph.igraph_graph = sub_igraph
-            subgraph.travels_graph_data = sub_travels_map_data
+        # if self.edges_filter:
+        #     sub_igraph = self.create_subgraph()
+        #     self.tabulate_subgraph_data()
+        #     sub_travels_map_data = self.travels_subgraph_data
+        #     subgraph = copy.deepcopy(self)
+        #     subgraph.igraph_graph = sub_igraph
+        #     subgraph.travels_graph_data = sub_travels_map_data
+        subgraph = self.igraph_subgraph
         return subgraph
 
     def get_localgraph(self):
-        subgraph = None
-        sub_igraph = self.create_local_graph()
-        self.tabulate_subgraph_data()
-        sub_travels_map_data = self.travels_subgraph_data
-        subgraph = copy.deepcopy(self)
-        subgraph.local_phylosopher = self.local_phylosopher
-        subgraph.local_order = self.local_order
-        subgraph.igraph_graph = sub_igraph
-        subgraph.travels_graph_data = sub_travels_map_data
+        # subgraph = None
+        # sub_igraph = self.create_local_graph()
+        # self.tabulate_subgraph_data()
+        # sub_travels_map_data = self.travels_subgraph_data
+        # subgraph = copy.deepcopy(self)
+        # subgraph.local_phylosopher = self.local_phylosopher
+        # subgraph.local_order = self.local_order
+        # subgraph.igraph_graph = sub_igraph
+        # subgraph.travels_graph_data = sub_travels_map_data
+        subgraph = self.igraph_subgraph
         return subgraph
 
     def set_colour_scale(self):
@@ -944,31 +1097,13 @@ class diogenetGraph:
 
     def get_global_edges_types(self):
         edges_types = []
-        for edge_name in self.igraph_graph.es:
+        for edge_name in self.igraph_subgraph.es:
             if edge_name["edge_name"] not in edges_types:
                 edges_types.append(edge_name["edge_name"])
         return edges_types
 
     def create_local_graph(self):
-        """Create local subgraph depending on vertex selected (i.e phylosophers)
-        """
-        local_subgraph = None
-        if self.igraph_graph is not None:
-            if self.graph_type == "local":
-                # If no vertex selected return global graph
-                if not self.local_phylosopher:
-                    print("LocalPhilosoher")
-                    # print(self.igraph_graph.vs["name"][2])
-                    local_subgraph = self.igraph_graph
-                else:
-                    neighbour_vertex = self.igraph_graph.neighborhood(
-                        self.local_phylosopher, self.local_order
-                    )
-                    local_subgraph = self.igraph_graph.induced_subgraph(
-                        neighbour_vertex
-                    )
-                self.igraph_localgraph = local_subgraph
-        return local_subgraph
+        return ()
 
     def fix_dendrogram(self, graph, cl):
         already_merged = set()
@@ -993,65 +1128,66 @@ class diogenetGraph:
 
     def identify_communities(self):
         clusters = []
+        actual_graph = self.create_subgraph()
         if self.comm_alg == "community_infomap":
-            self.comm = self.igraph_graph.community_infomap()
+            self.comm = actual_graph.community_infomap()
+            # print('community_infomap')
             # membership = comm.membership
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
 
         if self.comm_alg == "community_edge_betweenness":
-            self.comm = self.igraph_graph.community_edge_betweenness()
-            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            self.comm = actual_graph.community_edge_betweenness()
+            # print("community_edge_betweenness")
+            # print(vars(self.comm))
+            aux = self.fix_dendrogram(actual_graph, self.comm)
             clusters_ini = aux.as_clustering()
-            self.comm = clusters_ini
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_spinglass":
-            self.comm = self.igraph_graph.community_spinglass()
+            self.comm = actual_graph.community_spinglass()
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
             # membership = comm.membership
 
         if self.comm_alg == "community_walktrap":
-            self.comm = self.igraph_graph.community_walktrap()
-            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            self.comm = actual_graph.community_walktrap()
+            aux = self.fix_dendrogram(actual_graph, self.comm)
             clusters_ini = aux.as_clustering()
-            self.comm = clusters_ini
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_leiden":
-            self.comm = self.igraph_graph.community_leiden()
+            self.comm = actual_graph.community_leiden()
             # membership = self.comm.membership
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
 
         if self.comm_alg == "community_fastgreedy":
-            self.comm = self.igraph_graph.community_fastgreedy()
-            aux = self.fix_dendrogram(self.igraph_graph, self.comm)
+            self.comm = actual_graph.community_fastgreedy()
+            aux = self.fix_dendrogram(actual_graph, self.comm)
             clusters_ini = aux.as_clustering()
-            self.comm = clusters_ini
             clusters = clusters_ini.as_cover()
             modularity = clusters_ini.modularity
             # membership = clusters.membership
 
         if self.comm_alg == "community_leading_eigenvector":
-            self.comm = self.igraph_graph.community_leading_eigenvector()
+            self.comm = actual_graph.community_leading_eigenvector()
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
             # membership = self.comm.membership
 
         if self.comm_alg == "community_label_propagation":
-            self.comm = self.igraph_graph.community_label_propagation()
+            self.comm = actual_graph.community_label_propagation()
             # membership = self.comm.membership
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
 
         if self.comm_alg == "community_multilevel":
-            self.comm = self.igraph_graph.community_multilevel()
+            self.comm = actual_graph.community_multilevel()
             clusters = self.comm.as_cover()
             modularity = self.comm.modularity
             # membership = self.comm.membership
@@ -1068,7 +1204,7 @@ class diogenetGraph:
         return (modularity, comm_Dict)
 
     def get_cut_vertices(self):
-        cutVertices = self.igraph_graph.cut_vertices()
+        cutVertices = self.igraph_subgraph.cut_vertices()
         return cutVertices
 
 
@@ -1106,14 +1242,24 @@ communities_graph = diogenetGraph(
 
 
 def map_graph_change_dataset(dataset):
-    if dataset == "life_of_pithagoras":
+    global map_graph
+    if dataset == "iamblichus":
         map_graph = diogenetGraph(
             "map",
-            "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
             "new_Nodes_Life_of_Pythagoras_Iamblichus.csv",
+            "new_Edges_Life_of_Pythagoras_Iamblichus.csv",
             LOCATIONS_DATA_FILE,
             TRAVELS_BLACK_LIST_FILE,
         )
+    else:
+        map_graph = diogenetGraph(
+            "map",
+            NODES_DATA_FILE,
+            EDGES_DATA_FILE,
+            LOCATIONS_DATA_FILE,
+            TRAVELS_BLACK_LIST_FILE,
+        )
+    return map_graph
 
 
 # communities_graph.comm_alg = 'community_infomap'                          # OK

@@ -9,7 +9,15 @@ from flask import (
 )
 from igraph import *
 from igraph import layout
-from .network_graph import global_graph, map_graph, local_graph, communities_graph
+from traitlets.traitlets import Undefined
+from .network_graph import (
+    global_graph,
+    map_graph,
+    local_graph,
+    communities_graph,
+    map_graph_change_dataset,
+)
+
 import os
 import tempfile
 import random
@@ -50,6 +58,9 @@ HTML_PLOT_CONTENT = """<!DOCTYPE html>
 </body>
 </html> 
 """
+JSON_HEADER = {"Content-Type": "application/json"}
+HTML_SUFFIX = ".html"
+DEFAULT_FILTER_VALUE = "is teacher of"
 
 
 @app.route("/")
@@ -91,12 +102,13 @@ def get_map_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        subgraph = grafo.get_subgraph()
-        data = subgraph.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
-        all_data = subgraph.get_max_min()
+        grafo.create_subgraph()
+        # subgraph = grafo.get_subgraph()
+        data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
+        all_data = grafo.get_max_min()
     if data:
         all_data["data"] = data
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(all_data), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -109,9 +121,8 @@ def get_map_data_table(filter_string):
         filters = filter_string.split(";")
         for m_filter in filters:
             graph.set_edges_filter(m_filter)
-        subgraph = graph.get_subgraph()
-        graph = subgraph
-
+        graph.create_subgraph()
+        # graph = subgraph
     return (
         graph.get_vertex_names(),
         graph.calculate_degree(),
@@ -122,47 +133,70 @@ def get_map_data_table(filter_string):
 
 
 def get_global_data_table(filter_string):
-    graph = None
-    graph = global_graph
-    subgraph = None
 
-    filters = filter_string.split(";")
-    for m_filter in filters:
-        graph.set_edges_filter(m_filter)
-    subgraph = graph.get_subgraph()
+    if global_graph:
+        # graph = None
+        # graph = global_graph
+        # print('graph')
+        # print(graph)
+        # subgraph = None
 
-    return (
-        subgraph,
-        subgraph.get_vertex_names(),
-        subgraph.calculate_degree(),
-        subgraph.calculate_betweenness(),
-        subgraph.calculate_closeness(),
-        subgraph.calculate_eigenvector(),
-    )
+        filters = filter_string.split(";")
+        # print(filters)
+        global_graph.edges_filter = []
+        for m_filter in filters:
+            global_graph.set_edges_filter(m_filter)
+        # print("graph.current_edges")
+        # print(graph.current_edges)
+        global_graph.create_subgraph()
+        # subgraph = graph.get_subgraph()
+        # print('subgraph')
+        # print(subgraph)
+        # graph = global_graph
+        # global_graph.get_vertex_names()
+
+        return (
+            global_graph,
+            global_graph.get_vertex_names(),
+            global_graph.calculate_degree(),
+            global_graph.calculate_betweenness(),
+            global_graph.calculate_closeness(),
+            global_graph.calculate_eigenvector(),
+        )
 
 
 def get_local_data_table(filter_string, ego_value, order_value):
-    graph = None
-    graph = local_graph
-    subgraph = None
 
-    graph.local_phylosopher = ego_value if ego_value else "Plato"
-    graph.local_order = int(order_value) if order_value else 1
+    if local_graph:
+        # subgraph = None
 
-    filters = filter_string.split(";")
-    for m_filter in filters:
-        graph.set_edges_filter(m_filter)
+        if ego_value not in [None, "None"]:
+            local_graph.local_phylosopher = ego_value
+        else:
+            local_graph.local_phylosopher = "Plato"
 
-    graph = graph.get_localgraph()
-    subgraph = graph.get_subgraph()
+        if order_value not in [None, "None"]:
+            local_graph.local_order = int(order_value)
+        else:
+            local_graph.local_order = 1
+
+        filters = filter_string.split(";")
+        local_graph.edges_filter = []
+        for m_filter in filters:
+            local_graph.set_edges_filter(m_filter)
+
+        local_graph.create_subgraph()
+        # graph = graph.get_localgraph()
+        # subgraph = graph.get_subgraph()
+        # graph = local_graph
 
     return (
-        subgraph,
-        subgraph.get_vertex_names(),
-        subgraph.calculate_degree(),
-        subgraph.calculate_betweenness(),
-        subgraph.calculate_closeness(),
-        subgraph.calculate_eigenvector(),
+        local_graph,
+        local_graph.get_vertex_names(),
+        local_graph.calculate_degree(),
+        local_graph.calculate_betweenness(),
+        local_graph.calculate_closeness(),
+        local_graph.calculate_eigenvector(),
     )
 
 
@@ -176,9 +210,9 @@ def get_metrics_table():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
-    if not graph_type:
+    if graph_type in [None, "None"]:
         graph_type = "map"
-    if not map_filter:
+    if map_filter in [None, "None"]:
         map_filter = "All"
 
     data = []
@@ -186,14 +220,10 @@ def get_metrics_table():
     cities = degree = betweeness = closeness = eigenvector = []
 
     if graph_type == "map":
-        (
-            grafo,
-            cities,
-            degree,
-            betweeness,
-            closeness,
-            eigenvector,
-        ) = get_map_data_table(map_filter)
+        (cities, degree, betweeness, closeness, eigenvector,) = get_map_data_table(
+            map_filter
+        )
+        grafo = map_graph
     elif graph_type == "global":
         (
             grafo,
@@ -237,7 +267,7 @@ def get_metrics_table():
     data_table["CityData"] = data
 
     if data:
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(data_table), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -253,7 +283,8 @@ def get_graph_data():
     label_min_max = str(request.args.get("label_min_max"))
     map_filter = str(request.args.get("filter"))
     graph_layout = str(request.args.get("layout"))
-    selected_edges = str(request.args.get("edges"))
+
+    # selected_edges = str(request.args.get("edges"))
 
     grafo = map_graph
 
@@ -286,10 +317,11 @@ def get_graph_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        subgraph = grafo.get_subgraph()
-        pvis_graph = subgraph.get_pyvis()
+        grafo.create_subgraph()
+        # subgraph = grafo.get_subgraph()
+        pvis_graph = grafo.get_pyvis()
     if pvis_graph:
-        temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+        temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         pvis_graph.write_html(full_filename)
         return send_from_directory("temp", temp_file_name)
@@ -318,20 +350,35 @@ def horus_get_graph():
     order_value = str(request.args.get("order"))
     algorithm_value = str(request.args.get("algorithm"))
     plot_type = str(request.args.get("plot"))
+    differentiate_gender = str(request.args.get("diffGodGender"))
+    show_crossing_ties = str(request.args.get("showCrossingTies"))
 
     if not plot_type or plot_type == "" or plot_type == "None":
         plot_type = "pyvis"
 
     if graph_type == "local":
         grafo = local_graph
-        grafo.local_phylosopher = ego_value if ego_value else "Plato"
-        grafo.local_order = int(order_value) if order_value else 1
+
+        if ego_value not in [Undefined, None, "undefined"]:
+            grafo.local_phylosopher = ego_value
+        else:
+            grafo.local_phylosopher = "Plato"
+
+        if order_value not in [None, Undefined, "undefined"]:
+            grafo.local_order = int(order_value)
+        else:
+            grafo.local_order = 1
+
     elif graph_type == "community":
         grafo = communities_graph
         if algorithm_value == "" or algorithm_value == "None":
             algorithm_value = "community_infomap"
         grafo.comm_alg = algorithm_value
-
+        grafo.identify_communities()
+        if show_crossing_ties in ["True", "true"]:
+            grafo.pyvis_show_crossing_ties = True
+        else:
+            grafo.pyvis_show_crossing_ties = False
     else:
         grafo = global_graph
 
@@ -351,7 +398,7 @@ def horus_get_graph():
         label_min_max = "4,6"
 
     if not graph_filter:
-        graph_filter = "is teacher of"
+        graph_filter = DEFAULT_FILTER_VALUE
         grafo.set_edges_filter(graph_filter)
     else:
         grafo.edges_filter = []
@@ -367,14 +414,21 @@ def horus_get_graph():
     label_min_size = int(label_min_max.split(",")[0])
     label_max_size = int(label_min_max.split(",")[1])
 
-    if graph_type == "local":
-        grafo = grafo.get_localgraph()
+    #    if graph_type == "local":
+    #        grafo.create_local_graph()
+    #        grafo = grafo.get_localgraph()
 
-    subgraph = grafo.get_subgraph()
+    if differentiate_gender in ["True", "true"]:
+        grafo.pyvis_show_gender = True
+    else:
+        grafo.pyvis_show_gender = False
+
+    grafo.create_subgraph()
+    # subgraph = grafo
 
     pvis_graph = None
     if plot_type == "pyvis":
-        pvis_graph = subgraph.get_pyvis(
+        pvis_graph = grafo.get_pyvis(
             min_weight=node_min_size,
             max_weight=node_max_size,
             min_label_size=label_min_size,
@@ -384,16 +438,16 @@ def horus_get_graph():
         )
     full_filename = ""
     if pvis_graph or plot_type == "igraph":
-        suffix = ".svg" if plot_type == "igraph" else ".html"
+        suffix = ".svg" if plot_type == "igraph" else HTML_SUFFIX
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
-            modularity, clusters = subgraph.identify_communities()
-            subgraph.igraph_graph.vs["label"] = subgraph.igraph_graph.vs["name"]
+            modularity, clusters = grafo.identify_communities()
+            grafo.igraph_subgraph.vs["label"] = grafo.igraph_subgraph.vs["name"]
             plot(
-                subgraph.comm,
+                grafo.comm,
                 full_filename,
-                layout=subgraph.graph_layout,
+                layout=grafo.graph_layout,
                 bbox=(450, 450),
                 margin=20,
                 mark_groups=True,
@@ -405,7 +459,9 @@ def horus_get_graph():
             with open(full_filename, "r") as file:
                 data = file.read().replace('width="450pt"', 'width="100%"')
                 full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
-                temp_html_file_name = next(tempfile._get_candidate_names()) + ".html"
+                temp_html_file_name = (
+                    next(tempfile._get_candidate_names()) + HTML_SUFFIX
+                )
                 full_html_filename = os.path.join(
                     app.root_path, "temp", temp_html_file_name
                 )
@@ -424,13 +480,29 @@ def horus_get_graph():
 def horus_get_filosophers():
     if request.method != "GET":
         return make_response(MALFORMED_REQUEST, 400)
+
+    graph_filter = str(request.args.get("filter"))
+
+    grafo = global_graph
+
+    if not graph_filter:
+        graph_filter = DEFAULT_FILTER_VALUE
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
     data = []
-    for philosopher in global_graph.igraph_graph.vs:
+    grafo.create_subgraph()
+
+    for philosopher in grafo.igraph_subgraph.vs:
         data.append({"name": philosopher["name"]})
 
     sorted_data = sorted(data, key=lambda k: k["name"])
     if data:
-        headers = {"Content-Type": "application/json"}
+        headers = JSON_HEADER
         return make_response(jsonify(sorted_data), 200, headers)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
@@ -447,12 +519,24 @@ def horus_get_heatmap():
     ego_value = str(request.args.get("ego"))
     order_value = str(request.args.get("order"))
 
+    grafo = global_graph
+
+    if not graph_filter:
+        graph_filter = DEFAULT_FILTER_VALUE
+        grafo.set_edges_filter(graph_filter)
+    else:
+        grafo.edges_filter = []
+        filters = graph_filter.split(";")
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
     if graph_type == "local":
-        grafo = local_graph
+        # grafo = local_graph
         grafo.local_phylosopher = ego_value if ego_value else "Plato"
         grafo.local_order = int(order_value) if order_value else 1
-    else:
-        grafo = global_graph
+        grafo.create_local_graph()
+    # else:
+    #    grafo = global_graph
 
     # if graph_type == "local":
     #     grafo = local_graph
@@ -464,21 +548,14 @@ def horus_get_heatmap():
     # else:
     #     grafo = global_graph
 
-    if not graph_filter:
-        graph_filter = "is teacher of"
-        grafo.set_edges_filter(graph_filter)
-    else:
-        grafo.edges_filter = []
-        filters = graph_filter.split(";")
-        for m_filter in filters:
-            grafo.set_edges_filter(m_filter)
-
-    if graph_type == "local":
-        grafo = grafo.get_localgraph()
-    subgraph = grafo.get_subgraph()
+    # if graph_type == "local":
+    #    grafo.create_local_graph()
+    # grafo = grafo.get_localgraph()
+    # subgraph = grafo.get_subgraph()
+    subgraph = grafo
 
     data = {
-        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
         "Degree": subgraph.calculate_degree(),
         "Betweeness": subgraph.calculate_betweenness(),
         "Closeness": subgraph.calculate_closeness(),
@@ -537,7 +614,7 @@ def horus_get_heatmap():
         legend_font_size=12, legend_title_font_size=12, font_size=8
     )
 
-    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")
@@ -563,7 +640,7 @@ def horus_get_treemap():
     grafo.comm_alg = algorithm_value
 
     if not graph_filter:
-        graph_filter = "is teacher of"
+        graph_filter = DEFAULT_FILTER_VALUE
         grafo.set_edges_filter(graph_filter)
     else:
         grafo.edges_filter = []
@@ -571,18 +648,22 @@ def horus_get_treemap():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
 
-    subgraph = grafo.get_subgraph()
+    # subgraph = grafo.get_subgraph()
+    grafo.create_subgraph()
+    subgraph = grafo
 
     modularity, clusters_dict = subgraph.identify_communities()
 
     communities_index = []
 
-    for i in range(len(subgraph.igraph_graph.vs)):
-        if subgraph.igraph_graph.vs[i]["name"] in clusters_dict.keys():
-            communities_index.append(clusters_dict[subgraph.igraph_graph.vs[i]["name"]])
+    for i in range(len(subgraph.igraph_subgraph.vs)):
+        if subgraph.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(
+                clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]]
+            )
 
     data = {
-        "Philosopher": subgraph.igraph_graph.vs["name"],
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
         "Degree": subgraph.calculate_degree(),
         "Community": communities_index,
     }
@@ -609,16 +690,24 @@ def horus_get_treemap():
         legend_font_size=12, legend_title_font_size=12, font_size=8
     )
 
-    temp_file_name = next(tempfile._get_candidate_names()) + ".html"
+    temp_file_name = next(tempfile._get_candidate_names()) + HTML_SUFFIX
     full_filename = os.path.join(app.root_path, "temp", temp_file_name)
     plotly_graph.write_html(full_filename)
     print("Sending " + full_filename + " file")
     return send_from_directory("temp", temp_file_name)
 
 
-@app.route("/horus/set/dataset")
+@app.route("/map/set/dataset")
 def horus_set_dataset():
-    graph_filter = str(request.args.get("filter"))
-    graph_type = str(request.args.get("graph_type"))
-    ego_value = str(request.args.get("ego"))
-    order_value = str(request.args.get("order"))
+    if request.method != "GET":
+        return make_response(MALFORMED_REQUEST, 400)
+
+    dataset = str(request.args.get("dataset"))
+
+    if not dataset or dataset != "iamblichus":
+        map_graph_change_dataset("diogenes_laertius")
+    else:
+        map_graph_change_dataset("iamblichus")
+
+    return make_response(jsonify({"success": True}), 200, JSON_HEADER)
+
