@@ -82,6 +82,7 @@ def get_map_data():
     min_max = str(request.args.get("min_max"))
     map_filter = str(request.args.get("filter"))
     grafo = map_graph
+    #grafo.create_subgraph()
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -102,6 +103,8 @@ def get_map_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
+        print('Filters')
+        print(filters)    
         grafo.create_subgraph()
         # subgraph = grafo.get_subgraph()
         data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
