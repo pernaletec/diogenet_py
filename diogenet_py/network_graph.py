@@ -86,6 +86,13 @@ EDGES_COLORS = [
     "#bad80a",
 ]
 
+arrow_valid_filters = [
+    "is teacher of",
+    "sent letters to",
+    "studied the work of",
+]
+
+
 GRAPHML_SUFFIX = ".graphml"
 
 
@@ -94,6 +101,7 @@ def get_graphml_temp_file():
     full_filename = os.path.join(
         pathlib.Path().absolute(), "diogenet_py", temp_file_name
     )
+    print(full_filename)
     return full_filename
 
 
@@ -668,7 +676,13 @@ class diogenetGraph:
             "font": {"size": min_label_size + 8},
             "scaling": {"min": min_label_size, "max": max_label_size},
         }
+
         show_arrows = True
+
+        for filter in self.edges_filter:
+            if filter not in arrow_valid_filters:
+                show_arrows = False
+
         if self.graph_type == "communities" and len(self.edges_filter) > 1:
             show_arrows = False
 
