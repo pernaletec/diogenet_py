@@ -658,10 +658,11 @@ class diogenetGraph:
             if layout == "kk":
                 self.graph_layout = self.igraph_subgraph.layout_kamada_kawai()
                 self.graph_layout_name = "kk"
+                self.factor = 80
             elif layout == "grid_fr":
                 self.graph_layout = self.igraph_subgraph.layout_grid()
                 self.graph_layout_name = "grid_fr"
-                self.factor = 150
+                self.factor = 80
             elif layout == "circle":
                 self.graph_layout = self.igraph_subgraph.layout_circle()
                 self.graph_layout_name = "circle"
@@ -675,6 +676,7 @@ class diogenetGraph:
             else:
                 self.graph_layout = self.igraph_subgraph.layout_fruchterman_reingold()
                 self.graph_layout_name = "fr"
+                self.factor = 50
 
             self.Xn = [self.graph_layout[k][0] for k in range(N)]
             self.Yn = [self.graph_layout[k][1] for k in range(N)]
