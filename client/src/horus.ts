@@ -244,6 +244,12 @@ function updateGraph(
     case "local": {
       currentFilter = getCheckedRelations();
       let srcURL: string;
+      if (activeTab == "local-central-graph") {
+        currentLayout = getGraphLayout();
+      } else {
+        currentLayout = "fr";
+      }
+
       if (currentFilter === "") {
         srcURL = "";
       } else {
@@ -262,6 +268,8 @@ function updateGraph(
             getEgo() +
             "&order=" +
             getOrder() +
+            "&layout=" +
+            currentLayout +
             "&diffGodGender=" +
             differentiateGenderandGods
         );
@@ -622,9 +630,6 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
       let tab2Click = activeMenuItem.tabs[0];
       const tabName = "#" + tab2Click;
       $(tabName + " a").trigger("click");
-      console.log("Tabname: " + tabName);
-      console.log("selectedTab: " + selectedTab);
-      console.log("activeTab: " + activeTab);
       activeTab = selectedTab;
     }
     mustUpdateTab = true;
