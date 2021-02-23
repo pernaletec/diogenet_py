@@ -21,7 +21,7 @@ import os
 import tempfile
 import pathlib
 
-import rpy2.robjects as robjects
+# import rpy2.robjects as robjects
 
 # import cairocffi
 #  I need to see how to handle the locations
@@ -164,13 +164,13 @@ class diogenetGraph:
     comm_igraph = None
 
     # Load the R subsystem
-    r = robjects.r
-    r["source"]("diogenet_py//igraph_libraries.R")
-    # Loading the R functions
-    centralization_degree_r = robjects.globalenv["get_degree"]
-    centralization_closeness_r = robjects.globalenv["get_closeness"]
-    centralization_betweenness_r = robjects.globalenv["get_betweenness"]
-    centralization_eigenvector_r = robjects.globalenv["get_eigenvector"]
+    # r = robjects.r
+    # r["source"]("diogenet_py//igraph_libraries.R")
+    # # Loading the R functions
+    # centralization_degree_r = robjects.globalenv["get_degree"]
+    # centralization_closeness_r = robjects.globalenv["get_closeness"]
+    # centralization_betweenness_r = robjects.globalenv["get_betweenness"]
+    # centralization_eigenvector_r = robjects.globalenv["get_eigenvector"]
 
     def __init__(
         self,
