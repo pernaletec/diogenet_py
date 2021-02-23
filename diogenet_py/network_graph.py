@@ -509,7 +509,10 @@ class diogenetGraph:
             actual_graph.write_graphmlz(full_filename, 1)
 
             # run R script
-            cent_degree = self.centralization_degree_r(full_filename)
+            # cent_degree = self.centralization_degree_r(full_filename)
+            # Commented out to fix R subsystem crash by elinarezv
+            cent_degree = []
+            cent_degree.append(1)
             # Delete temp file
             os.remove(full_filename)
 
@@ -524,7 +527,10 @@ class diogenetGraph:
             actual_graph.write_graphmlz(full_filename, 1)
 
             # run R script
-            cent_betweenness = self.centralization_betweenness_r(full_filename)
+            # cent_betweenness = self.centralization_betweenness_r(full_filename)
+            # Commented out to fix R subsystem crash by elinarezv
+            cent_betweenness = []
+            cent_betweenness.append(1)
             # Delete temp file
             os.remove(full_filename)
 
@@ -539,7 +545,10 @@ class diogenetGraph:
             actual_graph.write_graphmlz(full_filename, 1)
 
             # run R script
-            cent_closeness = self.centralization_closeness_r(full_filename)
+            # cent_closeness = self.centralization_closeness_r(full_filename)
+            # Commented out to fix R subsystem crash by elinarezv
+            cent_closeness = []
+            cent_closeness.append(1)
             # Delete temp file
             os.remove(full_filename)
 
@@ -554,7 +563,10 @@ class diogenetGraph:
             actual_graph.write_graphmlz(full_filename, 1)
 
             # run R script
-            cent_eigenvector = self.centralization_eigenvector_r(full_filename)
+            # cent_eigenvector = self.centralization_eigenvector_r(full_filename)
+            # Commented out to fix R subsystem crash by elinarezv
+            cent_eigenvector = []
+            cent_eigenvector.append(1)
             # Delete temp file
             os.remove(full_filename)
 
