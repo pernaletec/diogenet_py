@@ -564,7 +564,7 @@ class diogenetGraph:
         """Return names for each vertex of the graph
         """
         if self.igraph_graph is not None:
-            #self.create_subgraph()
+            # self.create_subgraph()
             vertex_names = []
             for vertex in self.igraph_subgraph.vs:
                 vertex_names.append(vertex["name"])
@@ -574,7 +574,7 @@ class diogenetGraph:
         """Return names for each edge of the graph
         """
         if self.igraph_graph is not None:
-            #self.create_subgraph()
+            # self.create_subgraph()
             edges_names = []
             for edges in self.igraph_subgraph.es:
                 print(edges)
@@ -658,7 +658,7 @@ class diogenetGraph:
             if layout == "kk":
                 self.graph_layout = self.igraph_subgraph.layout_kamada_kawai()
                 self.graph_layout_name = "kk"
-            elif layout == "gr  id_fr":
+            elif layout == "grid_fr":
                 self.graph_layout = self.igraph_subgraph.layout_grid()
                 self.graph_layout_name = "grid_fr"
                 self.factor = 150
@@ -904,12 +904,12 @@ class diogenetGraph:
             centrality_indexes_max = max(centrality_indexes)
 
             map = []
-            #nodes = self.get_edges_names()
+            # nodes = self.get_edges_names()
             nodes = self.get_vertex_names()
-            #print("self.travels_graph_data")
-            #print(self.travels_graph_data)
-            #print("nodes")
-            #print(nodes)
+            # print("self.travels_graph_data")
+            # print(self.travels_graph_data)
+            # print("nodes")
+            # print(nodes)
             map_dict_strings = [
                 "Source",
                 "Destination",
@@ -986,8 +986,8 @@ class diogenetGraph:
         if self.igraph_graph is not None:
             edges = self.igraph_graph.es
             edge_names = self.igraph_graph.es["edge_name"]
-            #print('edge_names')
-            #print(edge_names)
+            # print('edge_names')
+            # print(edge_names)
             if not self.edges_filter:
                 if self.graph_type == "map":
                     edges_filter = edge_names
