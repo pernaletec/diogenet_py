@@ -5,6 +5,7 @@ from flask import (
     make_response,
     request,
     send_from_directory,
+    send_file,
     jsonify,
 )
 from igraph import *
@@ -82,7 +83,7 @@ def get_map_data():
     min_max = str(request.args.get("min_max"))
     map_filter = str(request.args.get("filter"))
     grafo = map_graph
-    #grafo.create_subgraph()
+    # grafo.create_subgraph()
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -103,8 +104,8 @@ def get_map_data():
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        print('Filters')
-        print(filters)    
+        print("Filters")
+        print(filters)
         grafo.create_subgraph()
         # subgraph = grafo.get_subgraph()
         data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
@@ -446,21 +447,32 @@ def horus_get_graph():
         full_filename = os.path.join(app.root_path, "temp", temp_file_name)
         if plot_type == "igraph":
             modularity, clusters = grafo.identify_communities()
+            dendogram_communities_list = [
+                "community_edge_betweenness",
+                "community_walktrap",
+                "community_fastgreedy",
+            ]
             grafo.igraph_subgraph.vs["label"] = grafo.igraph_subgraph.vs["name"]
-            plot(
-                grafo.comm,
-                full_filename,
-                layout=grafo.graph_layout,
-                bbox=(450, 450),
-                margin=20,
-                mark_groups=True,
-                vertex_label_size=7,
-                vertex_label_angle=200,
-                vertex_label_dist=1,
-                vertex_size=8,
-            )
+            if grafo.comm_alg not in dendogram_communities_list:
+                plot(
+                    grafo.comm,
+                    full_filename,
+                    layout=grafo.graph_layout,
+                    bbox=(450, 450),
+                    margin=20,
+                    mark_groups=True,
+                    vertex_label_size=7,
+                    vertex_label_angle=200,
+                    vertex_label_dist=1,
+                    vertex_size=8,
+                )
+            else:
+                full_filename = os.path.join(app.root_path, "not_available.svg")
             with open(full_filename, "r") as file:
-                data = file.read().replace('width="450pt"', 'width="100%"')
+                if grafo.comm_alg not in dendogram_communities_list:
+                    data = file.read().replace('width="450pt"', 'width="100%"')
+                else:
+                    data = file.read()
                 full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
                 temp_html_file_name = (
                     next(tempfile._get_candidate_names()) + HTML_SUFFIX
@@ -472,9 +484,11 @@ def horus_get_graph():
                 _ = full_html_file.write(full_html_file_content)
                 full_html_file.close()
                 full_filename = full_html_filename
+
         else:
             pvis_graph.write_html(full_filename)
-        return send_from_directory("temp", temp_file_name)
+        print(full_filename)
+        return send_file(full_filename)
     else:
         return make_response(MAP_GRAPH_ERROR, 400)
 
