@@ -363,12 +363,12 @@ def horus_get_graph():
     if graph_type == "local":
         grafo = local_graph
 
-        if ego_value not in [Undefined, None, "undefined"]:
+        if ego_value not in [Undefined, None, "undefined", ""]:
             grafo.local_phylosopher = ego_value
         else:
             grafo.local_phylosopher = "Plato"
 
-        if order_value not in [None, Undefined, "undefined"]:
+        if order_value not in [Undefined, None, "undefined", ""]:
             grafo.local_order = int(order_value)
         else:
             grafo.local_order = 1
