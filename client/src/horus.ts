@@ -572,7 +572,7 @@ function drawScreen(selectedMenu: string, selectedTab: string) {
       }
       case "local": {
         activeMenu = "local";
-        showLayoutControl(false);
+        showLayoutControl(true);
         showDegreeControl(false);
         showOrderControl(true);
         showAppearenceControls(true);
