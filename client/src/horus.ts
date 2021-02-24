@@ -243,12 +243,13 @@ function updateGraph(
     }
     case "local": {
       currentFilter = getCheckedRelations();
+      currentLayout = getGraphLayout();
       let srcURL: string;
-      if (activeTab == "local-central-graph") {
-        currentLayout = getGraphLayout();
-      } else {
-        currentLayout = "fr";
-      }
+      //   if (activeTab == "local-central-graph") {
+      //     currentLayout = getGraphLayout();
+      //   } else {
+      //     currentLayout = "fr";
+      //   }
 
       if (currentFilter === "") {
         srcURL = "";
