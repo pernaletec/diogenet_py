@@ -83,7 +83,6 @@ def get_map_data():
     min_max = str(request.args.get("min_max"))
     map_filter = str(request.args.get("filter"))
     grafo = map_graph
-    # grafo.create_subgraph()
 
     if centrality_index:
         grafo.current_centrality_index = centrality_index
@@ -97,19 +96,16 @@ def get_map_data():
 
     all_data = {}
     data = None
-    if map_filter == "All":
-        data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
-        all_data = grafo.get_max_min()
-    else:
+    if map_filter != "All":
         filters = map_filter.split(";")
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
-        print("Filters")
-        print(filters)
-        grafo.create_subgraph()
-        # subgraph = grafo.get_subgraph()
-        data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
-        all_data = grafo.get_max_min()
+    else:
+        grafo.edges_filter = []
+    grafo.create_subgraph()
+    data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
+    all_data = grafo.get_max_min()
+
     if data:
         all_data["data"] = data
         headers = JSON_HEADER
@@ -716,15 +712,16 @@ def horus_get_treemap():
 
 @app.route("/map/set/dataset")
 def horus_set_dataset():
+    global map_graph
     if request.method != "GET":
         return make_response(MALFORMED_REQUEST, 400)
 
     dataset = str(request.args.get("dataset"))
 
     if not dataset or dataset != "iamblichus":
-        map_graph_change_dataset("diogenes_laertius")
+        map_graph = map_graph_change_dataset("diogenes_laertius")
     else:
-        map_graph_change_dataset("iamblichus")
+        map_graph = map_graph_change_dataset("iamblichus")
 
     return make_response(jsonify({"success": True}), 200, JSON_HEADER)
 

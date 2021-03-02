@@ -279,6 +279,7 @@ function updateMap() {
   const currentCentrality = getCentralityIndex();
   const nodeSizes = $(".node-range-slider").val() as string;
   let currentFilter = getFilter();
+  console.log("Current Filters: " + currentFilter);
   if (currentFilter === "") {
     currentFilter = "All";
   }
