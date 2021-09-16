@@ -1,82 +1,204 @@
-{% extends "sidebar_base.html" %}
-{% block title %}Map{% endblock title %}
-{% block page_name %}Diogenet&apos;s Map{% endblock page_name %}
-
-{% block head %}
-  {{ super() }}
-  <script src="/static/client/map.bundle.js" type="text/javascript"></script>
-{% endblock head %}
-
-{% block sidebar %}
-  <div class="form-group my-5">
-    <label class="label" for="traveler">Traveler:</label>
-    <select class="custom-select" name="traveler" id="traveler">
-      <option value="1">Traveler #1</option>
-      <option value="2">Traveler #2</option>
-      <option value="3">Traveler #3</option>
-      <option value="4">Traveler #4</option>
-    </select>
+{% extends "sidebar_base.html" %} {% block title %}Map{% endblock title %} {%
+block page_name %}Diogenet&apos;s Map{% endblock page_name %} {% block
+page_style %}
+<link
+  rel="stylesheet"
+  href="/static/client/map_styles.bundle.css"
+  type="text/css"
+/>
+<link
+  rel="stylesheet"
+  href="/static/css/dataTables.bootstrap4.min.css"
+  type="text/css"
+/>
+{% endblock page_style %} {% block head %} {{ super() }}
+<script src="/static/client/map.bundle.js" type="text/javascript"></script>
+<script
+  src="/static/js/jquery.dataTables.min.js"
+  type="text/javascript"
+></script>
+<script
+  src="/static/js/dataTables.bootstrap4.min.js"
+  type="text/javascript"
+></script>
+{% endblock head %} {% block sidebar %}
+<div class="form-group my-2">
+  <label class="label" for="dataset_selector">Select Dataset:</label>
+  <select class="custom-select" id="dataset_selector">
+    <option value="diogenes_laertius">
+      Diogenes Laertius, Lives of Philosophers
+    </option>
+    <option value="iamblichus">Iamblichus, Life of Pythagoras</option>
+  </select>
+</div>
+<div class="form-group my-3">
+  <label class="label" for="traveler">Filter by Travelers:</label>
+  <div class="input-group mb-3">
+    <select class="custom-select" name="traveler" id="traveler"></select>
+    <div class="input-group-append">
+      <button
+        id="filter_add"
+        type="button"
+        class="btn btn-primary"
+        style="color: white"
+      >
+        Add to Filter
+      </button>
+    </div>
   </div>
-  <div class="form-group my-5">
-    <label class="label" for="centrality-index">Centrality index:</label>
-    <select class="custom-select" name="centrality-index" id="centrality-index">
-      <option value="1">Centrality Index #1</option>
-      <option value="2">Centrality Index #2</option>
-      <option value="3">Centrality Index #3</option>
-      <option value="4">Centrality Index #4</option>
-    </select>
+  <div class="form-group mb-3">
+    <select
+      class="custom-select"
+      name="travelers_filter"
+      id="travelers_filter"
+      size="5"
+    ></select>
+    <button
+      id="filter_clear"
+      type="button"
+      class="form-control btn-sm btn-secondary"
+      style="color: white"
+    >
+      Clear Filters
+    </button>
   </div>
-  <div class="my-5">
-    <h5>Appareance:</h5>
-    <div class="form-group">
-      <label class="label" for="label-size">Label size:</label>
-      <input type="range"
-             name="label-size"
-             id="label-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
+  <button
+    id="filter_apply"
+    type="button"
+    class="form-control btn-sm btn-primary"
+    style="color: white"
+  >
+    Apply Filters
+  </button>
+</div>
+<div class="form-group my-3">
+  <label class="label" for="centrality-index">Centrality index:</label>
+  <select class="custom-select" name="centrality-index" id="centrality-index">
+    <option value="1">Degree</option>
+    <option value="2">Betweeness</option>
+    <option value="3">Closeness</option>
+    <option value="4">Eigenvector</option>
+  </select>
+</div>
+<div class="my-3">
+  <h5 id="appareance-label">Appareance:</h5>
+  <div class="form-group" id="node-size-div">
+    <label class="label" for="node-size" style="padding-bottom: 15px"
+      >Node size:</label
+    >
+    <div class="d-flex">
+      <div class="m-auto pb-10">
+        <input
+          type="hidden"
+          name="node-size"
+          id="node-size"
+          class="node-range-slider"
+          value="4,6"
+        />
       </div>
     </div>
-    <div class="form-group">
-      <label class="label" for="node-size">Node size:</label>
-      <input type="range"
-             name="node-size"
-             id="node-size"
-             class="custom-range"
-             min="1"
-             max="11" />
-      <div class="row">
-        <div class="col-4 text-left">1</div>
-        <div class="col-4 text-center">6</div>
-        <div class="col-4 text-right">11</div>
+  </div>
+  <div class="form-group" id="label-size-div">
+    <label class="label" for="label-size" style="padding-bottom: 15px"
+      >Label size:</label
+    >
+    <div class="d-flex">
+      <div class="m-auto pb-10">
+        <input
+          type="hidden"
+          name="label-size"
+          id="label-size"
+          class="label-range-slider"
+          value="4,6"
+        />
       </div>
     </div>
   </div>
-{% endblock sidebar %}
-
-{% block main %}
-  <div class="col-9 p-1">
-    <ul class="nav nav-tabs nav-tabs-square border-top border-left border-right">
-      <li class="nav-item">
-        <a class="nav-link border-top-0 border-left-0 rounded-0" href="#">1</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link active border-top-0 rounded-0" href="#">2</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" href="#">3</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link border-top-0 rounded-0" href="#">4</a>
-      </li>
-    </ul>
-    <div class="border border-top-0 p-2">
-      Hello
+</div>
+{% endblock sidebar %} {% block main %}
+<div class="main-container">
+  <ul
+    class="nav nav-tabs nav-tabs-square border-top border-left border-right"
+    role="tablist"
+  >
+    <li class="nav-item">
+      <!-- Map container -->
+      <a
+        class="nav-link active border-top-0 border-left-0 rounded-0"
+        id="map-tab"
+        href="#map"
+        role="tab"
+        aria-controls="map"
+        aria-selected="true"
+        data-toggle="tab"
+        >Map</a
+      >
+    </li>
+    <li class="nav-item">
+      <a
+        class="nav-link border-top-0 rounded-0"
+        id="metrics-tab"
+        href="#metrics"
+        role="tab"
+        aria-controls="metrics"
+        aria-selected="true"
+        data-toggle="tab"
+        >Metrics</a
+      >
+    </li>
+    <li class="nav-item">
+      <a
+        class="nav-link border-top-0 rounded-0"
+        id="graph-tab"
+        href="#graph"
+        role="tab"
+        aria-controls="graph"
+        aria-selected="true"
+        data-toggle="tab"
+        >Graph</a
+      >
+    </li>
+  </ul>
+  <div class="tab-content main-container" id="mapsTabContent">
+    <div
+      class="tab-pane fade show active tab-container"
+      id="map"
+      role="tabpanel"
+      aria-labelledby="map-tab"
+    ></div>
+    <div
+      class="tab-pane fade"
+      id="metrics"
+      role="tabpanel"
+      aria-labelledby="metrics-tab"
+    >
+      <h4>Centralization Scores</h4>
+      <table
+        id="centralization-table"
+        class="table table-striped table-bordered mb-10"
+        style="width: 100%"
+      >
+        <thead class="bg-primary"></thead>
+      </table>
+      <h4>Centrality Scores</h4>
+      <table
+        id="metrics-table"
+        class="table table-striped table-bordered"
+        style="width: 100%"
+      >
+        <thead class="bg-primary"></thead>
+      </table>
+    </div>
+    <div
+      class="tab-pane fade tab-container"
+      id="graph"
+      role="tabpanel"
+      aria-labelledby="graph-tab"
+    >
+      <iframe id="map-graph" src="" width="100%" height="100%">
+        Loading...
+      </iframe>
     </div>
   </div>
+</div>
 {% endblock main %}

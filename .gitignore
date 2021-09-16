@@ -15,16 +15,12 @@ node_modules/
 #
 # Notice how it is inside of the Python package, this is so that
 # it can locate it regardless of the operating system.
-/diogenet_py/static/client/bundle.js
-/diogenet_py/static/client/bundle.js.map
-/diogenet_py/static/client/bundle.min.js
-/diogenet_py/static/client/bundle.min.js.map
-/diogenet_py/static/client/*.bundle.js
-/diogenet_py/static/client/*.bundle.js.map
-/diogenet_py/static/client/*.bundle.min.js
-/diogenet_py/static/client/*.bundle.min.js.map
+/diogenet_py/static/client/*
 
 ## Python:
+#
+# Pyvis temporary files
+/diogenet_py/temp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -164,3 +160,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+.python-version
+
+# Value files
+*.val
+*.graphml

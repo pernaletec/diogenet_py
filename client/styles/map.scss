@@ -1,0 +1,44 @@
+@import "./bootstrap";
+
+.main-container {
+  height: 97%;
+}
+
+.tab-container {
+  height: 97%;
+}
+
+.main-map {
+  height: 100%;
+}
+
+body {
+}
+
+.leaflet-html-legend {
+  width: 130px !important;
+}
+
+#map {
+  padding: 10px;
+  border: thin;
+}
+
+#graph {
+  padding: 10px;
+  border: thin;
+}
+
+#graph iframe {
+  border: 0px;
+  height: 97%;
+}
+
+#metrics {
+  padding: 10px;
+  border: thin;
+}
+
+#metrics table thead {
+  color: white;
+}
