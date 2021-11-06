@@ -5,11 +5,13 @@
 
 # Visual Studio Code project configuration
 .vscode/
+.vscode.code-workspace
 
 ## Node, JavaScript and TypeScript client
 
 # Dependencies of the module
 node_modules/
+package-lock.json
 
 # Webpack bundle
 #

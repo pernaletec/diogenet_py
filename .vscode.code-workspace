@@ -1,10 +1,10 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"python.pythonPath": "/home/elinarezv/.pyenv/versions/diogenet/bin/python"
-	}
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.pythonPath": "/home/laurence/opt/anaconda3/envs/diogenet/bin/python"
+    }
 }
