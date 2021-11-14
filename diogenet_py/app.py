@@ -66,6 +66,11 @@ DEFAULT_FILTER_VALUE = "is teacher of"
 
 @app.route("/")
 def index():
+    path_temp_folder = os.path.join(app.root_path, "temp")
+    # Check the specified "temp" path exists or not
+    isExist = os.path.exists(path_temp_folder)
+    if not isExist:
+        os.makedirs(path_temp_folder)
     return render_template("index.html")
 
 
