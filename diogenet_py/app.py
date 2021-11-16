@@ -108,6 +108,7 @@ def get_map_data():
     else:
         grafo.edges_filter = []
     grafo.create_subgraph()
+    print(f"map subgraph {grafo.create_subgraph()}")
     data = grafo.get_map_data(min_weight=min_node_size, max_weight=max_node_size)
     all_data = grafo.get_max_min()
 
@@ -323,6 +324,7 @@ def get_graph_data():
         for m_filter in filters:
             grafo.set_edges_filter(m_filter)
         grafo.create_subgraph()
+        print(f"pyvis subgraph {grafo.create_subgraph()}") 
         # subgraph = grafo.get_subgraph()
         pvis_graph = grafo.get_pyvis()
     if pvis_graph:
