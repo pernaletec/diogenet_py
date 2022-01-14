@@ -90,6 +90,7 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+app_flask_backup.py
 
 # Scrapy stuff:
 .scrapy
