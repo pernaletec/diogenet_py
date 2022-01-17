@@ -15,17 +15,11 @@ import copy
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from . import data_access as da
+import data_access as da
 import random
 import os
 import tempfile
 import pathlib
-
-# import rpy2.robjects as robjects
-
-# import cairocffi
-#  I need to see how to handle the locations
-#  Because locations are related to nodes
 
 
 ############
@@ -40,8 +34,7 @@ import pathlib
 GRAPH_TYPE = "communities"
 TRAVELS_BLACK_LIST_FILE = "travels_blacklist.csv"
 LOCATIONS_DATA_FILE = "locations_data.csv"
-NODES_DATA_FILE = "new_Nodes.csv"
-EDGES_DATA_FILE = "new_Edges.csv"
+DATASET_NAME = "diogenes"
 # These are the files already processed. Must be created "on the fly"
 TRAVEL_EDGES_FILE = "travel_edges_graph.csv"
 ALL_PLACES_FILE = "all_places_graph.csv"
@@ -52,8 +45,8 @@ BASE_URL = "https://diogenet.ucsd.edu/data"
 
 # This is referential these structures must be created departing from the root files
 #  Create a dataframe from csv
-travel_edges = pd.read_csv("travel_edges_graph.csv", delimiter=",")
-travel_edges = da.get_data_entity(TRAVEL_EDGES_FILE, "local")
+#travel_edges = pd.read_csv("travel_edges_graph.csv", delimiter=",")
+travel_edges = da.get_data_entity_local(TRAVEL_EDGES_FILE)
 # all_places = pd.read_csv("all_places_graph.csv", delimiter=',')
 # all_places = da.get_data_entity(ALL_PLACES_FILE, "local")
 # User list comprehension to create a list of lists from Dataframe rows
@@ -175,8 +168,8 @@ class diogenetGraph:
     def __init__(
         self,
         graph_type=GRAPH_TYPE,
-        nodes_file=NODES_DATA_FILE,
-        edges_file=EDGES_DATA_FILE,
+        nodes_file=DATASET_NAME,
+        edges_file=DATASET_NAME,
         locations_file=LOCATIONS_DATA_FILE,
         blacklist_file=TRAVELS_BLACK_LIST_FILE,
     ):
@@ -231,10 +224,10 @@ class diogenetGraph:
 
         # self.know_locations()
 
-        self.set_locations("local")
-        self.set_nodes("local")
-        self.set_edges("local")
-        self.set_blacklist("local")
+        self.set_locations()
+        self.set_nodes()
+        self.set_edges()
+        self.set_blacklist()
 
         if self.graph_type == "map":
             self.validate_nodes_locations()
@@ -259,33 +252,33 @@ class diogenetGraph:
         return pd.DataFrame()
 
     # Now all the functions that implement data treatment should be implemented
-    def set_locations(self, method):
+    def set_locations(self):
         """Retrieve and store locations data in the graph object
-        :param method: Declare the source of data  ('local'/'url')
+        :param method: Declare the name of .csv dataset ('locations_data.csv')
 
         """
-        self.location_raw_data = da.get_data_entity(self.locations_file, method)
+        self.location_raw_data = da.get_data_entity_local(self.locations_file)
 
-    def set_nodes(self, method):
+    def set_nodes(self):
         """Retrieve and store nodes data in the graph object
-        :param method: Declare the source of data  ('local'/'url')
+        :param method: Declare the input name of nodes dataset ('diogenes', 'iamblichus')
 
         """
-        self.nodes_raw_data = da.get_data_entity(self.nodes_file, method)
+        self.nodes_raw_data = da.get_nodes_dataset(self.nodes_file)
 
-    def set_edges(self, method):
+    def set_edges(self):
         """Retrieve and store edges data in the graph object
-        :param method: Declare the source of data  ('local'/'url')
+        :param method: Declare the input name of edges dataset ('diogenes', 'iamblichus')
 
         """
-        self.edges_raw_data = da.get_data_entity(self.edges_file, method)
+        self.edges_raw_data = da.get_edges_dataset(self.edges_file)
 
-    def set_blacklist(self, method):
+    def set_blacklist(self):
         """Retrieve and store blacklist of travelers (impossible travelers!)
-        :param method: Declare the source of data  ('local'/'url')
+        :param method: Declare the name of .csv dataset ('travels_blacklist.csv')
 
         """
-        self.blacklist_raw_data = da.get_data_entity(self.blacklist_file, method)
+        self.blacklist_raw_data = da.get_data_entity_local(self.blacklist_file)
 
     def validate_nodes_locations(self):
         """Determine if places in nodes have the corresponding location
@@ -1259,32 +1252,32 @@ class diogenetGraph:
 
 map_graph = diogenetGraph(
     "map",
-    NODES_DATA_FILE,
-    EDGES_DATA_FILE,
+    DATASET_NAME,
+    DATASET_NAME,
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )
 
 global_graph = diogenetGraph(
     "global",
-    NODES_DATA_FILE,
-    EDGES_DATA_FILE,
+    DATASET_NAME,
+    DATASET_NAME,
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )
 
 local_graph = diogenetGraph(
     "local",
-    NODES_DATA_FILE,
-    EDGES_DATA_FILE,
+    DATASET_NAME,
+    DATASET_NAME,
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )
 
 communities_graph = diogenetGraph(
     "communities",
-    NODES_DATA_FILE,
-    EDGES_DATA_FILE,
+    DATASET_NAME,
+    DATASET_NAME,
     LOCATIONS_DATA_FILE,
     TRAVELS_BLACK_LIST_FILE,
 )

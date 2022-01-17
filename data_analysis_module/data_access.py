@@ -6,6 +6,7 @@
 import pandas as pd
 import io
 import requests
+import os
 
 #  Not needed. Data is called from the class. .
 #  from . import network_graph
@@ -13,39 +14,92 @@ import requests
 # VARS to fullfill dataframes
 # Define data access method: local, url or database
 
-from . import network_graph as ng
+import network_graph as ng
 
 
-def get_data_entity(entity_name, method):
+def get_data_entity_local(entity_name):
     """Retrieve a dataset with Complex Network's data.
 
-    :param str entity_name: The name of the entity (csv file name or table name).
-    :param str method: String with access method: local (csv), url(csv) or database.
+    :param str entity_name: The name of the entity file (csv file name or table name) for local access method.
     :return: A Data Frame filled with the entity's data.
     :rtype: :py:class:`pd.DataFrame`
     """
     df = None
-    if method == "local":
-        df = pd.read_csv("./" + entity_name, delimiter=",", header=0)
-    if method == "url":
-        url = ng.BASE_URL + "/" + entity_name
-        request = requests.get(url).contents
-        df = pd.read_csv(io.StringIO(request.decode("utf-8")), delimiter=",", header=0)
-    if method == "database":
-        # Define methods for access node from database
-        df = None
+    df_path = os.path.abspath(os.path.dirname(entity_name))
+    df = pd.read_csv(f'{df_path}/data/{entity_name}', delimiter=",", header=0)
     return df
 
+def get_data_entity_database(entity_name, method):
+    """Retrieve a dataset with Complex Network's data.
 
-# def get_graph(
-#     nodes_entity="new_Nodes.csv",
-#     edges_entity="new_Edges.csv",
-#     location_entity="locations_data.csv",
-#     method="local",
-#     url="",
-# ):
-#  graph = network_graph.Graph()
+    :param str entity_name: The name of the entity file (csv file name or table name) for database access method.
+    :return: A Data Frame filled with the entity's data.
+    :rtype: :py:class:`pd.DataFrame`
+    """
+    df = None
+
+    return df
+
+def get_data_entity_url(entity_name):
+    """Retrieve a dataset with Complex Network's data.
+
+    :param str entity_name: The name of the entity file (csv file name or table name) for url access method.
+    :return: A Data Frame filled with the entity's data.
+    :rtype: :py:class:`pd.DataFrame`
+    """
+    df = None
+    url = ng.BASE_URL + "/" + entity_name
+    request = requests.get(url).contents
+    df = pd.read_csv(io.StringIO(request.decode("utf-8")), delimiter=",", header=0)
+
+    return df
+
+def get_nodes_dataset(input = 'diogenes'):
+    """Retrieve a Network's nodes dataset.
+
+    :param str input: The name of the entity file (ie.: 'iamblichus', 'diogenes',...).
+    :return: A Data Frame filled with the entity's data.
+    :rtype: :py:class:`pd.DataFrame`
+    """
+
+    # lista de datasets disponibles en /data
+    datasets_list_path = os.path.abspath(os.path.dirname("datasetList.csv"))
+    dataset_list_df = pd.read_csv(datasets_list_path + "/data/datasetList.csv")
+
+    # condiciones para el path name 
+    m1 = dataset_list_df['name'] == str(input)
+    m2 = dataset_list_df['type'] == 'nodes'
+
+    # leyendo el archivo de datos de nodos
+    nodes_path_name = str(list(dataset_list_df[m1&m2]['path'])[0])
+    nodes_path_dir = os.path.abspath(os.path.dirname(nodes_path_name))
+    nodes_dataset = pd.read_csv(f'{nodes_path_dir}/data/{nodes_path_name}', delimiter=",", header=0)
+
+    return nodes_dataset
+
+def get_edges_dataset(input = 'diogenes'):
+    """Retrieve a Network's edges dataset.
+
+    :param str input: The name of the entity file (ie.: 'iamblichus', 'diogenes',...).
+    :return: A Data Frame filled with the entity's data.
+    :rtype: :py:class:`pd.DataFrame`
+    """
+
+    # lista de datasets disponibles en /data
+    dataset_list_path = os.path.abspath(os.path.dirname("datasetList.csv"))
+    dataset_list = pd.read_csv(dataset_list_path + "/data/datasetList.csv")
+
+    # condiciones para el path name 
+    m1 = dataset_list['name'] == str(input)
+    m3 = dataset_list['type'] == 'edges'
+
+    # leyendo el archivo de datos de edges
+    edges_path_name = str(list(dataset_list[m1&m3]['path'])[0])
+    edges_path_dir = os.path.abspath(os.path.dirname(edges_path_name))
+    edges_dataset = pd.read_csv(f'{edges_path_dir}/data/{edges_path_name}', delimiter=",", header=0)
+
+    return edges_dataset
 
 
-travel_edges = pd.read_csv("travel_edges_graph.csv", delimiter=",")
-all_places = pd.read_csv("all_places_graph.csv", delimiter=",")
+#travel_edges = pd.read_csv("travel_edges_graph.csv", delimiter=",")
+#all_places = pd.read_csv("all_places_graph.csv", delimiter=",")

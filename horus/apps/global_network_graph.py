@@ -2,8 +2,20 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+import pathlib
+import os
+import sys
+import requests
 
 from app import app
+
+network_graph_module_path = os.path.abspath(os.path.dirname('network_graph.py'))
+sys.path.insert(0, f'{network_graph_path}/data_analysis_module')
+
+from network_graph import local_graph as lg
+
+
+dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
     'color':'#ffffff',
@@ -30,12 +42,12 @@ sidebar_content = [
     dcc.Dropdown(
         id='edges_select_global',
         options=[
-            {'label': 'New York City', 'value': 'NYC'},
-            {'label': 'Montreal', 'value': 'MTL'},
-            {'label': 'San Francisco', 'value': 'SF'}
+            {'label': key, 'value': value}
+            for key, value in dict_of_datasets.items()
         ],
         searchable=False,
-        placeholder="Select a dataset"
+        placeholder="Select a dataset",
+        value='diogenes'
     ),
     html.H5('Network Ties', className="mt-5 mb-3"),
     dcc.Checklist( 

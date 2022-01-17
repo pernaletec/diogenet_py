@@ -168,3 +168,5 @@ cython_debug/
 # Value files
 *.val
 *.graphml
+
+test.py
