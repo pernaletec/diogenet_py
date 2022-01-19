@@ -6,14 +6,8 @@ import pathlib
 import os
 import sys
 import requests
-
 from app import app
-
-network_graph_module_path = os.path.abspath(os.path.dirname('network_graph.py'))
-sys.path.insert(0, f'{network_graph_path}/data_analysis_module')
-
-from network_graph import local_graph as lg
-
+from data_analysis_module.network_graph import global_graph as grafo
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
@@ -40,7 +34,7 @@ navbar = dbc.Navbar(
 sidebar_content = [
     html.H5('Dataset Selection', className="mt-3 mb-3"),
     dcc.Dropdown(
-        id='edges_select_global',
+        id='dataset_selection',
         options=[
             {'label': key, 'value': value}
             for key, value in dict_of_datasets.items()
@@ -51,14 +45,14 @@ sidebar_content = [
     ),
     html.H5('Network Ties', className="mt-5 mb-3"),
     dcc.Checklist( 
-        id='edges_select_global',
+        id='graph_filter_global',
         options=[
-            {'label': ' Is teacher of', 'value': 1},
-                {'label': ' Is friend of', 'value': 2},
-                {'label': ' Is family of', 'value': 3},
-                {'label': ' Studied the work of', 'value': 4},
-                {'label': ' sent letters to', 'value': 5},
-                {'label': ' Is benefactor of', 'value': 6},
+            {'label': ' Is teacher of', 'value': 'is teacher of'},
+                {'label': ' Is friend of', 'value': 'is friend of'},
+                {'label': ' Is family of', 'value': 'is family of'},
+                {'label': ' Studied the work of', 'value': 'studied the work of'},
+                {'label': ' sent letters to', 'value': 'sent letters to'},
+                {'label': ' Is benefactor of', 'value': 'is benefactor of'},
         ],
         value=[1],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
@@ -66,13 +60,13 @@ sidebar_content = [
     ),
     html.H5('Graph Layout',className="mt-5 mb-3"),
     dcc.Dropdown(
-        id='layout_global',
+        id='graph_layout_global',
         options=[
-            {'label': 'Fruchterman-Reingold', 'value': 'layout_with_fr'},
-            {'label': 'Kamada-Kawai', 'value': 'layout_with_kk'},
-            {'label': 'On sphere', 'value': 'layout_on_sphere'},
-            {'label': 'In Circle', 'value': 'layout_in_circle'},
-            {'label': 'On Grid', 'value': 'layout_on_grid'},
+            {'label': 'Fruchterman-Reingold', 'value': 'fr'},
+            {'label': 'Kamada-Kawai', 'value': 'kk'},
+            {'label': 'On sphere', 'value': 'sphere'},
+            {'label': 'In Circle', 'value': 'circle'},
+            {'label': 'On Grid', 'value': 'grid_fr'},
         ],
         value='layout_with_fr',
         searchable=False,
@@ -80,7 +74,7 @@ sidebar_content = [
     dcc.Checklist(
         id='show_gender',
         options=[
-            {'label': ' Gender and Gods', 'value': "true"},
+            {'label': ' Gender and Gods', 'value': "True"}
         ],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
@@ -153,7 +147,49 @@ layout = html.Div([
 # Update the index
 
 @app.callback(
-    Output('app-1-display-value', 'children'),
-    Input('app-1-dropdown', 'value'))
-def display_value(value):
-    return 'You have selected "{}"'.format(value)
+    Output('main-netowrk-graph', 'figure'),
+    Input('dataset_selection', 'value'),
+    Input('graph_filter_global', 'value'),
+    Input('graph_layout_global', 'value'),
+    Input('show_gender', 'value'),
+    Input('label_size_global', 'value'),
+    Input('node_size_global', 'value'),)
+def horus_get_global_graph(dataset_selection, 
+                            graph_filter_global, 
+                            graph_layout_global, 
+                            show_gender, 
+                            label_size_global, 
+                            node_size_global):
+    plot_type = "pyvis"
+    node_min_size = int(label_size_global[0])
+    node_max_size = int(label_size_global[1])
+    label_min_size = int(node_size_global[0])
+    label_max_size = int(node_size_global[1])
+    grafo.current_centrality_index = "Degree"
+    not_centrality = True
+    graph_layout = graph_layout_global
+
+    if not graph_layout == 'True':
+        graph_layout = "fr"
+
+    if show_gender:
+        grafo.pyvis_show_gender = True
+    else:
+        grafo.pyvis_show_gender = False
+
+    grafo.create_subgraph()
+
+    pvis_graph = None
+
+    if plot_type == "pyvis":
+        pvis_graph = grafo.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+            avoid_centrality=not_centrality,
+        )
+
+    print(pvis_graph)
+    
