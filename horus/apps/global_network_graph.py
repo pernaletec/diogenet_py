@@ -6,6 +6,17 @@ import pathlib
 import os
 import sys
 import requests
+import tempfile
+from flask import (
+    Flask,
+    render_template,
+    make_response,
+    request,
+    send_from_directory,
+    send_file,
+    jsonify,
+)
+
 from app import app
 from data_analysis_module.network_graph import global_graph as grafo
 
@@ -54,7 +65,7 @@ sidebar_content = [
                 {'label': ' sent letters to', 'value': 'sent letters to'},
                 {'label': ' Is benefactor of', 'value': 'is benefactor of'},
         ],
-        value=[1],
+        value=['is teacher of'],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
     ),
@@ -68,7 +79,7 @@ sidebar_content = [
             {'label': 'In Circle', 'value': 'circle'},
             {'label': 'On Grid', 'value': 'grid_fr'},
         ],
-        value='layout_with_fr',
+        value='fr',
         searchable=False,
     ),
     dcc.Checklist(
@@ -125,13 +136,15 @@ sidebar_content = [
     )
 ]
 
+
+
 row = html.Div(
     [
         dbc.Row(navbar),
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(html.Div([]), className='bg-warning', id='main-netowrk-graph'),
+                dbc.Col(className='bg-warning', id='main-netowrk-graph'),
             ],
             className='h-100'
         ),
@@ -147,7 +160,7 @@ layout = html.Div([
 # Update the index
 
 @app.callback(
-    Output('main-netowrk-graph', 'figure'),
+    Output('main-netowrk-graph', 'children'),
     Input('dataset_selection', 'value'),
     Input('graph_filter_global', 'value'),
     Input('graph_layout_global', 'value'),
@@ -160,6 +173,14 @@ def horus_get_global_graph(dataset_selection,
                             show_gender, 
                             label_size_global, 
                             node_size_global):
+
+    print(dataset_selection, type(dataset_selection))
+    print(graph_filter_global, type(graph_filter_global))
+    print(graph_layout_global, type(graph_layout_global))
+    print(show_gender, type(show_gender))
+    print(label_size_global, type(label_size_global))
+    print(node_size_global, type(node_size_global))
+    
     plot_type = "pyvis"
     node_min_size = int(label_size_global[0])
     node_max_size = int(label_size_global[1])
@@ -169,7 +190,12 @@ def horus_get_global_graph(dataset_selection,
     not_centrality = True
     graph_layout = graph_layout_global
 
-    if not graph_layout == 'True':
+    grafo.edges_filter = []
+    filters = graph_filter_global
+    for m_filter in filters:
+        grafo.set_edges_filter(m_filter)
+
+    if not graph_layout:
         graph_layout = "fr"
 
     if show_gender:
@@ -190,6 +216,13 @@ def horus_get_global_graph(dataset_selection,
             layout=graph_layout,
             avoid_centrality=not_centrality,
         )
-
-    print(pvis_graph)
     
+    if pvis_graph:
+        suffix = ".html"
+        temp_file_name = next(tempfile._get_candidate_names()) + suffix
+        #full_filename = os.path.join(os.path.abspath(os.path.dirname('temp')), "/horus/temp", temp_file_name)
+        #full_filename = f'{os.path.abspath(os.path.dirname("temp"))}/apps/temp/{temp_file_name}'
+        full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+        pvis_graph.write_html(full_filename)
+        print(full_filename)
+        return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
