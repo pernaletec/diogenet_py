@@ -18,7 +18,7 @@ from flask import (
 )
 
 from app import app
-from data_analysis_module.network_graph import global_graph as grafo
+from data_analysis_module.network_graph import diogenetGraph
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
@@ -32,7 +32,7 @@ navbar = dbc.Navbar(
         dbc.NavLink("Horus Main", href="/", style=STYLE_A_ITEM),
         dbc.DropdownMenu(
             [dbc.DropdownMenuItem("Graph", href="#"), dbc.DropdownMenuItem("Graph + centrality", href="/apps/app2")],
-            label="Local Network",
+            label="Global Network",
             style=STYLE_A_ITEM,
             color="#1a6ecc"
         ),
@@ -173,6 +173,14 @@ def horus_get_global_graph(dataset_selection,
                             show_gender, 
                             label_size_global, 
                             node_size_global):
+
+    grafo = diogenetGraph(
+        "global",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
 
     print(dataset_selection, type(dataset_selection))
     print(graph_filter_global, type(graph_filter_global))
