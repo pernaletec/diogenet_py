@@ -31,7 +31,7 @@ navbar = dbc.Navbar(
     children=[
         dbc.NavLink("Horus Main", href="/", style=STYLE_A_ITEM),
         dbc.DropdownMenu(
-            [dbc.DropdownMenuItem("Graph", href="#"), dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")],
+            [dbc.DropdownMenuItem("Graph", href="/apps/global_network_graph"), dbc.DropdownMenuItem("Graph + centrality", href="#")],
             label="Global Network",
             style=STYLE_A_ITEM,
             color="#1a6ecc"
@@ -39,13 +39,13 @@ navbar = dbc.Navbar(
     ],
     color="#1a6ecc",
     style={'color':'#ffffff'},
-    id='Navbar'
+    id='navbar-global-centrality'
 )
 
 sidebar_content = [
     html.H5('Dataset Selection', className="mt-3 mb-3"),
     dcc.Dropdown(
-        id='dataset_selection',
+        id='dataset_selection_global_centrality',
         options=[
             {'label': key, 'value': value}
             for key, value in dict_of_datasets.items()
@@ -56,7 +56,7 @@ sidebar_content = [
     ),
     html.H5('Network Ties', className="mt-5 mb-3"),
     dcc.Checklist( 
-        id='graph_filter_global',
+        id='graph_filter_global_centrality',
         options=[
             {'label': ' Is teacher of', 'value': 'is teacher of'},
                 {'label': ' Is friend of', 'value': 'is friend of'},
@@ -71,7 +71,7 @@ sidebar_content = [
     ),
     html.H5('Graph Layout',className="mt-5 mb-3"),
     dcc.Dropdown(
-        id='graph_layout_global',
+        id='graph_layout_global_centrality',
         options=[
             {'label': 'Fruchterman-Reingold', 'value': 'fr'},
             {'label': 'Kamada-Kawai', 'value': 'kk'},
@@ -83,7 +83,7 @@ sidebar_content = [
         searchable=False,
     ),
     dcc.Checklist(
-        id='show_gender',
+        id='show_gender_global_centrality',
         options=[
             {'label': ' Gender and Gods', 'value': "True"}
         ],
@@ -94,7 +94,7 @@ sidebar_content = [
     html.H5('Appearence',className="mt-5 mb-3"),
     html.H6('Label Size',className="mt-1 mb-2"),
     dcc.RangeSlider(
-        id='label_size_global',
+        id='label_size_global_centrality',
         min=0,
         max=10,
         step=1,
@@ -115,7 +115,7 @@ sidebar_content = [
     ),
     html.H6('Node Size',className="mt-1 mb-2"),
     dcc.RangeSlider(
-        id='node_size_global',
+        id='node_size_global_centrality',
         min=0,
         max=10,
         step=1,
@@ -136,6 +136,32 @@ sidebar_content = [
     )
 ]
 
+tabs = dcc.Tabs(
+        id='tabs_global_cetrality', 
+        value='graph_global_cetrality',
+        parent_className='custom-tabs',
+        className='custom-tabs-container',
+        children=[
+            dcc.Tab(
+                label='Graph', 
+                value='graph_global_cetrality',
+                className='custom-tab',
+                selected_className='custom-tab--selected'    
+            ),
+                
+            dcc.Tab(
+                label='Heatmap', 
+                value='heatmap_global_cetrality',
+                className='custom-tab',
+                selected_className='custom-tab--selected'
+            ),
+            dcc.Tab(
+                label='Metrics', 
+                value='metrics_global_cetrality',
+                className='custom-tab',
+                selected_className='custom-tab--selected'
+            ),
+        ])
 
 
 row = html.Div(
@@ -143,8 +169,8 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(className='bg-warning', id='main-netowrk-graph'),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div([tabs, html.Div(id="content")]), id='main_global_centrality'),
             ],
             className='h-100'
         ),
@@ -160,77 +186,27 @@ layout = html.Div([
 # Update the index
 
 @app.callback(
-    Output('main-netowrk-graph', 'children'),
-    Input('dataset_selection', 'value'),
-    Input('graph_filter_global', 'value'),
-    Input('graph_layout_global', 'value'),
-    Input('show_gender', 'value'),
-    Input('label_size_global', 'value'),
-    Input('node_size_global', 'value'),)
-def horus_get_global_graph(dataset_selection, 
-                            graph_filter_global, 
-                            graph_layout_global, 
-                            show_gender, 
-                            label_size_global, 
-                            node_size_global):
-
-    grafo = diogenetGraph(
-        "global",
-        dataset_selection,
-        dataset_selection,
-        'locations_data.csv',
-        'travels_blacklist.csv'
-    )
-
-    print(dataset_selection, type(dataset_selection))
-    print(graph_filter_global, type(graph_filter_global))
-    print(graph_layout_global, type(graph_layout_global))
-    print(show_gender, type(show_gender))
-    print(label_size_global, type(label_size_global))
-    print(node_size_global, type(node_size_global))
-    
-    plot_type = "pyvis"
-    node_min_size = int(label_size_global[0])
-    node_max_size = int(label_size_global[1])
-    label_min_size = int(node_size_global[0])
-    label_max_size = int(node_size_global[1])
-    grafo.current_centrality_index = "Degree"
-    not_centrality = True
-    graph_layout = graph_layout_global
-
-    grafo.edges_filter = []
-    filters = graph_filter_global
-    for m_filter in filters:
-        grafo.set_edges_filter(m_filter)
-
-    if not graph_layout:
-        graph_layout = "fr"
-
-    if show_gender:
-        grafo.pyvis_show_gender = True
-    else:
-        grafo.pyvis_show_gender = False
-
-    grafo.create_subgraph()
-
-    pvis_graph = None
-
-    if plot_type == "pyvis":
-        pvis_graph = grafo.get_pyvis(
-            min_weight=node_min_size,
-            max_weight=node_max_size,
-            min_label_size=label_min_size,
-            max_label_size=label_max_size,
-            layout=graph_layout,
-            avoid_centrality=not_centrality,
-        )
-    
-    if pvis_graph:
-        suffix = ".html"
-        temp_file_name = next(tempfile._get_candidate_names()) + suffix
-        #full_filename = os.path.join(os.path.abspath(os.path.dirname('temp')), "/horus/temp", temp_file_name)
-        #full_filename = f'{os.path.abspath(os.path.dirname("temp"))}/apps/temp/{temp_file_name}'
-        full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
-        pvis_graph.write_html(full_filename)
-        print(full_filename)
-        return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
+    Output("content", "children"),[
+    Input('tabs_global_cetrality', 'value'),
+    Input('dataset_selection_global_centrality', 'value'),
+    Input('graph_filter_global_centrality', 'value'),
+    Input('graph_layout_global_centrality', 'value'),
+    Input('show_gender_global_centrality', 'value'),
+    Input('label_size_global_centrality', 'value'),
+    Input('node_size_global_centrality', 'value')
+    ]
+)
+def horus_get_global_graph_centrality(
+                                    tab,
+                                    dataset_selection_global_centrality,
+                                    graph_filter_global_centrality,
+                                    graph_layout_global_centrality,
+                                    show_gender_global_centrality,
+                                    label_size_global_centrality,
+                                    node_size_global_centrality):
+    if tab == "graph_global_cetrality":
+        return "GRafo"
+    elif tab == "heatmap_global_cetrality":
+        return "heatmap"
+    elif tab == "metrics_global_cetrality":
+        return "metricas"
