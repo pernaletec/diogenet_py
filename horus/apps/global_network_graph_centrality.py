@@ -170,7 +170,7 @@ row = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(html.Div([tabs, html.Div(id="content")]), id='main_global_centrality'),
+                dbc.Col(html.Div([tabs, html.Div(id="content", style={'height': '95vh'})]), id='main_global_centrality'),
             ],
             className='h-100'
         ),
@@ -205,7 +205,55 @@ def horus_get_global_graph_centrality(
                                     label_size_global_centrality,
                                     node_size_global_centrality):
     if tab == "graph_global_cetrality":
-        return "GRafo"
+        grafo = diogenetGraph(
+            "global",
+            dataset_selection_global_centrality,
+            dataset_selection_global_centrality,
+            'locations_data.csv',
+            'travels_blacklist.csv'
+        )
+
+        plot_type = "pyvis"
+        node_min_size = int(label_size_global_centrality[0])
+        node_max_size = int(label_size_global_centrality[1])
+        label_min_size = int(node_size_global_centrality[0])
+        label_max_size = int(node_size_global_centrality[1])
+        grafo.current_centrality_index = "Degree"
+        not_centrality = True
+        graph_layout = graph_layout_global_centrality
+
+        grafo.edges_filter = []
+        filters = graph_filter_global_centrality
+        for m_filter in filters:
+            grafo.set_edges_filter(m_filter)
+
+        if not graph_layout_global_centrality:
+            graph_layout_global_centrality = "fr"
+
+        if show_gender_global_centrality:
+            grafo.pyvis_show_gender = True
+        else:
+            grafo.pyvis_show_gender = False
+
+        grafo.create_subgraph()
+        pvis_graph = None
+
+        if plot_type == "pyvis":
+            pvis_graph = grafo.get_pyvis(
+                min_weight=node_min_size,
+                max_weight=node_max_size,
+                min_label_size=label_min_size,
+                max_label_size=label_max_size,
+                layout=graph_layout_global_centrality,
+                avoid_centrality=not_centrality,
+            )
+
+        if pvis_graph:
+            suffix = ".html"
+            temp_file_name = next(tempfile._get_candidate_names()) + suffix
+            full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+            pvis_graph.write_html(full_filename)
+            return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
     elif tab == "heatmap_global_cetrality":
         return "heatmap"
     elif tab == "metrics_global_cetrality":
