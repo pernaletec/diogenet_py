@@ -91,6 +91,18 @@ sidebar_content = [
         inputStyle={'margin':'0px 5px'},
         className='mt-3'
     ),
+    html.H5('Centrality index',className="mt-5 mb-3"),
+    dcc.Dropdown(
+        id='centrality_index_global_centrality',
+        options=[
+            {'label': 'Degree', 'value': 'Degree'},
+            {'label': 'Betweeness', 'value': 'Betweeness'},
+            {'label': 'Closeness', 'value': 'Closeness'},
+            {'label': 'Eigenvector', 'value': 'Eigenvector'},
+        ],
+        value='Degree',
+        searchable=False,
+    ),
     html.H5('Appearence',className="mt-5 mb-3"),
     html.H6('Label Size',className="mt-1 mb-2"),
     dcc.RangeSlider(
@@ -192,6 +204,7 @@ layout = html.Div([
     Input('graph_filter_global_centrality', 'value'),
     Input('graph_layout_global_centrality', 'value'),
     Input('show_gender_global_centrality', 'value'),
+    Input('centrality_index_global_centrality', 'value'),
     Input('label_size_global_centrality', 'value'),
     Input('node_size_global_centrality', 'value')
     ]
@@ -202,6 +215,7 @@ def horus_get_global_graph_centrality(
                                     graph_filter_global_centrality,
                                     graph_layout_global_centrality,
                                     show_gender_global_centrality,
+                                    centrality_index_global_centrality,
                                     label_size_global_centrality,
                                     node_size_global_centrality):
     if tab == "graph_global_cetrality":
@@ -214,13 +228,23 @@ def horus_get_global_graph_centrality(
         )
 
         plot_type = "pyvis"
+        centrality_index = centrality_index_global_centrality
         node_min_size = int(label_size_global_centrality[0])
         node_max_size = int(label_size_global_centrality[1])
         label_min_size = int(node_size_global_centrality[0])
         label_max_size = int(node_size_global_centrality[1])
         grafo.current_centrality_index = "Degree"
-        not_centrality = True
+        not_centrality = False
         graph_layout = graph_layout_global_centrality
+
+        print(centrality_index, type(centrality_index))
+
+        if centrality_index:
+            if centrality_index in [None, "", "None"]:
+                grafo.current_centrality_index = "Degree"
+                not_centrality = True
+            else:
+                grafo.current_centrality_index = centrality_index
 
         grafo.edges_filter = []
         filters = graph_filter_global_centrality

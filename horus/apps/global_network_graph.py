@@ -181,13 +181,6 @@ def horus_get_global_graph(dataset_selection,
         'locations_data.csv',
         'travels_blacklist.csv'
     )
-
-    print(dataset_selection, type(dataset_selection))
-    print(graph_filter_global, type(graph_filter_global))
-    print(graph_layout_global, type(graph_layout_global))
-    print(show_gender, type(show_gender))
-    print(label_size_global, type(label_size_global))
-    print(node_size_global, type(node_size_global))
     
     plot_type = "pyvis"
     node_min_size = int(label_size_global[0])

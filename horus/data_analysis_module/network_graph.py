@@ -596,7 +596,7 @@ class diogenetGraph:
                 centrality_indexes = self.calculate_betweenness()
             elif self.current_centrality_index == "Closeness":
                 centrality_indexes = self.calculate_closeness()
-            else:
+            elif self.current_centrality_index == "Eigenvector":
                 centrality_indexes = self.calculate_eigenvector()
             ret_val["min"] = min(centrality_indexes)
             ret_val["max"] = max(centrality_indexes)
