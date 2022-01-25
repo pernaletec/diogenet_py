@@ -7,6 +7,9 @@ import os
 import sys
 import requests
 import tempfile
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 from flask import (
     Flask,
     render_template,
@@ -236,6 +239,7 @@ def horus_get_global_graph_centrality(
         grafo.current_centrality_index = "Degree"
         not_centrality = False
         graph_layout = graph_layout_global_centrality
+        graph_filter = graph_filter_global_centrality
 
         print(centrality_index, type(centrality_index))
 
@@ -246,10 +250,14 @@ def horus_get_global_graph_centrality(
             else:
                 grafo.current_centrality_index = centrality_index
 
-        grafo.edges_filter = []
-        filters = graph_filter_global_centrality
-        for m_filter in filters:
-            grafo.set_edges_filter(m_filter)
+
+        if not graph_filter:
+            grafo.set_edges_filter("is teacher of")
+        else:
+            grafo.edges_filter = []
+            filters = graph_filter
+            for m_filter in filters:
+                grafo.set_edges_filter(m_filter)
 
         if not graph_layout_global_centrality:
             graph_layout_global_centrality = "fr"
@@ -279,6 +287,78 @@ def horus_get_global_graph_centrality(
             pvis_graph.write_html(full_filename)
             return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
     elif tab == "heatmap_global_cetrality":
-        return "heatmap"
+        grafo = diogenetGraph(
+            "global",
+            dataset_selection_global_centrality,
+            dataset_selection_global_centrality,
+            'locations_data.csv',
+            'travels_blacklist.csv'
+        )
+
+        plotly_graph = None
+        graph_filter = graph_filter_global_centrality
+
+        if not graph_filter:
+            grafo.set_edges_filter("is teacher of")
+        else:
+            grafo.edges_filter = []
+            filters = graph_filter
+            for m_filter in filters:
+                grafo.set_edges_filter(m_filter)
+
+        subgraph = grafo
+
+        data = {
+            "Philosopher": subgraph.igraph_subgraph.vs["name"],
+            "Degree": subgraph.calculate_degree(),
+            "Betweeness": subgraph.calculate_betweenness(),
+            "Closeness": subgraph.calculate_closeness(),
+            "Eigenvector": subgraph.calculate_eigenvector(),
+        }
+
+
+        interpolated_data = {
+            "Philosopher": data["Philosopher"],
+            "Degree": np.interp(
+                data["Degree"], (min(data["Degree"]), max(data["Degree"])), (0, +1)
+            ),
+            "Betweeness": np.interp(
+                data["Betweeness"],
+                (min(data["Betweeness"]), max(data["Betweeness"])),
+                (0, +1),
+            ),
+            "Closeness": np.interp(
+                data["Closeness"],
+                (min(data["Closeness"]), max(data["Closeness"])),
+                (0, +1),
+            ),
+            "Eigenvector": np.interp(
+                data["Eigenvector"],
+                (min(data["Eigenvector"]), max(data["Eigenvector"])),
+                (0, +1),
+            ),
+        }
+
+        df = pd.DataFrame(data=interpolated_data)
+        df1 = df.sort_values(by=["Degree", "Betweeness", "Closeness"]).set_index("Philosopher", drop=False)
+
+        plotly_graph = go.Figure(
+            data=go.Heatmap(
+                z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
+                y=df1.Philosopher,
+                x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
+                hoverongaps=False,
+                type="heatmap",
+                colorscale="Viridis",
+            )
+        )
+
+        plotly_graph.update_layout(
+            legend_font_size=12, legend_title_font_size=12, font_size=8
+        )
+
+        #html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
+        return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
+
     elif tab == "metrics_global_cetrality":
         return "metricas"
