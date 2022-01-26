@@ -1,6 +1,7 @@
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+from dash import dash_table
 import dash_bootstrap_components as dbc
 import pathlib
 import os
@@ -221,8 +222,7 @@ def horus_get_global_graph_centrality(
                                     centrality_index_global_centrality,
                                     label_size_global_centrality,
                                     node_size_global_centrality):
-    if tab == "graph_global_cetrality":
-        grafo = diogenetGraph(
+    global_graph = diogenetGraph(
             "global",
             dataset_selection_global_centrality,
             dataset_selection_global_centrality,
@@ -230,48 +230,48 @@ def horus_get_global_graph_centrality(
             'travels_blacklist.csv'
         )
 
-        plot_type = "pyvis"
-        centrality_index = centrality_index_global_centrality
-        node_min_size = int(label_size_global_centrality[0])
-        node_max_size = int(label_size_global_centrality[1])
-        label_min_size = int(node_size_global_centrality[0])
-        label_max_size = int(node_size_global_centrality[1])
-        grafo.current_centrality_index = "Degree"
-        not_centrality = False
-        graph_layout = graph_layout_global_centrality
-        graph_filter = graph_filter_global_centrality
-
-        print(centrality_index, type(centrality_index))
-
+    plot_type = "pyvis"
+    centrality_index = centrality_index_global_centrality
+    node_min_size = int(label_size_global_centrality[0])
+    node_max_size = int(label_size_global_centrality[1])
+    label_min_size = int(node_size_global_centrality[0])
+    label_max_size = int(node_size_global_centrality[1])
+    global_graph.current_centrality_index = "Degree"
+    not_centrality = False
+    graph_layout = graph_layout_global_centrality
+    graph_filter = graph_filter_global_centrality
+    print(centrality_index, type(centrality_index))
+    
+    if tab == "graph_global_cetrality":
         if centrality_index:
             if centrality_index in [None, "", "None"]:
-                grafo.current_centrality_index = "Degree"
+                global_graph.current_centrality_index = "Degree"
                 not_centrality = True
             else:
-                grafo.current_centrality_index = centrality_index
+                global_graph.current_centrality_index = centrality_index
 
 
         if not graph_filter:
-            grafo.set_edges_filter("is teacher of")
+            global_graph.set_edges_filter("is teacher of")
         else:
-            grafo.edges_filter = []
+            global_graph.edges_filter = []
             filters = graph_filter
             for m_filter in filters:
-                grafo.set_edges_filter(m_filter)
+                global_graph.set_edges_filter(m_filter)
 
         if not graph_layout_global_centrality:
             graph_layout_global_centrality = "fr"
 
         if show_gender_global_centrality:
-            grafo.pyvis_show_gender = True
+            global_graph.pyvis_show_gender = True
         else:
-            grafo.pyvis_show_gender = False
+            global_graph.pyvis_show_gender = False
 
-        grafo.create_subgraph()
+        global_graph.create_subgraph()
         pvis_graph = None
 
         if plot_type == "pyvis":
-            pvis_graph = grafo.get_pyvis(
+            pvis_graph = global_graph.get_pyvis(
                 min_weight=node_min_size,
                 max_weight=node_max_size,
                 min_label_size=label_min_size,
@@ -286,27 +286,19 @@ def horus_get_global_graph_centrality(
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
             return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
-    elif tab == "heatmap_global_cetrality":
-        grafo = diogenetGraph(
-            "global",
-            dataset_selection_global_centrality,
-            dataset_selection_global_centrality,
-            'locations_data.csv',
-            'travels_blacklist.csv'
-        )
 
+    elif tab == "heatmap_global_cetrality":
         plotly_graph = None
-        graph_filter = graph_filter_global_centrality
 
         if not graph_filter:
-            grafo.set_edges_filter("is teacher of")
+            global_graph.set_edges_filter("is teacher of")
         else:
-            grafo.edges_filter = []
+            global_graph.edges_filter = []
             filters = graph_filter
             for m_filter in filters:
-                grafo.set_edges_filter(m_filter)
+                global_graph.set_edges_filter(m_filter)
 
-        subgraph = grafo
+        subgraph = global_graph
 
         data = {
             "Philosopher": subgraph.igraph_subgraph.vs["name"],
@@ -356,9 +348,35 @@ def horus_get_global_graph_centrality(
         plotly_graph.update_layout(
             legend_font_size=12, legend_title_font_size=12, font_size=8
         )
-
-        #html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
+        
         return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
 
     elif tab == "metrics_global_cetrality":
-        return "metricas"
+        if not graph_filter:
+            global_graph.set_edges_filter("is teacher of")
+        else:
+            global_graph.edges_filter = []
+            filters = graph_filter
+            for m_filter in filters:
+                global_graph.set_edges_filter(m_filter)
+        
+        global_graph.create_subgraph()
+
+        dict_global_data_tables ={
+            "Phylosopher": global_graph.get_vertex_names(),
+            "Degree": global_graph.calculate_degree(),
+            "Betweeness": global_graph.calculate_betweenness(),
+            "Closeness": global_graph.calculate_closeness(),
+            "Eigenvector": global_graph.calculate_eigenvector()
+        }
+
+        df_global_data_tables = pd.DataFrame(dict_global_data_tables)
+
+
+        dt = dash_table.DataTable( 
+            id='table_global_graph', 
+            columns=[{"name": i, "id": i} for i in df_global_data_tables.columns], 
+            data=df_global_data_tables.to_dict('records'),
+        )
+        
+        return html.Div([dt], style={"height": "100%", "width": "100%"})
