@@ -240,7 +240,6 @@ def horus_get_global_graph_centrality(
     not_centrality = False
     graph_layout = graph_layout_global_centrality
     graph_filter = graph_filter_global_centrality
-    print(centrality_index, type(centrality_index))
     
     if tab == "graph_global_cetrality":
         if centrality_index:
@@ -368,7 +367,6 @@ def horus_get_global_graph_centrality(
         calculated_closeness = round_list_values(global_graph.calculate_closeness())
         calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
 
-        print(calculated_closeness)
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
             "Degree": calculated_degree,
@@ -379,11 +377,100 @@ def horus_get_global_graph_centrality(
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)
 
-
         dt = dash_table.DataTable( 
-            id='table_global_graph', 
-            columns=[{"name": i, "id": i} for i in df_global_data_tables.columns], 
-            data=df_global_data_tables.to_dict('records'),
+            id='table-global-graph', 
+            columns=[{"name": i, "id": i, 'deletable': True} for i in df_global_data_tables.columns], 
+            page_current=0,
+            page_size=10,
+            page_action='custom',
+            sort_mode='single',
+            sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
         
-        return html.Div([dt], style={"height": "100%", "width": "100%"})
+        return dt
+
+@app.callback(
+    Output('table-global-graph', 'data'),
+    Input('table-global-graph', "page_current"),
+    Input('table-global-graph', "page_size"),
+    Input('table-global-graph', 'sort_by'),
+    Input('dataset_selection_global_centrality', 'value'),
+    Input('graph_filter_global_centrality', 'value'),
+    Input('graph_layout_global_centrality', 'value'),
+    Input('show_gender_global_centrality', 'value'),
+    Input('centrality_index_global_centrality', 'value'),
+    Input('label_size_global_centrality', 'value'),
+    Input('node_size_global_centrality', 'value')
+)
+def update_table(
+                page_current, 
+                page_size, 
+                sort_by,
+                dataset_selection_global_centrality,
+                graph_filter_global_centrality,
+                graph_layout_global_centrality,
+                show_gender_global_centrality,
+                centrality_index_global_centrality,
+                label_size_global_centrality,
+                node_size_global_centrality
+):
+    global_graph = diogenetGraph(
+                "global",
+                dataset_selection_global_centrality,
+                dataset_selection_global_centrality,
+                'locations_data.csv',
+                'travels_blacklist.csv'
+            )
+
+    plot_type = "pyvis"
+    centrality_index = centrality_index_global_centrality
+    node_min_size = int(label_size_global_centrality[0])
+    node_max_size = int(label_size_global_centrality[1])
+    label_min_size = int(node_size_global_centrality[0])
+    label_max_size = int(node_size_global_centrality[1])
+    global_graph.current_centrality_index = "Degree"
+    not_centrality = False
+    graph_layout = graph_layout_global_centrality
+    graph_filter = graph_filter_global_centrality
+
+
+    if not graph_filter:
+            global_graph.set_edges_filter("is teacher of")
+    else:
+        global_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            global_graph.set_edges_filter(m_filter)
+        
+    def round_list_values(list_in):
+        return [round(value, 4) for value in list_in]
+
+    calculated_degree = [round(value) for value in global_graph.calculate_degree()]
+    calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
+    calculated_closeness = round_list_values(global_graph.calculate_closeness())
+    calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
+
+    dict_global_data_tables ={
+        "Phylosopher": global_graph.get_vertex_names(),
+        "Degree": calculated_degree,
+        "Betweeness": calculated_betweenness,
+        "Closeness": calculated_betweenness,
+        "Eigenvector": calculated_eigenvector 
+    }
+
+    df_global_data_tables = pd.DataFrame(dict_global_data_tables)
+    
+    print(sort_by)
+    if len(sort_by):
+        dff = df_global_data_tables.sort_values(
+            sort_by[0]['column_id'],
+            ascending=sort_by[0]['direction'] == 'desc',
+            inplace=False
+        )
+    else:
+        # No sort is applied
+        dff = df_global_data_tables
+
+    return dff.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
