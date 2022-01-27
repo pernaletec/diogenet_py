@@ -47,7 +47,7 @@ navbar = dbc.Navbar(
 )
 
 sidebar_content = [
-    html.H5('Dataset Selection', className="mt-3 mb-3"),
+    html.H5('Dataset selection', className="mt-3 mb-3"),
     dcc.Dropdown(
         id='dataset_selection_global_centrality',
         options=[
@@ -58,7 +58,7 @@ sidebar_content = [
         placeholder="Select a dataset",
         value='diogenes'
     ),
-    html.H5('Network Ties', className="mt-5 mb-3"),
+    html.H5('Network ties', className="mt-5 mb-3"),
     dcc.Checklist( 
         id='graph_filter_global_centrality',
         options=[
@@ -66,20 +66,20 @@ sidebar_content = [
                 {'label': ' Is friend of', 'value': 'is friend of'},
                 {'label': ' Is family of', 'value': 'is family of'},
                 {'label': ' Studied the work of', 'value': 'studied the work of'},
-                {'label': ' sent letters to', 'value': 'sent letters to'},
+                {'label': ' Sent letters to', 'value': 'sent letters to'},
                 {'label': ' Is benefactor of', 'value': 'is benefactor of'},
         ],
         value=['is teacher of'],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
     ),
-    html.H5('Graph Layout',className="mt-5 mb-3"),
+    html.H5('Graph layout',className="mt-5 mb-3"),
     dcc.Dropdown(
         id='graph_layout_global_centrality',
         options=[
             {'label': 'Fruchterman-Reingold', 'value': 'fr'},
             {'label': 'Kamada-Kawai', 'value': 'kk'},
-            {'label': 'On sphere', 'value': 'sphere'},
+            {'label': 'On STphere', 'value': 'sphere'},
             {'label': 'In Circle', 'value': 'circle'},
             {'label': 'On Grid', 'value': 'grid_fr'},
         ],
@@ -360,14 +360,21 @@ def horus_get_global_graph_centrality(
             for m_filter in filters:
                 global_graph.set_edges_filter(m_filter)
         
-        global_graph.create_subgraph()
+        def round_list_values(list_in):
+            return [round(value, 4) for value in list_in]
 
+        calculated_degree = [round(value) for value in global_graph.calculate_degree()]
+        calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
+        calculated_closeness = round_list_values(global_graph.calculate_closeness())
+        calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
+
+        print(calculated_closeness)
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
-            "Degree": global_graph.calculate_degree(),
-            "Betweeness": global_graph.calculate_betweenness(),
-            "Closeness": global_graph.calculate_closeness(),
-            "Eigenvector": global_graph.calculate_eigenvector()
+            "Degree": calculated_degree,
+            "Betweeness": calculated_betweenness,
+            "Closeness": calculated_betweenness,
+            "Eigenvector": calculated_eigenvector 
         }
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)

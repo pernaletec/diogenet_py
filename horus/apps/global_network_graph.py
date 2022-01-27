@@ -43,7 +43,7 @@ navbar = dbc.Navbar(
 )
 
 sidebar_content = [
-    html.H5('Dataset Selection', className="mt-3 mb-3"),
+    html.H5('Dataset selection', className="mt-3 mb-3"),
     dcc.Dropdown(
         id='dataset_selection',
         options=[
@@ -54,7 +54,7 @@ sidebar_content = [
         placeholder="Select a dataset",
         value='diogenes'
     ),
-    html.H5('Network Ties', className="mt-5 mb-3"),
+    html.H5('Network ties', className="mt-5 mb-3"),
     dcc.Checklist( 
         id='graph_filter_global',
         options=[
@@ -62,20 +62,20 @@ sidebar_content = [
                 {'label': ' Is friend of', 'value': 'is friend of'},
                 {'label': ' Is family of', 'value': 'is family of'},
                 {'label': ' Studied the work of', 'value': 'studied the work of'},
-                {'label': ' sent letters to', 'value': 'sent letters to'},
+                {'label': ' Sent letters to', 'value': 'sent letters to'},
                 {'label': ' Is benefactor of', 'value': 'is benefactor of'},
         ],
         value=['is teacher of'],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
     ),
-    html.H5('Graph Layout',className="mt-5 mb-3"),
+    html.H5('Graph layout',className="mt-5 mb-3"),
     dcc.Dropdown(
         id='graph_layout_global',
         options=[
             {'label': 'Fruchterman-Reingold', 'value': 'fr'},
             {'label': 'Kamada-Kawai', 'value': 'kk'},
-            {'label': 'On sphere', 'value': 'sphere'},
+            {'label': 'On Sphere', 'value': 'sphere'},
             {'label': 'In Circle', 'value': 'circle'},
             {'label': 'On Grid', 'value': 'grid_fr'},
         ],
@@ -144,7 +144,7 @@ row = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(className='bg-warning', id='main-netowrk-graph'),
+                dbc.Col(id='main-netowrk-graph'),
             ],
             className='h-100'
         ),
@@ -221,9 +221,6 @@ def horus_get_global_graph(dataset_selection,
     if pvis_graph:
         suffix = ".html"
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
-        #full_filename = os.path.join(os.path.abspath(os.path.dirname('temp')), "/horus/temp", temp_file_name)
-        #full_filename = f'{os.path.abspath(os.path.dirname("temp"))}/apps/temp/{temp_file_name}'
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        print(full_filename)
-        return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
+        return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100vh", "width": "100%"})
