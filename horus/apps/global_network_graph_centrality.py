@@ -2,6 +2,7 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 from dash import dash_table
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pathlib
 import os
@@ -149,7 +150,10 @@ sidebar_content = [
             10: '10',
         },
         value=[4, 6]
-    )
+    ),
+    html.H6('Download current dataset',className="mt-5 mb-3"),
+    dbc.Button("Download Data", id="btn_csv_global", color="secondary", className="ml-3"),
+    dcc.Download(id="download-dataframe-csv-global"),
 ]
 
 tabs = dcc.Tabs(
@@ -186,7 +190,7 @@ row = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(html.Div([tabs, html.Div(id="content", style={'height': '95vh'})]), id='main_global_centrality'),
+                dbc.Col(html.Div([tabs, html.Div(id="content", style={'height': '100vh'})]), id='main_global_centrality'),
             ],
             className='h-100'
         ),
@@ -381,13 +385,13 @@ def horus_get_global_graph_centrality(
             id='table-global-graph', 
             columns=[{"name": i, "id": i, 'deletable': True} for i in df_global_data_tables.columns], 
             page_current=0,
-            page_size=10,
+            page_size=20,
             page_action='custom',
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
         
-        return dt
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt]
 
 @app.callback(
     Output('table-global-graph', 'data'),
@@ -474,3 +478,23 @@ def update_table(
     return dff.iloc[
         page_current*page_size:(page_current+ 1)*page_size
     ].to_dict('records')
+
+@app.callback(
+    Output("download-dataframe-csv-global", "data"),
+    Input('dataset_selection_global_centrality', 'value'),
+    Input("btn_csv_global", "n_clicks"),
+    prevent_initial_call=True,
+)
+def func(dataset_selection, n_clicks):
+    if dataset_selection == 'diogenes':
+        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges.csv'))
+    elif dataset_selection == 'iamblichus':
+        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges_Life_of_Pythagoras_Iamblichus.csv'))
+    
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        print(full_filename_csv)
+        df = pd.read_csv(full_filename_csv)
+        print(df.head())
+        return dcc.send_data_frame(df.to_csv, 'edges.csv')

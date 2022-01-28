@@ -1,12 +1,14 @@
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pathlib
 import os
 import sys
 import requests
 import tempfile
+import pandas as pd
 from flask import (
     Flask,
     render_template,
@@ -133,7 +135,10 @@ sidebar_content = [
             10: '10',
         },
         value=[4, 6]
-    )
+    ),
+    html.H6('Download current dataset',className="mt-5 mb-3"),
+    dbc.Button("Download Data", id="btn_csv", color="secondary", className="ml-3"),
+    dcc.Download(id="download-dataframe-csv"),
 ]
 
 
@@ -223,4 +228,25 @@ def horus_get_global_graph(dataset_selection,
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100vh", "width": "100%"})
+        return [html.H6('Global Network',className="mt-1 mb-2"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100vh", "width": "100%"})]
+
+@app.callback(
+    Output("download-dataframe-csv", "data"),
+    Input('dataset_selection', 'value'),
+    Input("btn_csv", "n_clicks"),
+    prevent_initial_call=True,
+)
+def func(dataset_selection, n_clicks):
+    if dataset_selection == 'diogenes':
+        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges.csv'))
+    elif dataset_selection == 'iamblichus':
+        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges_Life_of_Pythagoras_Iamblichus.csv'))
+    
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        print(full_filename_csv)
+        df = pd.read_csv(full_filename_csv)
+        print(df.head())
+        return dcc.send_data_frame(df.to_csv, 'edges.csv')
+    
