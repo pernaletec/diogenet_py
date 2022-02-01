@@ -80,7 +80,7 @@ sidebar_content = [
         options=[
             {'label': 'Fruchterman-Reingold', 'value': 'fr'},
             {'label': 'Kamada-Kawai', 'value': 'kk'},
-            {'label': 'On STphere', 'value': 'sphere'},
+            {'label': 'On Sphere', 'value': 'sphere'},
             {'label': 'In Circle', 'value': 'circle'},
             {'label': 'On Grid', 'value': 'grid_fr'},
         ],
@@ -301,53 +301,34 @@ def horus_get_global_graph_centrality(
             for m_filter in filters:
                 global_graph.set_edges_filter(m_filter)
 
-        subgraph = global_graph
+        def round_list_values(list_in):
+            return [round(value, 4) for value in list_in]
 
-        data = {
-            "Philosopher": subgraph.igraph_subgraph.vs["name"],
-            "Degree": subgraph.calculate_degree(),
-            "Betweeness": subgraph.calculate_betweenness(),
-            "Closeness": subgraph.calculate_closeness(),
-            "Eigenvector": subgraph.calculate_eigenvector(),
+        calculated_degree = [round(value) for value in global_graph.calculate_degree()]
+        calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
+        calculated_closeness = round_list_values(global_graph.calculate_closeness())
+        calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
+
+        dict_global_data_tables ={
+            "Phylosopher": global_graph.get_vertex_names(),
+            "Degree": calculated_degree,
+            "Betweeness": calculated_betweenness,
+            "Closeness": calculated_betweenness,
+            "Eigenvector": calculated_eigenvector 
         }
 
-
-        interpolated_data = {
-            "Philosopher": data["Philosopher"],
-            "Degree": np.interp(
-                data["Degree"], (min(data["Degree"]), max(data["Degree"])), (0, +1)
-            ),
-            "Betweeness": np.interp(
-                data["Betweeness"],
-                (min(data["Betweeness"]), max(data["Betweeness"])),
-                (0, +1),
-            ),
-            "Closeness": np.interp(
-                data["Closeness"],
-                (min(data["Closeness"]), max(data["Closeness"])),
-                (0, +1),
-            ),
-            "Eigenvector": np.interp(
-                data["Eigenvector"],
-                (min(data["Eigenvector"]), max(data["Eigenvector"])),
-                (0, +1),
-            ),
-        }
-
-        df = pd.DataFrame(data=interpolated_data)
-        df1 = df.sort_values(by=["Degree", "Betweeness", "Closeness"]).set_index("Philosopher", drop=False)
-
+        df_global_heatmap = pd.DataFrame(dict_global_data_tables).sort_values(["Degree", "Betweeness", "Closeness"])
+                            
         plotly_graph = go.Figure(
             data=go.Heatmap(
-                z=df1[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
-                y=df1.Philosopher,
+                z=df_global_heatmap[["Degree", "Betweeness", "Closeness", "Eigenvector"]],
+                y=df_global_heatmap["Phylosopher"],
                 x=["Degree", "Betweeness", "Closeness", "Eigenvector"],
                 hoverongaps=False,
                 type="heatmap",
                 colorscale="Viridis",
             )
         )
-
         plotly_graph.update_layout(
             legend_font_size=12, legend_title_font_size=12, font_size=8
         )
