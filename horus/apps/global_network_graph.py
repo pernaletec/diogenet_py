@@ -22,6 +22,7 @@ from flask import (
 from app import app
 from data_analysis_module.network_graph import diogenetGraph
 
+
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
@@ -232,19 +233,24 @@ def horus_get_global_graph(dataset_selection,
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
-    Input('dataset_selection', 'value'),
     Input("btn_csv", "n_clicks"),
+    Input('dataset_selection', 'value'),
     prevent_initial_call=True,
 )
-def func(dataset_selection, n_clicks):
-    if dataset_selection == 'diogenes':
-        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges.csv'))
-    elif dataset_selection == 'iamblichus':
-        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','new_Edges_Life_of_Pythagoras_Iamblichus.csv'))
+def func(n_clicks, dataset_selection):
+    # list of avaiable datasets in /data for download
+    dataset_list_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','datasetList.csv'))
+    dataset_list_df = pd.read_csv(dataset_list_path)
     
     if n_clicks is None:
         raise PreventUpdate
     else:
+        m1 = dataset_list_df['name'] == str(dataset_selection)
+        m2 = dataset_list_df['type'] == 'edges'
+
+        edges_path_name = str(list(dataset_list_df[m1&m2]['path'])[0])
+        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data', edges_path_name))
+
         print(full_filename_csv)
         df = pd.read_csv(full_filename_csv)
         print(df.head())
