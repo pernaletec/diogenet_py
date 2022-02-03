@@ -191,6 +191,10 @@ row = html.Div(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div([tabs, html.Div(id="content", style={'height': '100vh'})]), id='main_global_centrality'),
+                dcc.ConfirmDialog(
+                        id='confirm-warning-tie-centrality',
+                        message='You must select at least one tie',
+                    ),
             ],
             className='h-100'
         ),
@@ -236,10 +240,10 @@ def horus_get_global_graph_centrality(
 
     plot_type = "pyvis"
     centrality_index = centrality_index_global_centrality
-    node_min_size = int(label_size_global_centrality[0])
-    node_max_size = int(label_size_global_centrality[1])
-    label_min_size = int(node_size_global_centrality[0])
-    label_max_size = int(node_size_global_centrality[1])
+    node_min_size = int(node_size_global_centrality[0])
+    node_max_size = int(node_size_global_centrality[1])
+    label_min_size = int(label_size_global_centrality[0])
+    label_max_size = int(label_size_global_centrality[1])
     global_graph.current_centrality_index = "Degree"
     not_centrality = False
     graph_layout = graph_layout_global_centrality
@@ -479,3 +483,11 @@ def func(dataset_selection, n_clicks):
         df = pd.read_csv(full_filename_csv)
         print(df.head())
         return dcc.send_data_frame(df.to_csv, 'edges.csv')
+
+
+@app.callback(Output('confirm-warning-tie-centrality', 'displayed'),
+              Input('graph_filter_global_centrality', 'value'))
+def display_confirm(graph_filter_global_centrality):
+    if len(graph_filter_global_centrality) == 0:
+        return True
+    return False

@@ -151,6 +151,10 @@ row = html.Div(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph'),
+                dcc.ConfirmDialog(
+                        id='confirm-warning-tie',
+                        message='You must select at least one tie',
+                    ),
             ],
             className='h-100'
         ),
@@ -189,10 +193,11 @@ def horus_get_global_graph(dataset_selection,
     )
     
     plot_type = "pyvis"
-    node_min_size = int(label_size_global[0])
-    node_max_size = int(label_size_global[1])
-    label_min_size = int(node_size_global[0])
-    label_max_size = int(node_size_global[1])
+    warning_tie = False
+    node_min_size = int(node_size_global[0])
+    node_max_size = int(node_size_global[1])
+    label_min_size = int(label_size_global[0])
+    label_max_size = int(label_size_global[1])
     grafo.current_centrality_index = "Degree"
     not_centrality = True
     graph_layout = graph_layout_global
@@ -255,4 +260,12 @@ def func(n_clicks, dataset_selection):
         df = pd.read_csv(full_filename_csv)
         print(df.head())
         return dcc.send_data_frame(df.to_csv, 'edges.csv')
+
+@app.callback(Output('confirm-warning-tie', 'displayed'),
+              Input('graph_filter_global', 'value'))
+def display_confirm(graph_filter_global):
+    if len(graph_filter_global) == 0:
+        return True
+    return False
+
     
