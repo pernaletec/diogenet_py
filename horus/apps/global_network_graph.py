@@ -32,15 +32,32 @@ STYLE_A_ITEM = {
 
 navbar = dbc.Navbar(
     children=[
-        dbc.NavLink("Horus Main", href="/", style=STYLE_A_ITEM),
-        dbc.DropdownMenu(
-            [dbc.DropdownMenuItem("Graph", href="#"), dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")],
-            label="Global Network",
-            style=STYLE_A_ITEM,
-            color="#1a6ecc"
+        html.Div(
+            [
+                dbc.NavLink("Horus", style=STYLE_A_ITEM),
+                dbc.DropdownMenu(
+                    [
+                        dbc.DropdownMenuItem("Graph", href="#"), 
+                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
+                    ],
+                    label="Global Network",
+                    style=STYLE_A_ITEM,
+                    color="#1a6ecc"
+                )
+            ], 
+            className="d-flex",
+
+        ),
+        dbc.NavLink(
+            [
+                html.I(className="bi bi-house-fill me-2 text-white")
+            ], 
+            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+            target="blank"
         ),
     ],
     color="#1a6ecc",
+    className="d-flex justify-content-between",
     style={'color':'#ffffff'},
     id='Navbar'
 )
