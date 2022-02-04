@@ -339,7 +339,29 @@ def horus_get_global_graph_centrality(
             "Eigenvector": calculated_eigenvector 
         }
 
-        df_global_heatmap = pd.DataFrame(dict_global_data_tables).sort_values(["Degree", "Betweeness", "Closeness"])
+        interpolated_data = {
+            "Phylosopher": dict_global_data_tables["Phylosopher"],
+            "Degree": np.interp(
+                dict_global_data_tables["Degree"], (min(dict_global_data_tables["Degree"]), max(dict_global_data_tables["Degree"])), (0, +1)
+            ),
+            "Betweeness": np.interp(
+                dict_global_data_tables["Betweeness"],
+                (min(dict_global_data_tables["Betweeness"]), max(dict_global_data_tables["Betweeness"])),
+                (0, +1),
+            ),
+            "Closeness": np.interp(
+                dict_global_data_tables["Closeness"],
+                (min(dict_global_data_tables["Closeness"]), max(dict_global_data_tables["Closeness"])),
+                (0, +1),
+            ),
+            "Eigenvector": np.interp(
+                dict_global_data_tables["Eigenvector"],
+                (min(dict_global_data_tables["Eigenvector"]), max(dict_global_data_tables["Eigenvector"])),
+                (0, +1),
+        ),
+    }
+
+        df_global_heatmap = pd.DataFrame(interpolated_data).sort_values(["Degree", "Betweeness", "Closeness"])
                             
         plotly_graph = go.Figure(
             data=go.Heatmap(
