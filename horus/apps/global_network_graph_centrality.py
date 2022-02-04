@@ -368,7 +368,8 @@ def horus_get_global_graph_centrality(
 
         dt = dash_table.DataTable( 
             id='table-global-graph', 
-            columns=[{"name": i, "id": i, 'deletable': True} for i in df_global_data_tables.columns], 
+            columns=[{"name": i, "id": i, 'deletable': True} for i in df_global_data_tables.columns],
+            style_cell={'textAlign': 'center'}, 
             page_current=0,
             page_size=20,
             page_action='custom',
