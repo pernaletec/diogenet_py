@@ -358,8 +358,8 @@ def horus_get_global_graph_centrality(
                 dict_global_data_tables["Eigenvector"],
                 (min(dict_global_data_tables["Eigenvector"]), max(dict_global_data_tables["Eigenvector"])),
                 (0, +1),
-        ),
-    }
+            ),
+        }
 
         df_global_heatmap = pd.DataFrame(interpolated_data).sort_values(["Degree", "Betweeness", "Closeness"])
                             
@@ -409,6 +409,12 @@ def horus_get_global_graph_centrality(
         dt = dash_table.DataTable( 
             id='table-global-graph', 
             columns=[{"name": i, "id": i, 'deletable': True} for i in df_global_data_tables.columns],
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(220, 220, 220)',
+                }
+            ],
             style_cell={'textAlign': 'center'}, 
             page_current=0,
             page_size=20,
