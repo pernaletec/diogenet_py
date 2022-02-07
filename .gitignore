@@ -171,3 +171,5 @@ cython_debug/
 
 test.py
 *.html
+
+.DS_Store
