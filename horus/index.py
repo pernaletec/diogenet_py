@@ -6,12 +6,8 @@ import dash_bootstrap_components as dbc
 import dash
 import dash_bootstrap_components as dbc
 
-app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
-app.config.suppress_callback_exceptions = True
-
-server = app.server
-
-#from horus.app import app
+from horus.app import app
+from horus.app import server
 from horus.apps import global_network_graph, global_network_graph_centrality
 
 navbar = dbc.NavbarSimple(

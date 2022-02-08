@@ -19,7 +19,7 @@ from flask import (
     jsonify,
 )
 
-from horus.index import app
+from horus.app import app
 from horus.data_analysis_module.network_graph import diogenetGraph
 
 
