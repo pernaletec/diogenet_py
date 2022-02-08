@@ -1,14 +1,14 @@
+import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
-import dash
-import dash_bootstrap_components as dbc
-
 from horus.app import app
 from horus.app import server
 from horus.apps import global_network_graph, global_network_graph_centrality
+
+
 
 navbar = dbc.NavbarSimple(
     children=[
