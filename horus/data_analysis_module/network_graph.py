@@ -15,7 +15,7 @@ import copy
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from . import data_access as da
+import horus.data_analysis_module.data_access as da
 import random
 import os
 import tempfile

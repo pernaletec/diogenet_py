@@ -22,8 +22,8 @@ from flask import (
     jsonify,
 )
 
-from app import app
-from data_analysis_module.network_graph import diogenetGraph
+from horus.index import app
+from horus.data_analysis_module.network_graph import diogenetGraph
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 

@@ -19,8 +19,8 @@ from flask import (
     jsonify,
 )
 
-from app import app
-from data_analysis_module.network_graph import diogenetGraph
+from horus.index import app
+from horus.data_analysis_module.network_graph import diogenetGraph
 
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
@@ -251,7 +251,7 @@ def horus_get_global_graph(dataset_selection,
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100vh", "width": "100%"})]
+        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100vh", "width": "100%"})]
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
