@@ -8,8 +8,6 @@ from horus.app import app
 from horus.app import server
 from horus.apps import global_network_graph, global_network_graph_centrality
 
-
-
 navbar = dbc.NavbarSimple(
     children=[
         dbc.NavItem(dbc.NavLink("Page 1", href="/apps/global_network_graph"), id="network-graph-link"),
