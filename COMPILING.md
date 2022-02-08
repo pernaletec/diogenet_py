@@ -1,37 +1,4 @@
-# Compiling the Project #
-
-## Compiling the Client ##
-
-First the client needs to be compiled. For this enter to the `client/`
-directory and execute `npm install` to locally install all the required
-dependencies. After that executing `npm run build` should build the client:
-
-```sh
-cd client/
-npm install
-npm run build
-```
-
-While working on the client this edit-compile-run cycle can get a bit slow
-(webpack isn't the fastest while compiling typescript). To address this issue
-a "dev server" is provided that automatically detect any change in the
-source, compile it and then place the compiled client into
-`diogenet_py/static/client/`. To run this dev server the following command
-must be used instead of `npm build`:
-
-```sh
-npm run start
-```
-
-Compiling the client will put all the compiled resources (with their respective
-sourcemap) in the `diogenet_py/static/client` directory. All resources,
-including SASS/SCSS and dependencies of the program (like images or icons)
-will also go to that directory. Now that they are compiled the Flash
-application can make use of them.
-
-**Note**: It is required to build the client before using the `diogenet_py`
-package. Once the server is built, it does not need to be rebuilt when changes
-are made only over `diogenet_py`.
+# Setup the Project #
 
 ## Installing the Python Package ##
 
@@ -79,8 +46,6 @@ Dependencies from `setup.cfg` will be automatically installed in the next step.
 
 ### Installing the package ###
 
-#### Installing for development ####
-
 If continuous work is being done on the source of the package, the easiest
 way to install it is with:
 
@@ -91,38 +56,6 @@ pip install -e .
 Which will install the package in the current virtual environment in *editable*
 mode (so changes to the source code are inmmediatly available, no need to
 reinstall).
-
-#### Installing for production ####
-
-The application can be packaged as described in the next section.  That will
-automatically install the package and its dependencies as a `whl` file, under
-`dist/`, and in the current virtual environment.
-
-### Packaging ###
-
-To package the whole app into a distributable "source distribution" (*sdist*)
-or wheel file (`.whl`) which can later be installed in another computer it
-first needs to be built as follows:
-
-```sh
-python3 setup.py build
-```
-
-**Note**: Remember to build the client before this!
-
-[//]: # (How should I build the client?)
-
-This will produce several files and an additional `dist/` directory. That
-directory contains the wheel file which can be distributed and installed.
-
-To directly install the application sidestepping the wheel file, just execute:
-
-```sh
-python3 setup.py install
-```
-
-If this is done then the wheel file does not need to be installed as
-described in the "Installing for production" section.
 
 ## Building the Documentation ##
 
