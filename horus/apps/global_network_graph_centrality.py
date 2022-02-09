@@ -23,8 +23,8 @@ from flask import (
 )
 
 
-from horus.app import app
-from horus.data_analysis_module.network_graph import diogenetGraph
+from app import app
+from data_analysis_module.network_graph import diogenetGraph
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
@@ -44,6 +44,14 @@ navbar = dbc.Navbar(
                         dbc.DropdownMenuItem("Graph + centrality", href="#")
                     ],
                     label="Global Network",
+                    style=STYLE_A_ITEM,
+                    color="#1a6ecc"
+                ),
+                dbc.DropdownMenu(
+                    [
+                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"), 
+                    ],
+                    label="Local Network",
                     style=STYLE_A_ITEM,
                     color="#1a6ecc"
                 )

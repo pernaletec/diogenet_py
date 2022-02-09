@@ -14,7 +14,7 @@ import os
 # VARS to fullfill dataframes
 # Define data access method: local, url or database
 
-import horus.data_analysis_module.network_graph as ng
+import data_analysis_module.network_graph as ng
 
 
 def get_data_entity_local(entity_name):

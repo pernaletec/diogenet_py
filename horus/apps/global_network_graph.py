@@ -19,8 +19,8 @@ from flask import (
     jsonify,
 )
 
-from horus.app import app
-from horus.data_analysis_module.network_graph import diogenetGraph
+from app import app
+from data_analysis_module.network_graph import diogenetGraph
 
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
@@ -41,6 +41,14 @@ navbar = dbc.Navbar(
                         dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
                     ],
                     label="Global Network",
+                    style=STYLE_A_ITEM,
+                    color="#1a6ecc"
+                ),
+                dbc.DropdownMenu(
+                    [
+                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"), 
+                    ],
+                    label="Local Network",
                     style=STYLE_A_ITEM,
                     color="#1a6ecc"
                 )
@@ -180,9 +188,12 @@ row = html.Div(
     style={'padding':'0px 10px'}
 )
 
-layout = html.Div([
-    row
-],  style={"height": "100vh"})
+layout = html.Div(
+    [
+        row
+    ],  
+    style={"height": "100vh"}
+)
 
 # Update the index
 
