@@ -97,18 +97,15 @@ sidebar_content = [
         inputStyle={'margin':'0px 5px'},
     ),
     html.H5('Ego',className="mt-5 mb-3"),
-    dcc.Dropdown(
-        id='ego_local',
-        options=[
-            {'label': 'example', 'value': 'example'},
-        ],
-        value='example',
-        searchable=False,
+    html.Div(
+        id='dropdown_container_local',
+        children=[]
     ),
+    html.H5('Order',className="mt-5 mb-3"),
     dcc.RangeSlider(
         id='order_local',
         min=0,
-        max=5,
+        max=4,
         step=1,
         marks={
             0: '0',
@@ -116,9 +113,8 @@ sidebar_content = [
             2: '2',
             3: '3',
             4: '4',
-            5: '5',
         },
-        value=4
+        value=[2]
     ),
     dcc.Checklist(
         id='show_gender_local',
@@ -128,6 +124,18 @@ sidebar_content = [
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
         className='mt-3'
+    ),
+    html.H5('Centrality index',className="mt-5 mb-3"),
+    dcc.Dropdown(
+        id='centrality_index_local',
+        options=[
+            {'label': 'Degree', 'value': 'Degree'},
+            {'label': 'Betweeness', 'value': 'Betweeness'},
+            {'label': 'Closeness', 'value': 'Closeness'},
+            {'label': 'Eigenvector', 'value': 'Eigenvector'},
+        ],
+        value='Degree',
+        searchable=False,
     ),
     html.H5('Appearence',className="mt-5 mb-3"),
     html.H6('Label Size',className="mt-1 mb-2"),
@@ -202,3 +210,154 @@ layout = html.Div(
     ],  
     style={"height": "100vh"}
 )
+
+@app.callback(
+    Output('dropdown_container_local', 'children'),
+    Input('dataset_selection_local', 'value'),
+    Input('graph_filter_local', 'value'))
+def get_philosopher(dataset_selection,
+                    graph_filter):
+
+    graph_filter = graph_filter
+
+    local_graph = diogenetGraph(
+        "local",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
+
+    if not graph_filter:
+        graph_filter = "is teacher of"
+        local_graph.set_edges_filter(graph_filter)
+    else:
+        local_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            local_graph.set_edges_filter(m_filter)
+
+    data = []
+
+    for philosopher in local_graph.igraph_subgraph.vs:
+        data.append(philosopher["name"])
+
+    sorted_data = sorted(data)
+
+    if dataset_selection == 'diogenes':
+        return dcc.Dropdown(
+            id='ego_local',
+            options=[       
+                {'label': philosopher, 'value': philosopher}
+                for philosopher in sorted_data
+            ],
+            value="Plato",
+            searchable=False,
+        ),
+    
+    if dataset_selection == 'iamblichus':
+        return dcc.Dropdown(
+            id='ego_local',
+            options=[       
+                {'label': philosopher, 'value': philosopher}
+                for philosopher in sorted_data
+            ],
+            value="Pythagoras",
+            searchable=False,
+        ),
+
+@app.callback(
+    Output('main_local_netowrk_graph', 'children'),
+    Input('dataset_selection_local', 'value'),
+    Input('graph_filter_local', 'value'),
+    Input('ego_local', 'value'),
+    Input('order_local', 'value'),
+    Input('show_gender_local', 'value'),
+    Input('centrality_index_local', 'value'),
+    Input('label_size_local', 'value'),
+    Input('node_size_local', 'value'),)
+def horus_get_local_graph(dataset_selection,
+                        graph_filter,
+                        ego_local,
+                        order_local,
+                        show_gender,
+                        centrality_index,
+                        label_size,  
+                        node_size):
+
+    local_graph = diogenetGraph(
+        "local",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
+
+    plot_type = "pyvis"
+    warning_tie = False
+    centrality_index = centrality_index
+    node_min_size = int(node_size[0])
+    node_max_size = int(node_size[1])
+    label_min_size = int(label_size[0])
+    label_max_size = int(label_size[1])
+    local_graph.current_centrality_index = "Degree"
+    not_centrality = False
+    graph_filter = graph_filter
+
+    if dataset_selection == 'diogenes':
+        if ego_local not in [None, "", "None"]:
+            local_graph.local_phylosopher = ego_local
+        else:
+            local_graph.local_phylosopher = "Plato"
+    if dataset_selection == 'iamblichus':
+        if ego_local not in [None, "", "None"]:
+            local_graph.local_phylosopher = ego_local
+        else:
+            local_graph.local_phylosopher = "Pythagoras"
+
+    if order_local not in [None, "", "None"]:
+        local_graph.local_order = order_local[0]
+    else:
+        local_graph.local_order = 1
+
+    if centrality_index:
+        if centrality_index in [None, "", "None"]:
+            local_graph.current_centrality_index = "Degree"
+            not_centrality = True
+        else:
+            local_graph.current_centrality_index = centrality_index
+
+    if not graph_filter:
+        local_graph.set_edges_filter("is teacher of")
+    else:
+        local_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            local_graph.set_edges_filter(m_filter)
+
+    if show_gender:
+        local_graph.pyvis_show_gender = True
+    else:
+        local_graph.pyvis_show_gender = False
+
+    local_graph.create_subgraph()
+    pvis_graph = None
+
+    graph_layout = "fr"
+
+    if plot_type == "pyvis":
+        pvis_graph = local_graph.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+            avoid_centrality=not_centrality,
+        )
+
+    if pvis_graph:
+            suffix = ".html"
+            temp_file_name = next(tempfile._get_candidate_names()) + suffix
+            full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+            pvis_graph.write_html(full_filename)
+            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100vh", "width": "100%"})]
