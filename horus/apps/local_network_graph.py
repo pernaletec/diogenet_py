@@ -37,7 +37,7 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Horus", style=STYLE_A_ITEM),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/global_network_graph"), 
+                        dbc.DropdownMenuItem("Graph", href="global_network_graph"), 
                         dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
                     ],
                     label="Global Network",
@@ -46,7 +46,8 @@ navbar = dbc.Navbar(
                 ),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"), 
+                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"),
+                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/local_network_graph_centrality")
                     ],
                     label="Local Network",
                     style=STYLE_A_ITEM,
@@ -360,4 +361,4 @@ def horus_get_local_graph(dataset_selection,
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100vh", "width": "100%"})]
+            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]

@@ -37,7 +37,7 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Horus", style=STYLE_A_ITEM),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="#"), 
+                        dbc.DropdownMenuItem("Graph", href="global_network_graph"), 
                         dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
                     ],
                     label="Global Network",
@@ -46,7 +46,8 @@ navbar = dbc.Navbar(
                 ),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"), 
+                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"),
+                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/local_network_graph_centrality")
                     ],
                     label="Local Network",
                     style=STYLE_A_ITEM,
@@ -262,15 +263,16 @@ def horus_get_global_graph(dataset_selection,
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100vh", "width": "100%"})]
+        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
     Input("btn_csv", "n_clicks"),
     Input('dataset_selection', 'value'),
+    Input('graph_filter_global', 'value'),
     prevent_initial_call=True,
 )
-def func(n_clicks, dataset_selection):
+def func(n_clicks, dataset_selection, graph_filter):
     # list of avaiable datasets in /data for download
     dataset_list_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','datasetList.csv'))
     dataset_list_df = pd.read_csv(dataset_list_path)
@@ -286,8 +288,9 @@ def func(n_clicks, dataset_selection):
 
         print(full_filename_csv)
         df = pd.read_csv(full_filename_csv)
-        print(df.head())
-        return dcc.send_data_frame(df.to_csv, 'edges.csv')
+        df_to_save = df[df["Relation"].isin(graph_filter)]
+        print(df[df["Relation"].isin(graph_filter)])
+        return dcc.send_data_frame(df_to_save.to_csv, 'edges.csv')
 
 @app.callback(Output('confirm-warning-tie', 'displayed'),
               Input('graph_filter_global', 'value'))

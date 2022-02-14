@@ -40,8 +40,8 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Horus", style=STYLE_A_ITEM),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/global_network_graph"), 
-                        dbc.DropdownMenuItem("Graph + centrality", href="#")
+                        dbc.DropdownMenuItem("Graph", href="global_network_graph"), 
+                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
                     ],
                     label="Global Network",
                     style=STYLE_A_ITEM,
@@ -49,13 +49,14 @@ navbar = dbc.Navbar(
                 ),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"), 
+                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"),
+                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/local_network_graph_centrality")
                     ],
                     label="Local Network",
                     style=STYLE_A_ITEM,
                     color="#1a6ecc"
                 )
-            ], 
+            ],
             className="d-flex",
 
         ),
@@ -319,9 +320,9 @@ def horus_get_global_graph_centrality(
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "100%", "width": "100%"})
+            return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "900px", "width": "100%"})
 
-    elif tab == "heatmap_global_cetrality":
+    if tab == "heatmap_global_cetrality":
         plotly_graph = None
 
         if not graph_filter:
@@ -388,7 +389,7 @@ def horus_get_global_graph_centrality(
         
         return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
 
-    elif tab == "metrics_global_cetrality":
+    if tab == "metrics_global_cetrality":
         if not graph_filter:
             global_graph.set_edges_filter("is teacher of")
         else:
