@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 
 from app import app
 from app import server
-from apps import global_network_graph, global_network_graph_centrality, local_network_graph, local_network_graph_centrality
+from apps import global_network_graph, global_network_graph_centrality, local_network_graph, local_network_graph_centrality, communities_graph, communities_treemap
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -26,6 +26,10 @@ def display_page(pathname):
         return local_network_graph.layout
     if pathname == '/apps/local_network_graph_centrality':
         return local_network_graph_centrality.layout
+    if pathname == '/apps/communities_graph':
+        return communities_graph.layout
+    if pathname == '/apps/communities_treemap':
+        return communities_treemap.layout
     else:
         return '404'
 

@@ -55,6 +55,15 @@ navbar = dbc.Navbar(
                     label="Local Network",
                     style=STYLE_A_ITEM,
                     color="#1a6ecc"
+                ),
+                dbc.DropdownMenu(
+                    [
+                        dbc.DropdownMenuItem("Graph", href="/apps/communities_graph"),
+                        dbc.DropdownMenuItem("Treemap", href="/apps/communities_treemap")
+                    ],
+                    label="Communities",
+                    style=STYLE_A_ITEM,
+                    color="#1a6ecc"
                 )
             ],
             className="d-flex",

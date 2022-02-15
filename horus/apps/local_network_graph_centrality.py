@@ -41,7 +41,7 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Horus", style=STYLE_A_ITEM),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/global_network_graph"), 
+                        dbc.DropdownMenuItem("Graph", href="global_network_graph"), 
                         dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
                     ],
                     label="Global Network",
@@ -56,8 +56,17 @@ navbar = dbc.Navbar(
                     label="Local Network",
                     style=STYLE_A_ITEM,
                     color="#1a6ecc"
+                ),
+                dbc.DropdownMenu(
+                    [
+                        dbc.DropdownMenuItem("Graph", href="/apps/communities_graph"),
+                        dbc.DropdownMenuItem("Treemap", href="/apps/communities_treemap")
+                    ],
+                    label="Communities",
+                    style=STYLE_A_ITEM,
+                    color="#1a6ecc"
                 )
-            ], 
+            ],
             className="d-flex",
 
         ),

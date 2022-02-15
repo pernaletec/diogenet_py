@@ -1,6 +1,7 @@
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+from dash import dash_table
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import pathlib
@@ -8,7 +9,9 @@ import os
 import sys
 import requests
 import tempfile
+import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from flask import (
     Flask,
     render_template,
@@ -19,9 +22,9 @@ from flask import (
     jsonify,
 )
 
+
 from app import app
 from data_analysis_module.network_graph import diogenetGraph
-
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
@@ -78,13 +81,13 @@ navbar = dbc.Navbar(
     color="#1a6ecc",
     className="d-flex justify-content-between",
     style={'color':'#ffffff'},
-    id='Navbar'
+    id='navbar-communities'
 )
 
 sidebar_content = [
     html.H5('Dataset selection', className="mt-3 mb-3"),
     dcc.Dropdown(
-        id='dataset_selection',
+        id='dataset_selection_communnities',
         options=[
             {'label': key, 'value': value}
             for key, value in dict_of_datasets.items()
@@ -95,7 +98,7 @@ sidebar_content = [
     ),
     html.H5('Network ties', className="mt-5 mb-3"),
     dcc.Checklist( 
-        id='graph_filter_global',
+        id='graph_filter_communities',
         options=[
             {'label': ' Is teacher of', 'value': 'is teacher of'},
                 {'label': ' Is friend of', 'value': 'is friend of'},
@@ -108,17 +111,20 @@ sidebar_content = [
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
         inputStyle={'margin':'0px 5px'},
     ),
-    html.H5('Graph layout',className="mt-5 mb-3"),
+    html.H5('Community detection',className="mt-5 mb-3"),
+    html.H6("Algorithm"),
     dcc.Dropdown(
-        id='graph_layout_global',
+        id='graph_algorithm_communnities',
         options=[
-            {'label': 'Fruchterman-Reingold', 'value': 'fr'},
-            {'label': 'Kamada-Kawai', 'value': 'kk'},
-            {'label': 'On Sphere', 'value': 'sphere'},
-            {'label': 'In Circle', 'value': 'circle'},
-            {'label': 'On Grid', 'value': 'grid_fr'},
+            {'label': 'Cluster Edge Betweenness', 'value': '1'},
+            {'label': 'Cluster Fast Greedy', 'value': '2'},
+            {'label': 'Cluster Infomap', 'value': '3'},
+            {'label': 'Cluster Label Prop', 'value': '4'},
+            {'label': 'Cluster Leading Eigen', 'value': '5'},
+            {'label': 'Cluster Louvain', 'value': '6'},
+            {'label': 'Cluster Walktrap', 'value': '7'},
         ],
-        value='fr',
+        value='1',
         searchable=False,
     ),
     dcc.Checklist(
@@ -130,10 +136,29 @@ sidebar_content = [
         inputStyle={'margin':'0px 5px'},
         className='mt-3'
     ),
+    html.H5('Visualization',className="mt-5 mb-3"),
+    dcc.Dropdown(
+        id='visualization_communnities',
+        options=[
+            {'label': 'VisNetwork', 'value': '1'},
+            {'label': 'Igraph', 'value': '2'},
+        ],
+        value='1',
+        searchable=False,
+    ),
+    dcc.Checklist(
+        id='crossing_ties',
+        options=[
+            {'label': ' Show crossing ties', 'value': "True"}
+        ],
+        labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
+        inputStyle={'margin':'0px 5px'},
+        className='mt-3'
+    ),
     html.H5('Appearence',className="mt-5 mb-3"),
     html.H6('Label Size',className="mt-1 mb-2"),
     dcc.RangeSlider(
-        id='label_size_global',
+        id='label_size_communities',
         min=0,
         max=10,
         step=1,
@@ -154,7 +179,7 @@ sidebar_content = [
     ),
     html.H6('Node Size',className="mt-1 mb-2"),
     dcc.RangeSlider(
-        id='node_size_global',
+        id='node_size_communities',
         min=0,
         max=10,
         step=1,
@@ -178,15 +203,13 @@ sidebar_content = [
     dcc.Download(id="download-dataframe-csv"),
 ]
 
-
-
 row = html.Div(
     [
         dbc.Row(navbar),
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(id='main-netowrk-graph'),
+                dbc.Col(id='main-netowrk-graph-communities'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
                         message='You must select at least one tie',
@@ -205,108 +228,3 @@ layout = html.Div(
     ],  
     style={"height": "100vh"}
 )
-
-# Update the index
-
-@app.callback(
-    Output('main-netowrk-graph', 'children'),
-    Input('dataset_selection', 'value'),
-    Input('graph_filter_global', 'value'),
-    Input('graph_layout_global', 'value'),
-    Input('show_gender', 'value'),
-    Input('label_size_global', 'value'),
-    Input('node_size_global', 'value'),)
-def horus_get_global_graph(dataset_selection, 
-                            graph_filter_global, 
-                            graph_layout_global, 
-                            show_gender, 
-                            label_size_global, 
-                            node_size_global):
-
-    grafo = diogenetGraph(
-        "global",
-        dataset_selection,
-        dataset_selection,
-        'locations_data.csv',
-        'travels_blacklist.csv'
-    )
-    
-    plot_type = "pyvis"
-    warning_tie = False
-    node_min_size = int(node_size_global[0])
-    node_max_size = int(node_size_global[1])
-    label_min_size = int(label_size_global[0])
-    label_max_size = int(label_size_global[1])
-    grafo.current_centrality_index = "Degree"
-    not_centrality = True
-    graph_layout = graph_layout_global
-
-    grafo.edges_filter = []
-    filters = graph_filter_global
-    for m_filter in filters:
-        grafo.set_edges_filter(m_filter)
-
-    if not graph_layout:
-        graph_layout = "fr"
-
-    if show_gender:
-        grafo.pyvis_show_gender = True
-    else:
-        grafo.pyvis_show_gender = False
-
-    grafo.create_subgraph()
-
-    pvis_graph = None
-
-    if plot_type == "pyvis":
-        pvis_graph = grafo.get_pyvis(
-            min_weight=node_min_size,
-            max_weight=node_max_size,
-            min_label_size=label_min_size,
-            max_label_size=label_max_size,
-            layout=graph_layout,
-            avoid_centrality=not_centrality,
-        )
-    
-    if pvis_graph:
-        suffix = ".html"
-        temp_file_name = next(tempfile._get_candidate_names()) + suffix
-        full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
-        pvis_graph.write_html(full_filename)
-        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
-
-@app.callback(
-    Output("download-dataframe-csv", "data"),
-    Input("btn_csv", "n_clicks"),
-    Input('dataset_selection', 'value'),
-    Input('graph_filter_global', 'value'),
-    prevent_initial_call=True,
-)
-def func(n_clicks, dataset_selection, graph_filter):
-    # list of avaiable datasets in /data for download
-    dataset_list_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','datasetList.csv'))
-    dataset_list_df = pd.read_csv(dataset_list_path)
-    
-    if n_clicks is None:
-        raise PreventUpdate
-    else:
-        m1 = dataset_list_df['name'] == str(dataset_selection)
-        m2 = dataset_list_df['type'] == 'edges'
-
-        edges_path_name = str(list(dataset_list_df[m1&m2]['path'])[0])
-        full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data', edges_path_name))
-
-        print(full_filename_csv)
-        df = pd.read_csv(full_filename_csv)
-        df_to_save = df[df["Relation"].isin(graph_filter)]
-        print(df[df["Relation"].isin(graph_filter)])
-        return dcc.send_data_frame(df_to_save.to_csv, 'edges.csv')
-
-@app.callback(Output('confirm-warning-tie', 'displayed'),
-              Input('graph_filter_global', 'value'))
-def display_confirm(graph_filter_global):
-    if len(graph_filter_global) == 0:
-        return True
-    return False
-
-    
