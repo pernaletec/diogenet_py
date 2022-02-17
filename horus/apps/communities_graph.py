@@ -303,50 +303,55 @@ def horus_get_local_graph(dataset_selection,
             layout=graph_layout,
             avoid_centrality=not_centrality,
         )
-    full_filename = ""
-    if plot_type == "igraph":
-        suffix = ".svg" 
+        suffix = ".html"
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
-        if plot_type == "igraph":
-            modularity, clusters = communities_graph.identify_communities()
-            dendogram_communities_list = [
-                "community_edge_betweenness",
-                "community_walktrap",
-                "community_fastgreedy",
-            ]
-            communities_graph.igraph_subgraph.vs["label"] = communities_graph.igraph_subgraph.vs["name"]
-            if communities_graph.comm_alg not in dendogram_communities_list:
-                plot(
-                    communities_graph.comm,
-                    full_filename,
-                    layout=communities_graph.graph_layout,
-                    bbox=(450, 450),
-                    margin=20,
-                    mark_groups=True,
-                    vertex_label_size=7,
-                    vertex_label_angle=200,
-                    vertex_label_dist=1,
-                    vertex_size=8,
-                )
-            with open(full_filename, "r") as file:
-                if communities_graph.comm_alg not in dendogram_communities_list:
-                    data = file.read().replace('width="450pt"', 'width="100%"')
-                else:
-                    data = file.read()
-                full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
-                temp_html_file_name = (
-                    next(tempfile._get_candidate_names()) + HTML_SUFFIX
-                )
-                full_html_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
-                full_html_file = open(full_html_filename, "w")
-                _ = full_html_file.write(full_html_file_content)
-                full_html_file.close()
-                full_filename = full_html_filename
-        else:
-            pvis_graph.write_html(full_filename)
+        pvis_graph.write_html(full_filename)
+        return [html.H6('Graph',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
+
+    # if plot_type == "igraph":
+    #     suffix = ".svg" 
+    #     temp_file_name = next(tempfile._get_candidate_names()) + suffix
+    #     full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+    #     if plot_type == "igraph":
+    #         modularity, clusters = communities_graph.identify_communities()
+    #         dendogram_communities_list = [
+    #             "community_edge_betweenness",
+    #             "community_walktrap",
+    #             "community_fastgreedy",
+    #         ]
+    #         communities_graph.igraph_subgraph.vs["label"] = communities_graph.igraph_subgraph.vs["name"]
+    #         if communities_graph.comm_alg not in dendogram_communities_list:
+    #             plot(
+    #                 communities_graph.comm,
+    #                 full_filename,
+    #                 layout=communities_graph.graph_layout,
+    #                 bbox=(450, 450),
+    #                 margin=20,
+    #                 mark_groups=True,
+    #                 vertex_label_size=7,
+    #                 vertex_label_angle=200,
+    #                 vertex_label_dist=1,
+    #                 vertex_size=8,
+    #             )
+    #         with open(full_filename, "r") as file:
+    #             if communities_graph.comm_alg not in dendogram_communities_list:
+    #                 data = file.read().replace('width="450pt"', 'width="100%"')
+    #             else:
+    #                 data = file.read()
+    #             full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
+    #             temp_html_file_name = (
+    #                 next(tempfile._get_candidate_names()) + HTML_SUFFIX
+    #             )
+    #             full_html_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+    #             full_html_file = open(full_html_filename, "w")
+    #             _ = full_html_file.write(full_html_file_content)
+    #             full_html_file.close()
+    #             full_filename = full_html_filename
+    #     else:
+    #         pvis_graph.write_html(full_filename)
         
-    print(full_filename)
+    # print(full_filename)
 
 
     
