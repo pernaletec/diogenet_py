@@ -116,19 +116,19 @@ sidebar_content = [
     dcc.Dropdown(
         id='graph_algorithm_communnities',
         options=[
-            {'label': 'Cluster Edge Betweenness', 'value': '1'},
-            {'label': 'Cluster Fast Greedy', 'value': '2'},
-            {'label': 'Cluster Infomap', 'value': '3'},
-            {'label': 'Cluster Label Prop', 'value': '4'},
-            {'label': 'Cluster Leading Eigen', 'value': '5'},
-            {'label': 'Cluster Louvain', 'value': '6'},
-            {'label': 'Cluster Walktrap', 'value': '7'},
+            {'label': 'Cluster Edge Betweenness', 'value': 'community_edge_betweenness'},
+            {'label': 'Cluster Fast Greedy', 'value': 'community_fastgreedy'},
+            {'label': 'Cluster Infomap', 'value': 'community_infomap'},
+            {'label': 'Cluster Label Prop', 'value': 'community_label_propagation'},
+            {'label': 'Cluster Leading Eigen', 'value': 'community_leading_eigenvector'},
+            {'label': 'Cluster Louvain', 'value': 'community_leiden'},
+            {'label': 'Cluster Walktrap', 'value': 'community_walktrap'},
         ],
-        value='1',
+        value='community_edge_betweenness',
         searchable=False,
     ),
     dcc.Checklist(
-        id='show_gender',
+        id='show_gender_communities',
         options=[
             {'label': ' Gender and Gods', 'value': "True"}
         ],
@@ -140,10 +140,10 @@ sidebar_content = [
     dcc.Dropdown(
         id='visualization_communnities',
         options=[
-            {'label': 'VisNetwork', 'value': '1'},
-            {'label': 'Igraph', 'value': '2'},
+            {'label': 'VisNetwork', 'value': 'pyvis'},
+            {'label': 'Igraph', 'value': 'igraph'},
         ],
-        value='1',
+        value='pyvis',
         searchable=False,
     ),
     dcc.Checklist(
@@ -209,7 +209,7 @@ row = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(id='main-netowrk-graph-communities'),
+                dbc.Col(id='main-netowrk-graph-communities', children=[]),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
                         message='You must select at least one tie',
@@ -228,3 +228,125 @@ layout = html.Div(
     ],  
     style={"height": "100vh"}
 )
+
+@app.callback(
+    Output('main-netowrk-graph-communities', 'children'),
+    Input('dataset_selection_communnities', 'value'),
+    Input('graph_filter_communities', 'value'),
+    Input('graph_algorithm_communnities', 'value'),
+    Input('show_gender_communities', 'value'),
+    Input('visualization_communnities', 'value'),
+    Input('crossing_ties', 'value'),
+    Input('label_size_communities', 'value'),
+    Input('node_size_communities', 'value'),)
+def horus_get_local_graph(dataset_selection,
+                        graph_filter,
+                        graph_algorithm,
+                        show_gender,
+                        visualization,
+                        crossing_ties,
+                        label_size,  
+                        node_size):
+    communities_graph = diogenetGraph(
+        "communities",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )   
+
+    pvis_graph = None
+    warning_tie = False
+    node_min_size = int(node_size[0])
+    node_max_size = int(node_size[1])
+    label_min_size = int(label_size[0])
+    label_max_size = int(label_size[1])
+    graph_filter = graph_filter
+    algorithm_value = graph_algorithm
+    not_centrality = False
+    crossing_ties = crossing_ties
+    graph_layout = "fr"
+    plot_type = visualization
+
+    if graph_algorithm in ["", "None", None]:
+        algorithm_value = "community_infomap"
+
+    communities_graph.comm_alg = algorithm_value
+    communities_graph.identify_communities()
+
+    if crossing_ties in ["True", "true", True]:
+        communities_graph.pyvis_show_crossing_ties = True
+    else:
+        communities_graph.pyvis_show_crossing_ties = False
+        
+    if not graph_filter:
+        communities_graph.set_edges_filter("is teacher of")
+    else:
+        communities_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            communities_graph.set_edges_filter(m_filter)
+
+    if show_gender in ["True", "true", True]:
+        communities_graph.pyvis_show_gender = True
+    else:
+        communities_graph.pyvis_show_gender = False
+
+    communities_graph.create_subgraph()
+
+    if plot_type == "pyvis":
+        pvis_graph = communities_graph.get_pyvis(
+            min_weight=node_min_size,
+            max_weight=node_max_size,
+            min_label_size=label_min_size,
+            max_label_size=label_max_size,
+            layout=graph_layout,
+            avoid_centrality=not_centrality,
+        )
+    full_filename = ""
+    if plot_type == "igraph":
+        suffix = ".svg" 
+        temp_file_name = next(tempfile._get_candidate_names()) + suffix
+        full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+        if plot_type == "igraph":
+            modularity, clusters = communities_graph.identify_communities()
+            dendogram_communities_list = [
+                "community_edge_betweenness",
+                "community_walktrap",
+                "community_fastgreedy",
+            ]
+            communities_graph.igraph_subgraph.vs["label"] = communities_graph.igraph_subgraph.vs["name"]
+            if communities_graph.comm_alg not in dendogram_communities_list:
+                plot(
+                    communities_graph.comm,
+                    full_filename,
+                    layout=communities_graph.graph_layout,
+                    bbox=(450, 450),
+                    margin=20,
+                    mark_groups=True,
+                    vertex_label_size=7,
+                    vertex_label_angle=200,
+                    vertex_label_dist=1,
+                    vertex_size=8,
+                )
+            with open(full_filename, "r") as file:
+                if communities_graph.comm_alg not in dendogram_communities_list:
+                    data = file.read().replace('width="450pt"', 'width="100%"')
+                else:
+                    data = file.read()
+                full_html_file_content = HTML_PLOT_CONTENT.format(file=data)
+                temp_html_file_name = (
+                    next(tempfile._get_candidate_names()) + HTML_SUFFIX
+                )
+                full_html_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
+                full_html_file = open(full_html_filename, "w")
+                _ = full_html_file.write(full_html_file_content)
+                full_html_file.close()
+                full_filename = full_html_filename
+        else:
+            pvis_graph.write_html(full_filename)
+        
+    print(full_filename)
+
+
+    
