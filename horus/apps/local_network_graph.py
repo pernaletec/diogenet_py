@@ -373,3 +373,10 @@ def horus_get_local_graph(dataset_selection,
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
             return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
+
+@app.callback(Output('confirm_warning_tie_local', 'displayed'),
+              Input('graph_filter_local', 'value'))
+def display_confirm(graph_filter_global):
+    if len(graph_filter_global) == 0:
+        return True
+    return False

@@ -557,3 +557,10 @@ def update_table(
     return dff.iloc[
         page_current*page_size:(page_current+ 1)*page_size
     ].to_dict('records')
+
+@app.callback(Output('confirm-warning-tie-local-centrality', 'displayed'),
+              Input('graph_filter_local_centrality', 'value'))
+def display_confirm(graph_filter_global):
+    if len(graph_filter_global) == 0:
+        return True
+    return False

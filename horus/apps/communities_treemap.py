@@ -12,6 +12,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 from flask import (
     Flask,
     render_template,
@@ -87,7 +88,7 @@ navbar = dbc.Navbar(
 sidebar_content = [
     html.H5('Dataset selection', className="mt-3 mb-3"),
     dcc.Dropdown(
-        id='dataset_selection_communnities',
+        id='dataset_selection_communities_treemap',
         options=[
             {'label': key, 'value': value}
             for key, value in dict_of_datasets.items()
@@ -114,17 +115,17 @@ sidebar_content = [
     html.H5('Community detection',className="mt-5 mb-3"),
     html.H6("Algorithm"),
     dcc.Dropdown(
-        id='graph_algorithm_communnities',
+        id='graph_algorithm_communities_treemap',
         options=[
-            {'label': 'Cluster Edge Betweenness', 'value': '1'},
-            {'label': 'Cluster Fast Greedy', 'value': '2'},
-            {'label': 'Cluster Infomap', 'value': '3'},
-            {'label': 'Cluster Label Prop', 'value': '4'},
-            {'label': 'Cluster Leading Eigen', 'value': '5'},
-            {'label': 'Cluster Louvain', 'value': '6'},
-            {'label': 'Cluster Walktrap', 'value': '7'},
+            {'label': 'Cluster Edge Betweenness', 'value': 'community_edge_betweenness'},
+            {'label': 'Cluster Fast Greedy', 'value': 'community_fastgreedy'},
+            {'label': 'Cluster Infomap', 'value': 'community_infomap'},
+            {'label': 'Cluster Label Prop', 'value': 'community_label_propagation'},
+            {'label': 'Cluster Leading Eigen', 'value': 'community_leading_eigenvector'},
+            {'label': 'Cluster Leiden', 'value': 'community_leiden'},
+            {'label': 'Cluster Walktrap', 'value': 'community_walktrap'},
         ],
-        value='1',
+        value='community_edge_betweenness',
         searchable=False,
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
@@ -140,7 +141,7 @@ row = html.Div(
                 dbc.Col(html.Div(sidebar_content), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph-communities-treemap'),
                 dcc.ConfirmDialog(
-                        id='confirm-warning-tie',
+                        id='confirm-warning-tie-treemap',
                         message='You must select at least one tie',
                     ),
             ],
@@ -157,3 +158,75 @@ layout = html.Div(
     ],  
     style={"height": "100vh"}
 )
+
+@app.callback(
+    Output('main-netowrk-graph-communities-treemap', 'children'),
+    Input('dataset_selection_communities_treemap', 'value'),
+    Input('graph_filter_communities_treemap', 'value'),
+    Input('graph_algorithm_communities_treemap', 'value'),)
+def horus_get_communities_treemap(
+                        dataset_selection,
+                        graph_filter,
+                        graph_algorithm):
+                        
+    communities_graph = diogenetGraph(
+        "communities",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
+
+    warning_tie = False
+    graph_filter = graph_filter
+    communities_graph.current_centrality_index = "communities"
+    communities_graph.comm_alg = str(graph_algorithm)
+    graph_layout = "fr"
+    communities_graph.set_graph_layout(graph_layout)
+    communities_graph.pyvis_show_crossing_ties = False
+
+    if not graph_filter:
+        communities_graph.set_edges_filter("is teacher of")
+    else:
+        communities_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            communities_graph.set_edges_filter(m_filter)
+
+    communities_graph.create_subgraph()
+    subgraph = communities_graph
+    modularity, clusters_dict = subgraph.identify_communities()
+
+    communities_index = []
+
+    for i in range(len(subgraph.igraph_subgraph.vs)):
+        if subgraph.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(
+                clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]]
+            )
+
+    data = {
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Community": communities_index,
+    }
+
+    df = pd.DataFrame(data=data)
+    df1 = df.sort_values(by=["Community", "Degree"]).set_index(
+        "Philosopher", drop=False
+    )
+
+    plotly_graph = px.treemap(df1, path=["Community", "Philosopher"], values="Degree",)
+
+    plotly_graph.update_layout(
+        legend_font_size=12, legend_title_font_size=12, font_size=8
+    )
+
+    return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
+
+@app.callback(Output('confirm-warning-tie-treemap', 'displayed'),
+              Input('graph_filter_communities_treemap', 'value'))
+def display_confirm(graph_filter_global):
+    if len(graph_filter_global) == 0:
+        return True
+    return False    
