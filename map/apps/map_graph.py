@@ -177,3 +177,34 @@ layout = html.Div(
     ],  
     style={"height": "100vh"}
 )
+
+@app.callback(
+    Output('dropdown_container_traveler', 'children'),
+    Input('dataset_selection_map', 'value'),)
+def get_traveler(dataset_selection):
+    pass
+
+@app.callback(
+    Output("content_map", "children"),[
+    Input('tabs_map', 'value'),
+    Input('dataset_selection_map', 'value'),
+    Input('centrality_type_map', 'value'),
+    Input('label_size_map', 'value'),
+    Input('node_size_map', 'value')
+    ]
+)
+def horus_get_local_graph_centrality(
+                                    tab,
+                                    dataset_selection,
+                                    centrality_index,
+                                    label_size,  
+                                    node_size):
+
+    if tab == "map_maps":
+        return "map"
+
+    if tab == "map_metrics":
+        return  "metrics"
+    
+    if tab == "Graph":
+        return  "graph"
