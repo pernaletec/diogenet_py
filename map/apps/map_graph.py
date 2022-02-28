@@ -243,65 +243,64 @@ def horus_get_local_graph_centrality(
         if data:
             all_data["data"] = data
 
-        print(all_data)
         return "map"
 
     if tab == "map_metrics":
-
-        def get_map_data_table(filter_string):
-            graph = None
-            graph = map_graph
-            if filter_string != "All" or filter_string != []:
-                for m_filter in filter_string:
-                    graph.set_edges_filter(m_filter)
-                graph.create_subgraph()
-            return (
-                graph.get_vertex_names(),
-                graph.calculate_degree(),
-                graph.calculate_betweenness(),
-                graph.calculate_closeness(),
-                graph.calculate_eigenvector(),
-            )
-
         
-        if traveler == "All" or traveler == []:
-            traveler = "All"
+        if traveler == "All":
+            all_travelers = sorted(list(set(map_graph.get_edges_names())))
+            map_graph.edges_filter = []
+            for m_filter in all_travelers:
+                map_graph.set_edges_filter(m_filter)
+            map_graph.create_subgraph()
+        elif traveler == []:
+            all_travelers = sorted(list(set(map_graph.get_edges_names())))
+            map_graph.edges_filter = []
+            for m_filter in all_travelers:
+                map_graph.set_edges_filter(m_filter)
+            map_graph.create_subgraph()
+        else:
+            map_graph.edges_filter = []
+            for m_filter in traveler:
+                map_graph.set_edges_filter(m_filter)
+            map_graph.create_subgraph()
 
-        graph_type = "map"
-        data = []
-        cities = degree = betweeness = closeness = eigenvector = []
+        def round_list_values(list_in):
+            return [round(value, 4) for value in list_in]
 
-        if graph_type == "map":
-            (cities, degree, betweeness, closeness, eigenvector) = get_map_data_table(
-                traveler
-            )
+        calculated_degree = [round(value) for value in map_graph.calculate_degree()]
+        calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
+        calculated_closeness = round_list_values(map_graph.calculate_closeness())
+        calculated_eigenvector = round_list_values(map_graph.calculate_eigenvector())
 
-        for (
-        city_name,
-        city_degree,
-        city_betweeness,
-        city_closeness,
-        city_eigenvector,
-        ) in zip(cities, degree, betweeness, closeness, eigenvector):
-            record = {
-                "City": city_name,
-                "Degree": city_degree,
-                "Betweenness": city_betweeness,
-                "Closeness": city_closeness,
-                "Eigenvector": city_eigenvector,
-            }
-            data.append(record)
+        dict_map_data_tables ={
+            "City": map_graph.get_vertex_names(),
+            "Degree": calculated_degree,
+            "Betweeness": calculated_betweenness,
+            "Closeness": calculated_betweenness,
+            "Eigenvector": calculated_eigenvector 
+        }
 
-        data_table = {}
-        data_table["CentralizationDegree"] = map_graph.centralization_degree()
-        data_table["CentralizationBetweenness"] = map_graph.centralization_betweenness()
-        data_table["CentralizationCloseness"] = map_graph.centralization_closeness()
-        data_table["CentralizationEigenvector"] = map_graph.centralization_eigenvector()
-        data_table["CityData"] = data
-
-        print(data_table)
-
-        return  "metrics"
+        df_map_data_tables = pd.DataFrame(dict_map_data_tables)
+        
+        dt_map = dash_table.DataTable( 
+            id='table-map', 
+            columns=[{"name": i, "id": i, 'deletable': True} for i in df_map_data_tables.columns],
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(220, 220, 220)',
+                }
+            ],
+            style_cell={'textAlign': 'center'}, 
+            page_current=0,
+            page_size=20,
+            page_action='custom',
+            sort_mode='single',
+            sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
+        )
+        
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map]
     
     if tab == "map_graphs":
 
@@ -332,3 +331,77 @@ def horus_get_local_graph_centrality(
 
             pvis_graph.write_html(full_filename)
             return [html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100%", "width": "100%"})]
+
+
+@app.callback(
+    Output('table-map', 'data'),
+    Input('table-map', "page_current"),
+    Input('table-map', "page_size"),
+    Input('table-map', 'sort_by'),
+    Input('dataset_selection_map', 'value'),
+    Input('traveler_map','value'),
+)
+def update_table(
+                page_current, 
+                page_size, 
+                sort_by,
+                dataset_selection,
+                traveler,
+):
+    map_graph = diogenetGraph(
+        "map",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
+
+    if traveler == "All":
+        all_travelers = sorted(list(set(map_graph.get_edges_names())))
+        map_graph.edges_filter = []
+        for m_filter in all_travelers:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
+    elif traveler == []:
+        all_travelers = sorted(list(set(map_graph.get_edges_names())))
+        map_graph.edges_filter = []
+        for m_filter in all_travelers:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
+    else:
+        map_graph.edges_filter = []
+        for m_filter in traveler:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
+
+    def round_list_values(list_in):
+        return [round(value, 4) for value in list_in]
+
+    calculated_degree = [round(value) for value in map_graph.calculate_degree()]
+    calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
+    calculated_closeness = round_list_values(map_graph.calculate_closeness())
+    calculated_eigenvector = round_list_values(map_graph.calculate_eigenvector())
+
+    dict_map_data_tables ={
+        "City": map_graph.get_vertex_names(),
+        "Degree": calculated_degree,
+        "Betweeness": calculated_betweenness,
+        "Closeness": calculated_betweenness,
+        "Eigenvector": calculated_eigenvector 
+    }
+    df_map_data_tables = pd.DataFrame(dict_map_data_tables)
+    
+    print(sort_by)
+    if len(sort_by):
+        dff = df_map_data_tables.sort_values(
+            sort_by[0]['column_id'],
+            ascending=sort_by[0]['direction'] == 'desc',
+            inplace=False
+        )
+    else:
+        # No sort is applied
+        dff = df_map_data_tables
+
+    return dff.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
