@@ -127,7 +127,7 @@ sidebar_content = [
 
 tabs = dcc.Tabs(
         id='tabs_map', 
-        value='map_graph',
+        value='map_maps',
         parent_className='custom-tabs',
         className='custom-tabs-container',
         children=[
@@ -230,10 +230,16 @@ def horus_get_local_graph_centrality(
     )    
 
     if tab == "map_maps":
+
+        all_data = {}
+        data = None
+        df = None
         map_graph.current_centrality_index = centrality_index
-        if traveler == "All" or traveler == []:
+        if traveler == "All":
             map_graph.edges_filter = []
-        if traveler != "All" or traveler != []:
+        elif traveler == []:
+            map_graph.edges_filter = []
+        else:
             for m_filter in traveler:
                 map_graph.set_edges_filter(m_filter)
 
@@ -243,7 +249,67 @@ def horus_get_local_graph_centrality(
         if data:
             all_data["data"] = data
 
-        return "map"
+        df = pd.DataFrame(data)
+        #print(df)
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scattergeo(
+            lon = df["SourceLongitude"],
+            lat = df["SourceLatitude"],
+            hoverinfo = 'lon+lat+text',
+            text = df["Source"],
+            mode = 'markers',
+            showlegend=False,
+            marker = dict(
+                size = df["SourceSize"]*1.5,
+                color = df["SourceColor"],
+                line = dict(
+                    width = df["SourceSize"],
+                    color = df["SourceColor"]
+                )
+        )))
+
+        fig.add_trace(go.Scattergeo(
+            lon = df["DestLongitude"],
+            lat = df["DestLatitude"],
+            hoverinfo = 'lon+lat+text',
+            text = df["Destination"],
+            mode = 'markers',
+            showlegend=False,
+            marker = dict(
+                size = df["DestinationSize"]*1.5,
+                color = df["DestinationSize"],
+                showscale=True,
+                line = dict(
+                    width = df["DestinationSize"],
+                    color = df["DestinationSize"]
+                )
+        )))
+
+
+        for i in range(len(df)):
+            fig.add_trace(
+                go.Scattergeo(
+                    lon = [df["SourceLongitude"][i], df["DestLongitude"][i]],
+                    lat = [df["SourceLatitude"][i], df["DestLatitude"][i]],
+                    hoverinfo='skip',
+                    mode = 'lines',
+                    line = dict(width = 1,color = 'black'),
+                    showlegend=False,
+                )
+            )
+
+        fig.update_layout(
+            showlegend = False,
+            margin ={'l':0,'t':0,'b':0,'r':0},
+            mapbox = {
+                'style': "stamen-terrain",
+                'center': {'lon': -50, 'lat': -80},
+                'zoom': 2}
+        )
+
+        return dcc.Graph(figure=fig, style={"height": "100%", "width": "100%"})
 
     if tab == "map_metrics":
         
