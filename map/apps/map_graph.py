@@ -312,6 +312,15 @@ def get_map_map(
                 'zoom': 2}
         )
 
+        fig.update_geos(
+            resolution=50,
+            showcoastlines=True, coastlinecolor="RebeccaPurple",
+            showland=True, landcolor="FloralWhite",
+            showocean=True, oceancolor="CornflowerBlue",
+            showlakes=True, lakecolor="CornflowerBlue",
+            showrivers=True, rivercolor="CornflowerBlue"
+        )
+        #print(help(fig.update_geos()))
         return dcc.Graph(figure=fig, style={"height": "100%", "width": "100%"})
 
     if tab == "map_metrics":
