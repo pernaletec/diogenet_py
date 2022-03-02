@@ -159,10 +159,6 @@ row = html.Div(
             [
                 dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
-                dcc.ConfirmDialog(
-                        id='confirm-warning-tie-local-centrality',
-                        message='You must select at least one tie',
-                    ),
             ],
             className='h-100'
         ),
@@ -521,7 +517,6 @@ def download_handler(n_clicks,
         data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
 
         df = pd.DataFrame(data)
-
         if n_clicks is None:
             raise PreventUpdate
         else:
@@ -533,6 +528,8 @@ def download_handler(n_clicks,
                 df_to_save = df[df["Philosopher"].isin(all_travelers)]
             else:
                 df_to_save = df[df["Philosopher"].isin(traveler)]
-            return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv')
+                
+            header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']    
+            return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
     else:
         pass
