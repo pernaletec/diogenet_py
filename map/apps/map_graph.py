@@ -213,7 +213,7 @@ def get_traveler(dataset_selection):
     Input('node_size_map', 'value')
     ]
 )
-def horus_get_local_graph_centrality(
+def get_map_map(
                                     tab,
                                     dataset_selection,
                                     traveler,
@@ -250,19 +250,26 @@ def horus_get_local_graph_centrality(
             all_data["data"] = data
 
         df = pd.DataFrame(data)
-        #print(df)
-
+    
         fig = go.Figure()
+        list_text_from=[]
+        list_text_to=[]
+        for i in range(len(df)):
+            list_text_from.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} ({round(df["SourceLatitude"][i],2)}°, {round(df["SourceLongitude"][i],2)}°) to {df["Destination"][i]} ')
 
+            list_text_to.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} to {df["Destination"][i]} ({round(df["DestLatitude"][i],2)}°, {round(df["DestLongitude"][i],2)}°)')
+
+        
+        
         fig.add_trace(go.Scattergeo(
             lon = df["SourceLongitude"],
             lat = df["SourceLatitude"],
-            hoverinfo = 'lon+lat+text',
-            text = df["Source"],
+            hoverinfo = 'text',
+            text = list_text_from,
             mode = 'markers',
             showlegend=False,
             marker = dict(
-                size = df["SourceSize"]*1.5,
+                size = df["SourceSize"],
                 color = df["SourceColor"],
                 line = dict(
                     width = df["SourceSize"],
@@ -273,14 +280,14 @@ def horus_get_local_graph_centrality(
         fig.add_trace(go.Scattergeo(
             lon = df["DestLongitude"],
             lat = df["DestLatitude"],
-            hoverinfo = 'lon+lat+text',
-            text = df["Destination"],
+            hoverinfo = 'text',
+            text = list_text_to,
             mode = 'markers',
             showlegend=False,
             marker = dict(
-                size = df["DestinationSize"]*1.5,
+                size = df["DestinationSize"],
                 color = df["DestinationSize"],
-                showscale=True,
+                showscale=False,
                 line = dict(
                     width = df["DestinationSize"],
                     color = df["DestinationSize"]
@@ -471,3 +478,61 @@ def update_table(
     return dff.iloc[
         page_current*page_size:(page_current+ 1)*page_size
     ].to_dict('records')
+
+@app.callback(
+    Output("download-dataframe-csv-map", "data"),
+    Input("btn_csv_map", "n_clicks"),
+    Input('dataset_selection_map', 'value'),
+    Input('traveler_map','value'),
+    Input('centrality_type_map', 'value'),
+    Input('label_size_map', 'value'),
+    Input('node_size_map', 'value'),
+    prevent_initial_call=True,
+)
+def download_handler(n_clicks, 
+                    dataset_selection,
+                    traveler,
+                    centrality_index,
+                    label_size,  
+                    node_size):
+
+    map_graph = diogenetGraph(
+    "map",
+    dataset_selection,
+    dataset_selection,
+    'locations_data.csv',
+    'travels_blacklist.csv'
+    )
+
+    if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_map.n_clicks':
+
+        data = None
+        df = None
+        map_graph.current_centrality_index = centrality_index
+        if traveler == "All":
+            map_graph.edges_filter = []
+        elif traveler == []:
+            map_graph.edges_filter = []
+        else:
+            for m_filter in traveler:
+                map_graph.set_edges_filter(m_filter)
+
+        map_graph.create_subgraph()
+        data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
+
+        df = pd.DataFrame(data)
+
+        if n_clicks is None:
+            raise PreventUpdate
+        else:
+            if traveler == "All":
+                all_travelers = sorted(list(set(map_graph.get_edges_names())))
+                df_to_save = df[df["Philosopher"].isin(all_travelers)]
+            elif traveler == []:
+                all_travelers = sorted(list(set(map_graph.get_edges_names())))
+                df_to_save = df[df["Philosopher"].isin(all_travelers)]
+            else:
+                df_to_save = df[df["Philosopher"].isin(traveler)]
+            return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv')
+    else:
+        pass

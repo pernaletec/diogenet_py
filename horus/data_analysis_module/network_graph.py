@@ -91,9 +91,7 @@ GRAPHML_SUFFIX = ".graphml"
 
 def get_graphml_temp_file():
     temp_file_name = next(tempfile._get_candidate_names()) + GRAPHML_SUFFIX
-    full_filename = os.path.join(
-        pathlib.Path().absolute(), "diogenet_py", temp_file_name
-    )
+    full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
     print(full_filename)
     return full_filename
 
