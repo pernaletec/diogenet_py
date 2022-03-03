@@ -255,72 +255,74 @@ def get_map_map(
 
             list_text_to.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} to {df["Destination"][i]} ({round(df["DestLatitude"][i],2)}°, {round(df["DestLongitude"][i],2)}°)')
 
-        
-        
-        fig.add_trace(go.Scattergeo(
-            lon = df["SourceLongitude"],
-            lat = df["SourceLatitude"],
-            hoverinfo = 'text',
-            text = list_text_from,
-            mode = 'markers',
-            showlegend=False,
-            marker = dict(
+        fig.add_trace(go.Scattermapbox(
+            lat=df["SourceLatitude"],
+            lon=df["SourceLongitude"],
+            mode='markers',
+            marker=go.scattermapbox.Marker(
                 size = df["SourceSize"],
-                color = df["SourceColor"],
-                line = dict(
-                    width = df["SourceSize"],
-                    color = df["SourceColor"]
-                )
-        )))
+                color = df["SourceColor"]
+            ),
+            text=list_text_from,
+            hoverinfo='text',
+            showlegend=False
+        ))
+        
+        
+        # fig.add_trace(go.Scattergeo(
+        #     lon = df["SourceLongitude"],
+        #     lat = df["SourceLatitude"],
+        #     hoverinfo = 'text',
+        #     text = list_text_from,
+        #     mode = 'markers',
+        #     showlegend=False,
+        #     marker = dict(
+        #         size = df["SourceSize"],
+        #         color = df["SourceColor"],
+        #         line = dict(
+        #             width = df["SourceSize"],
+        #             color = df["SourceColor"]
+        #         )
+        # )))
 
-        fig.add_trace(go.Scattergeo(
-            lon = df["DestLongitude"],
-            lat = df["DestLatitude"],
-            hoverinfo = 'text',
-            text = list_text_to,
-            mode = 'markers',
-            showlegend=False,
-            marker = dict(
+        fig.add_trace(go.Scattermapbox(
+            lon=df["DestLongitude"],
+            lat=df["DestLatitude"],
+            mode='markers',
+            marker=go.scattermapbox.Marker(
                 size = df["DestinationSize"],
-                color = df["DestinationSize"],
-                showscale=False,
-                line = dict(
-                    width = df["DestinationSize"],
-                    color = df["DestinationSize"]
-                )
-        )))
-
+                color = df["DestinationColor"]
+            ),
+            text=list_text_to,
+            hoverinfo='text',
+            showlegend=False
+        ))
 
         for i in range(len(df)):
             fig.add_trace(
-                go.Scattergeo(
+                go.Scattermapbox(
+                    mode = "lines",
                     lon = [df["SourceLongitude"][i], df["DestLongitude"][i]],
                     lat = [df["SourceLatitude"][i], df["DestLatitude"][i]],
                     hoverinfo='skip',
-                    mode = 'lines',
-                    line = dict(width = 1,color = 'black'),
                     showlegend=False,
+                    line = dict(width = 1,color = 'white')
                 )
             )
 
         fig.update_layout(
-            showlegend = False,
-            margin ={'l':0,'t':0,'b':0,'r':0},
-            mapbox = {
-                'style': "stamen-terrain",
-                'center': {'lon': -50, 'lat': -80},
-                'zoom': 2}
-        )
-
-        fig.update_geos(
-            resolution=50,
-            showcoastlines=True, coastlinecolor="RebeccaPurple",
-            showland=True, landcolor="FloralWhite",
-            showocean=True, oceancolor="CornflowerBlue",
-            showlakes=True, lakecolor="CornflowerBlue",
-            showrivers=True, rivercolor="CornflowerBlue"
-        )
-        #print(help(fig.update_geos()))
+            mapbox_style="white-bg",
+            mapbox_layers=[
+                {
+                    "below": 'traces',
+                    "sourcetype": "raster",
+                    "sourceattribution": "United States Geological Survey",
+                    "source": [
+                        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
+                    ]
+                }
+              ])
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         return dcc.Graph(figure=fig, style={"height": "100%", "width": "100%"})
 
     if tab == "map_metrics":

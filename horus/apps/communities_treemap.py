@@ -1,3 +1,4 @@
+import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
@@ -129,8 +130,8 @@ sidebar_content = [
         searchable=False,
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv", color="secondary", className="ml-3"),
-    dcc.Download(id="download-dataframe-csv"),
+    dbc.Button("Download Data", id="btn_csv_community_treemap", color="secondary", className="ml-3"),
+    dcc.Download(id="download_dataframe_csv_community_treemap"),
 ]
 
 row = html.Div(
@@ -230,3 +231,34 @@ def display_confirm(graph_filter_global):
     if len(graph_filter_global) == 0:
         return True
     return False    
+
+
+@app.callback(
+    Output("download_dataframe_csv_community_treemap", "data"),
+    Input("btn_csv_community_treemap", "n_clicks"),
+    Input('dataset_selection_communities_treemap', 'value'),
+    Input('graph_filter_communities_treemap', 'value'),
+    prevent_initial_call=True,
+)
+def func(n_clicks, dataset_selection, graph_filter):
+    if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_community_treemap.n_clicks':
+        # list of avaiable datasets in /data for download
+        dataset_list_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','datasetList.csv'))
+        dataset_list_df = pd.read_csv(dataset_list_path)
+
+        if n_clicks is None:
+            raise PreventUpdate
+        else:
+            m1 = dataset_list_df['name'] == str(dataset_selection)
+            m2 = dataset_list_df['type'] == 'edges'
+
+            edges_path_name = str(list(dataset_list_df[m1&m2]['path'])[0])
+            full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data', edges_path_name))
+
+            #print(full_filename_csv)
+            df = pd.read_csv(full_filename_csv)
+            df_to_save = df[df["Relation"].isin(graph_filter)]
+            #print(df[df["Relation"].isin(graph_filter)])
+            return dcc.send_data_frame(df_to_save.to_csv, 'edges.csv')
+    else:
+        pass
