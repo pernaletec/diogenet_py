@@ -13,6 +13,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 import matplotlib.pyplot as plt
 from igraph import plot
 from flask import (
@@ -29,11 +30,8 @@ from data_analysis_module.network_graph import diogenetGraph
 
 app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
 #app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_horus/')
-#app.config.suppress_callback_exceptions = True
-
+app.config.suppress_callback_exceptions = True
 server = app.server
-
-from apps import communities_treemap
 
 ################################################### Generic Layout #######################################################
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
@@ -844,6 +842,81 @@ layout_communnities = html.Div(
 )
 ################################################# End Layout Communities Graph ####################################################
 
+################################################# Layout Communities Treemap ####################################################
+sidebar_content_communities_treemap = [
+    html.H5('Dataset selection', className="mt-3 mb-3"),
+    dcc.Dropdown(
+        id='dataset_selection_communities_treemap',
+        options=[
+            {'label': key, 'value': value}
+            for key, value in dict_of_datasets.items()
+        ],
+        searchable=False,
+        placeholder="Select a dataset",
+        value='diogenes'
+    ),
+    html.H5('Network ties', className="mt-5 mb-3"),
+    dcc.Checklist( 
+        id='graph_filter_communities_treemap',
+        options=[
+            {'label': ' Is teacher of', 'value': 'is teacher of'},
+                {'label': ' Is friend of', 'value': 'is friend of'},
+                {'label': ' Is family of', 'value': 'is family of'},
+                {'label': ' Studied the work of', 'value': 'studied the work of'},
+                {'label': ' Sent letters to', 'value': 'sent letters to'},
+                {'label': ' Is benefactor of', 'value': 'is benefactor of'},
+        ],
+        value=['is teacher of'],
+        labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
+        inputStyle={'margin':'0px 5px'},
+    ),
+    html.H5('Community detection',className="mt-5 mb-3"),
+    html.H6("Algorithm"),
+    dcc.Dropdown(
+        id='graph_algorithm_communities_treemap',
+        options=[
+            {'label': 'Cluster Edge Betweenness', 'value': 'community_edge_betweenness'},
+            {'label': 'Cluster Fast Greedy', 'value': 'community_fastgreedy'},
+            {'label': 'Cluster Infomap', 'value': 'community_infomap'},
+            {'label': 'Cluster Label Prop', 'value': 'community_label_propagation'},
+            {'label': 'Cluster Leading Eigen', 'value': 'community_leading_eigenvector'},
+            {'label': 'Cluster Leiden', 'value': 'community_leiden'},
+            {'label': 'Cluster Walktrap', 'value': 'community_walktrap'},
+        ],
+        value='community_edge_betweenness',
+        searchable=False,
+    ),
+    html.H6('Download current dataset',className="mt-5 mb-3"),
+    dbc.Button("Download Data", id="btn_csv_community_treemap", color="secondary", className="ml-3"),
+    dcc.Download(id="download_dataframe_csv_community_treemap"),
+]
+
+row_communities_treemap = html.Div(
+    [
+        dbc.Row(navbar),
+        dbc.Row(
+            [
+                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(id='main-netowrk-graph-communities-treemap'),
+                dcc.ConfirmDialog(
+                        id='confirm-warning-tie-treemap',
+                        message='You must select at least one tie',
+                    ),
+            ],
+            className='h-100'
+        ),
+    ],
+    className='h-100',
+    style={'padding':'0px 10px'}
+)
+
+layout_communities_treemap = html.Div(
+    [
+        row_communities_treemap
+    ],  
+    style={"height": "100vh"}
+)
+################################################# End Layout Communities Treemap ####################################################
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -866,7 +939,7 @@ def display_page(pathname):
     if pathname == '/apps/communities_graph':
         return layout_communnities
     if pathname == '/apps/communities_treemap':
-        return communities_treemap.layout
+        return layout_communities_treemap
     else:
         return '404'
 
@@ -2010,6 +2083,109 @@ def download_handler_communities_graph(n_clicks, dataset_selection, graph_filter
         pass
 ############################################ End Callbacks Communities Graph #####################################################
 
+############################################ Callbacks Communities Treemap #####################################################
+@app.callback(
+    Output('main-netowrk-graph-communities-treemap', 'children'),
+    Input('dataset_selection_communities_treemap', 'value'),
+    Input('graph_filter_communities_treemap', 'value'),
+    Input('graph_algorithm_communities_treemap', 'value'),)
+def horus_get_communities_treemap(
+                        dataset_selection,
+                        graph_filter,
+                        graph_algorithm):
+                        
+    communities_graph = diogenetGraph(
+        "communities",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
+
+    warning_tie = False
+    graph_filter = graph_filter
+    communities_graph.current_centrality_index = "communities"
+    communities_graph.comm_alg = str(graph_algorithm)
+    graph_layout = "fr"
+    communities_graph.set_graph_layout(graph_layout)
+    communities_graph.pyvis_show_crossing_ties = False
+
+    if not graph_filter:
+        communities_graph.set_edges_filter("is teacher of")
+    else:
+        communities_graph.edges_filter = []
+        filters = graph_filter
+        for m_filter in filters:
+            communities_graph.set_edges_filter(m_filter)
+
+    communities_graph.create_subgraph()
+    subgraph = communities_graph
+    modularity, clusters_dict = subgraph.identify_communities()
+
+    communities_index = []
+
+    for i in range(len(subgraph.igraph_subgraph.vs)):
+        if subgraph.igraph_subgraph.vs[i]["name"] in clusters_dict.keys():
+            communities_index.append(
+                clusters_dict[subgraph.igraph_subgraph.vs[i]["name"]]
+            )
+
+    data = {
+        "Philosopher": subgraph.igraph_subgraph.vs["name"],
+        "Degree": subgraph.calculate_degree(),
+        "Community": communities_index,
+    }
+
+    df = pd.DataFrame(data=data)
+    df1 = df.sort_values(by=["Community", "Degree"]).set_index(
+        "Philosopher", drop=False
+    )
+
+    plotly_graph = px.treemap(df1, path=["Community", "Philosopher"], values="Degree",)
+
+    plotly_graph.update_layout(
+        legend_font_size=12, legend_title_font_size=12, font_size=8
+    )
+
+    return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
+
+@app.callback(Output('confirm-warning-tie-treemap', 'displayed'),
+              Input('graph_filter_communities_treemap', 'value'))
+def display_confirm_missing_tie_communities_treemap(graph_filter_global):
+    if len(graph_filter_global) == 0:
+        return True
+    return False    
+
+@app.callback(
+    Output("download_dataframe_csv_community_treemap", "data"),
+    Input("btn_csv_community_treemap", "n_clicks"),
+    Input('dataset_selection_communities_treemap', 'value'),
+    Input('graph_filter_communities_treemap', 'value'),
+    prevent_initial_call=True,
+)
+def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filter):
+    if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_community_treemap.n_clicks':
+        # list of avaiable datasets in /data for download
+        dataset_list_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data','datasetList.csv'))
+        dataset_list_df = pd.read_csv(dataset_list_path)
+
+        if n_clicks is None:
+            raise PreventUpdate
+        else:
+            m1 = dataset_list_df['name'] == str(dataset_selection)
+            m2 = dataset_list_df['type'] == 'edges'
+
+            edges_path_name = str(list(dataset_list_df[m1&m2]['path'])[0])
+            full_filename_csv = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'data', edges_path_name))
+
+            #print(full_filename_csv)
+            df = pd.read_csv(full_filename_csv)
+            df_to_save = df[df["Relation"].isin(graph_filter)]
+            #print(df[df["Relation"].isin(graph_filter)])
+            return dcc.send_data_frame(df_to_save.to_csv, 'edges.csv')
+    else:
+        pass
+############################################ End Callbacks Communities Treemap #####################################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
