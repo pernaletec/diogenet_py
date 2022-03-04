@@ -4,8 +4,15 @@ from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
-from app import app
-from app import server
+import dash
+import dash_bootstrap_components as dbc
+
+app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
+#app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_horus/')
+#app.config.suppress_callback_exceptions = True
+
+server = app.server
+
 from apps import global_network_graph, global_network_graph_centrality, local_network_graph, local_network_graph_centrality, communities_graph, communities_treemap
 
 app.layout = html.Div([
