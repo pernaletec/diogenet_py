@@ -24,7 +24,7 @@ from flask import (
 )
 
 
-from app import app
+from index import app
 from data_analysis_module.network_graph import diogenetGraph
 
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
