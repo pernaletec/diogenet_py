@@ -41,14 +41,14 @@ navbar = dbc.Navbar(
     children=[
         html.Div(
             [
-                dbc.NavLink("Horus", style=STYLE_A_ITEM),
+                dbc.NavLink("Map", style=STYLE_A_ITEM),
                 dbc.NavLink("Traveler", style=STYLE_A_ITEM),
             ],
             className="d-flex",
 
         ),
     ],
-    color="#1a6ecc",
+    color="#6c757d",
     className="d-flex justify-content-between",
     style={'color':'#ffffff'},
     id='navbar-map'
@@ -163,7 +163,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#2780e31a", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
@@ -552,4 +552,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
