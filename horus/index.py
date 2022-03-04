@@ -2188,4 +2188,4 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 ############################################ End Callbacks Communities Treemap #####################################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
