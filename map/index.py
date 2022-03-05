@@ -552,4 +552,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=False, port=8050)
