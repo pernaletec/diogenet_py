@@ -30,7 +30,7 @@ from data_analysis_module.network_graph import diogenetGraph
 
 #app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
 app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_horus/')
-#app.config.suppress_callback_exceptions = True
+app.config.suppress_callback_exceptions = True
 server = app.server
 
 ################################################### Generic Layout #######################################################
@@ -2188,4 +2188,4 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 ############################################ End Callbacks Communities Treemap #####################################################
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=False, port=8051)
