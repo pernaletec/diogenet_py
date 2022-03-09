@@ -1,6 +1,7 @@
-dash==2.0.0
+dash==2.2.0
 dash_bootstrap_components==1.0.2
 Flask==2.0.2
+matplotlib==3.4.3
 numpy==1.19.0
 pandas==1.0.5
 plotly==5.0.0

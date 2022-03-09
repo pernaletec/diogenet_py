@@ -25,8 +25,7 @@ from data_analysis_module.network_graph import diogenetGraph
 
 #app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
 app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_map/')
-app.config.suppress_callback_exceptions = True
-
+#app.config.suppress_callback_exceptions = True
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -377,6 +376,7 @@ def get_map_map(
                 }
             ],
             style_cell={'textAlign': 'center'}, 
+            style_header={'textAlign': 'center'},
             page_current=0,
             page_size=20,
             page_action='custom',
@@ -552,4 +552,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8050)
+    app.run_server(debug=True, port=8050)
