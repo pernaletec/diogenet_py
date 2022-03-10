@@ -23,9 +23,9 @@ from flask import (
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_map/')
-#app.config.suppress_callback_exceptions = True
+app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
+#app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], url_base_pathname = '/diogenet_map/')
+app.config.suppress_callback_exceptions = True
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -188,7 +188,7 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/diogenet_map/':
+    if pathname == '/':
         return layout
     else:
         return '404'
@@ -414,7 +414,7 @@ def get_map_map(
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
 
             pvis_graph.write_html(full_filename)
-            return [html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"100%", "width": "100%"})]
+            return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
 
 
 @app.callback(
