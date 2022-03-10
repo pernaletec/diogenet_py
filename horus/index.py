@@ -1009,7 +1009,7 @@ def horus_get_global_graph(dataset_selection,
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
+        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})]
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
@@ -1133,7 +1133,7 @@ def horus_get_global_graph_centrality(
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return html.Iframe(src=f"/assets/{temp_file_name}",style={"height": "900px", "width": "100%"})
+            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height": "900px", "width": "100%"})
 
     if tab == "heatmap_global_cetrality":
         plotly_graph = None
@@ -1524,7 +1524,7 @@ def horus_get_local_graph(dataset_selection,
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
+            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})]
 
 @app.callback(Output('confirm_warning_tie_local', 'displayed'),
               Input('graph_filter_local', 'value'))
@@ -1737,7 +1737,7 @@ def horus_get_local_graph_centrality(
                 temp_file_name = next(tempfile._get_candidate_names()) + suffix
                 full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
                 pvis_graph.write_html(full_filename)
-                return html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})
+                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})
 
     if tab == "heatmap_local_cetrality":
 
@@ -1985,7 +1985,7 @@ def horus_get_communities_graph(
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return [html.H6('Graph',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=f"/assets/{temp_file_name}",style={"height":"1050px", "width": "100%"})]
+        return [html.H6('Graph',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})]
 
     if plot_type == "igraph":
         pass
