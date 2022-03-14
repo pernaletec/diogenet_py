@@ -26,8 +26,8 @@ import io
 
 from data_analysis_module.network_graph import diogenetGraph
 
-app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
-#app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
+#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
+app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
 app.config.suppress_callback_exceptions = True
 server = app.server
 
@@ -131,12 +131,6 @@ sidebar_content = [
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
     dbc.Button("Download Data", id="btn_csv_map", color="secondary", className="ml-3"),
     dcc.Download(id="download-dataframe-csv-map"),
-    html.H6('Upload travel dataset',className="mt-5 mb-3"),
-    dcc.Upload(
-            id='upload-data',
-            children = dbc.Button('Upload File', id="btn_upload_csv_map", color="secondary", className="ml-3"),
-            multiple=False
-        ),
 ]
 
 tabs = dcc.Tabs(
@@ -197,7 +191,7 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/':
+    if pathname == '/diogenet_map/':
         return layout
     else:
         return '404'
@@ -572,4 +566,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
+    app.run_server(debug=False, port=8050)
