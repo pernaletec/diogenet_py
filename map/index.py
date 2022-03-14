@@ -26,8 +26,8 @@ import io
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
+app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
+#app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
 app.config.suppress_callback_exceptions = True
 server = app.server
 
@@ -131,7 +131,31 @@ sidebar_content = [
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
     dbc.Button("Download Data", id="btn_csv_map", color="secondary", className="ml-3"),
     dcc.Download(id="download-dataframe-csv-map"),
+    html.H6('Upload travel dataset',className="mt-5 mb-3"),
+    dcc.Upload(
+            id='upload-data',
+            children = dbc.Button('Upload File', id="btn_upload_csv_map", color="secondary", className="ml-3"),
+            multiple=False
+        ),
+    html.Div(id='output-data-upload',children=[]),
+    dcc.Store(id='memory-output')
 ]
+
+def parse_contents(contents, filename, date):
+    content_type, content_string = contents.split(',')
+    df = None
+    decoded = base64.b64decode(content_string)
+    if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+            print(df)
+            return df.to_dict('records')
+    else: 
+        pass
+
+     
+        
 
 tabs = dcc.Tabs(
         id='tabs_map', 
@@ -191,16 +215,56 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/diogenet_map/':
+    if pathname == '/':
         return layout
     else:
         return '404'
 
 ############################################# map graph callbacks ######################################
+@app.callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'))
+def warning_processing_file(content, name): 
+    if content is not None:
+        if 'csv' in name:
+                pass
+        else: 
+            return html.Div([
+            dcc.ConfirmDialog(
+                        id='warning_upload_map',
+                        message='There was an error processing this file. Repeat the process',
+                        displayed=True
+                    ),
+        ])
+
+
+@app.callback(Output('memory-output', 'data'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'),
+              State('upload-data', 'last_modified'))
+def update_data_store(content, name, date): 
+    if content is not None:
+        content_type, content_string = content.split(',')
+        df = None
+        decoded = base64.b64decode(content_string)
+        if 'csv' in name:
+                # Assume that the user uploaded a CSV file
+                df = pd.read_csv(
+                    io.StringIO(decoded.decode('utf-8')))
+                #print(df)
+                return df.to_dict('records')
+        else: 
+            pass
+
+
 @app.callback(
     Output('dropdown_container_traveler', 'children'),
-    Input('dataset_selection_map', 'value'),)
-def get_traveler(dataset_selection):
+    Input('dataset_selection_map', 'value'),
+    Input('memory-output', 'data'))
+def get_traveler(dataset_selection,
+                dataframe_upload):
+    
+    print(f' data subida lista {dataframe_upload}')
     map_graph = diogenetGraph(
     "map",
     dataset_selection,
@@ -566,4 +630,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8050)
+    app.run_server(debug=True, port=8050)
