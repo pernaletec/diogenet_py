@@ -1,6 +1,6 @@
 import dash
 from dash import dcc, html, dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 import pathlib
@@ -20,6 +20,9 @@ from flask import (
     send_file,
     jsonify,
 )
+import base64
+import datetime
+import io
 
 from data_analysis_module.network_graph import diogenetGraph
 
@@ -128,6 +131,12 @@ sidebar_content = [
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
     dbc.Button("Download Data", id="btn_csv_map", color="secondary", className="ml-3"),
     dcc.Download(id="download-dataframe-csv-map"),
+    html.H6('Upload travel dataset',className="mt-5 mb-3"),
+    dcc.Upload(
+            id='upload-data',
+            children = dbc.Button('Upload File', id="btn_upload_csv_map", color="secondary", className="ml-3"),
+            multiple=False
+        ),
 ]
 
 tabs = dcc.Tabs(
@@ -270,17 +279,22 @@ def get_map_map(
         fig = go.Figure()
         list_text_from=[]
         list_text_to=[]
+        list_text_line=[]
         for i in range(len(df)):
-            list_text_from.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} ({round(df["SourceLatitude"][i],2)}°, {round(df["SourceLongitude"][i],2)}°) to {df["Destination"][i]} ')
+            list_text_from.append(f'{df["Source"][i]} ({round(df["SourceLatitude"][i],2)}°, {round(df["SourceLongitude"][i],2)}°)')
 
-            list_text_to.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} to {df["Destination"][i]} ({round(df["DestLatitude"][i],2)}°, {round(df["DestLongitude"][i],2)}°)')
+            list_text_to.append(f'{df["Destination"][i]} ({round(df["DestLatitude"][i],2)}°, {round(df["DestLongitude"][i],2)}°)')
+
+            list_text_line.append(f'{df["Philosopher"][i]} travel from {df["Source"][i]} to {df["Destination"][i]}')
+
+            
 
         fig.add_trace(go.Scattermapbox(
             lat=df["SourceLatitude"],
             lon=df["SourceLongitude"],
             mode='markers',
             marker=go.scattermapbox.Marker(
-                size = df["SourceSize"],
+                size = df["SourceSize"]*3.5,
                 color = df["SourceColor"]
             ),
             text=list_text_from,
@@ -293,7 +307,7 @@ def get_map_map(
             lat=df["DestLatitude"],
             mode='markers',
             marker=go.scattermapbox.Marker(
-                size = df["DestinationSize"],
+                size = df["DestinationSize"]*3.5,
                 color = df["DestinationColor"]
             ),
             text=list_text_to,
@@ -307,14 +321,18 @@ def get_map_map(
                     mode = "lines",
                     lon = [df["SourceLongitude"][i], df["DestLongitude"][i]],
                     lat = [df["SourceLatitude"][i], df["DestLatitude"][i]],
-                    hoverinfo='skip',
+                    text=f'{df["Philosopher"][i]} travel from {df["Source"][i]} to {df["Destination"][i]}',
+                    hoverinfo='text',
                     showlegend=False,
-                    line = dict(width = 1,color = 'white')
+                    line = dict(width = 1,color = '#ced4da'),
                 )
             )
 
         fig.update_layout(
             mapbox_style="white-bg",
+            mapbox = {
+                'center': {'lon': 35, 'lat': 30},
+                'zoom': 3.2},
             mapbox_layers=[
                 {
                     "below": 'traces',
@@ -548,6 +566,8 @@ def download_handler(n_clicks,
             return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
     else:
         pass
+
+    
 
     ################################################## end graph map callbacks ##############################################
 
