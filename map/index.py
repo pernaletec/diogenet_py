@@ -235,70 +235,83 @@ def disabled_if_custom(dataset_selection):
         return False, False
 
 
-# @app.callback(Output('output-data-upload', 'children'),
-#               Input('upload-data', 'contents'),
-#               State('upload-data', 'filename'))
-# def warning_processing_file(content, name): 
-#     if content is not None:
-#         if 'csv' in name:
-#                 pass
-#         else: 
-#             return html.Div([
-#             dcc.ConfirmDialog(
-#                         id='warning_upload_map',
-#                         message='There was an error processing this file. Repeat the process',
-#                         displayed=True
-#                     ),
-#         ])
+@app.callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'))
+def warning_processing_file(content, name): 
+    if content is not None:
+        if 'csv' in name:
+                pass
+        else: 
+            return html.Div([
+            dcc.ConfirmDialog(
+                        id='warning_upload_map',
+                        message='There was an error processing this file. Repeat the process',
+                        displayed=True
+                    ),
+        ])
 
 
-# @app.callback(Output('memory-output', 'data'),
-#               Input('upload-data', 'contents'),
-#               State('upload-data', 'filename'),
-#               State('upload-data', 'last_modified'))
-# def update_data_store(content, name, date): 
-#     if content is not None:
-#         content_type, content_string = content.split(',')
-#         df = None
-#         decoded = base64.b64decode(content_string)
-#         if 'csv' in name:
-#                 # Assume that the user uploaded a CSV file
-#                 df = pd.read_csv(
-#                     io.StringIO(decoded.decode('utf-8')))
-#                 #print(df)
-#                 return df.to_dict('records')
-#         else: 
-#             pass
+@app.callback(Output('memory-output', 'data'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'),
+              State('upload-data', 'last_modified'))
+def update_data_store(content, name, date): 
+    if content is not None:
+        content_type, content_string = content.split(',')
+        df = None
+        decoded = base64.b64decode(content_string)
+        if 'csv' in name:
+                # Assume that the user uploaded a CSV file
+                df = pd.read_csv(
+                    io.StringIO(decoded.decode('utf-8')))
+                #print(df)
+                return df.to_dict('records')
+        else: 
+            pass
 
 
-# @app.callback(
-#     Output('dropdown_container_traveler', 'children'),
-#     Input('dataset_selection_map', 'value'),
-#     Input('memory-output', 'data'))
-# def get_traveler(dataset_selection,
-#                 dataframe_upload):
+@app.callback(
+    Output('dropdown_container_traveler', 'children'),
+    Input('dataset_selection_map', 'value'),
+    Input('memory-output', 'data'))
+def get_traveler(dataset_selection,
+                dataframe_upload):
     
-#     print(f' data subida lista {dataframe_upload}')
-#     map_graph = diogenetGraph(
-#     "map",
-#     dataset_selection,
-#     dataset_selection,
-#     'locations_data.csv',
-#     'travels_blacklist.csv'
-#     )
-    
-#     list_of_traveler = sorted(list(set(map_graph.get_edges_names())))
+    if dataset_selection == "custom" and dataframe_upload is not None:
+        df = pd.DataFrame.from_dict(dataframe_upload)
+        sorted_list_name = sorted(list(df['name']))
+        return dcc.Dropdown(
+            id='traveler_map',
+            options=[       
+                {'label': traveler, 'value': traveler}
+                for traveler in sorted_list_name
+            ],
+            value="All",
+            searchable=False,
+            multi=True
+        ),
+    if dataset_selection != "custom":
+        map_graph = diogenetGraph(
+        "map",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+        )
+        
+        list_of_traveler = sorted(list(set(map_graph.get_edges_names())))
 
-#     return dcc.Dropdown(
-#         id='traveler_map',
-#         options=[       
-#             {'label': traveler, 'value': traveler}
-#             for traveler in list_of_traveler
-#         ],
-#         value="All",
-#         searchable=False,
-#         multi=True
-#     ),
+        return dcc.Dropdown(
+            id='traveler_map',
+            options=[       
+                {'label': traveler, 'value': traveler}
+                for traveler in list_of_traveler
+            ],
+            value="All",
+            searchable=False,
+            multi=True
+        ),
 
 # @app.callback(
 #     Output("content_map", "children"),[
