@@ -280,7 +280,7 @@ def get_traveler(dataset_selection,
     
     if dataset_selection == "custom" and dataframe_upload is not None:
         df = pd.DataFrame.from_dict(dataframe_upload)
-        sorted_list_name = sorted(list(df['name']))
+        sorted_list_name = sorted(list(set(df['name'])))
         return dcc.Dropdown(
             id='traveler_map',
             options=[       
