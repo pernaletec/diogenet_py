@@ -442,6 +442,52 @@ class diogenetGraph:
 
         return self.travels_graph_data
 
+    def create_edges_for_custom_map(self, travels_graph_data):
+        travels_graph_data = travels_graph_data
+        travels_graph_data_for_graph = travels_graph_data.copy()
+        lat_source = []
+        lon_source = []
+        lat_target = []
+        lon_target = []
+        color_source = []
+        color_target = []
+
+        for idx, cell in enumerate(travels_graph_data.source):
+            lat_source.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lat[self.location_raw_data.name == travels_graph_data.source[idx]]
+                )    
+            )
+
+            lon_source.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lon[self.location_raw_data.name == travels_graph_data.source[idx]]
+                )    
+            )
+
+            lat_target.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lat[self.location_raw_data.name == travels_graph_data.target[idx]]
+                )    
+            )
+
+            lon_target.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lon[self.location_raw_data.name == self.location_raw_data.target[idx]]
+                )    
+            )
+            
+            color_source.append("#440154")
+            color_target.append("#482878")
+
+
+        travels_graph_data_for_graph["lat_source"] = [item for sublist in lat_source for item in sublist]
+        travels_graph_data_for_graph["lon_source"] = [item for sublist in lon_source for item in sublist]
+        travels_graph_data_for_graph["lat_target"] = [item for sublist in lat_target for item in sublist]
+        travels_graph_data_for_graph["lon_target"] = [item for sublist in lon_target for item in sublist]
+
+        return(travels_graph_data_for_graph)
+
     def update_graph(self):
         """Create graph once defined source data
         """
