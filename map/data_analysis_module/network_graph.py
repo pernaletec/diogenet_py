@@ -473,7 +473,7 @@ class diogenetGraph:
 
             lon_target.append(
                 pd.Series.to_list(
-                    self.location_raw_data.lon[self.location_raw_data.name == self.location_raw_data.target[idx]]
+                    self.location_raw_data.lon[self.location_raw_data.name == travels_graph_data.target[idx]]
                 )    
             )
             
@@ -485,6 +485,8 @@ class diogenetGraph:
         travels_graph_data_for_graph["lon_source"] = [item for sublist in lon_source for item in sublist]
         travels_graph_data_for_graph["lat_target"] = [item for sublist in lat_target for item in sublist]
         travels_graph_data_for_graph["lon_target"] = [item for sublist in lon_target for item in sublist]
+        travels_graph_data_for_graph["color_source"] = color_source
+        travels_graph_data_for_graph["color_target"] = color_target
 
         return(travels_graph_data_for_graph)
 
