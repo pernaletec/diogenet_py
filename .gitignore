@@ -170,6 +170,7 @@ cython_debug/
 *.graphml
 
 test.py
+test.ipynb
 *.html
 
 .DS_Store
