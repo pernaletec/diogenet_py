@@ -27,9 +27,9 @@ import networkx as nx
 
 from data_analysis_module.network_graph import diogenetGraph
 
-app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
-#app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
-app.config.suppress_callback_exceptions = True
+#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
+app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/map_private/')
+#app.config.suppress_callback_exceptions = True
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -219,7 +219,7 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/':
+    if pathname == '/map_private/':
         return layout
     else:
         return '404'
@@ -685,7 +685,7 @@ def update_table(
         "Closeness": round_list_values(calculated_network_closeness),
         "Eigenvector": round_list_values(calculated_network_eigenvector), 
     }
-    
+
     df_map_data_tables = pd.DataFrame(dict_map_data_tables)
     
     #print(sort_by)
@@ -799,4 +799,4 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
+    app.run_server(debug=False, port=8060)
