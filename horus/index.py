@@ -1320,7 +1320,7 @@ def update_table_global_centrality(
 
     df_global_data_tables = pd.DataFrame(dict_global_data_tables)
     
-    print(sort_by)
+    #print(sort_by)
     if len(sort_by):
         dff = df_global_data_tables.sort_values(
             sort_by[0]['column_id'],
@@ -1855,7 +1855,7 @@ def update_table_local_centrality(
 
     df_local_data_tables = pd.DataFrame(dict_local_data_tables)
     
-    print(sort_by)
+    #print(sort_by)
     if len(sort_by):
         dff = df_local_data_tables.sort_values(
             sort_by[0]['column_id'],

@@ -149,7 +149,7 @@ def parse_contents(contents, filename, date):
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
-            print(df)
+            #print(df)
             return df.to_dict('records')
     else: 
         pass
@@ -343,7 +343,7 @@ def get_map_map_custom(
         )
         
         if tab == "map_maps":
-            print(traveler)
+            #print(traveler)
             df_to_search_data = pd.DataFrame.from_dict(dataframe_upload)
             if traveler == "All" or len(traveler)==0:
                 df = map_graph.create_edges_for_custom_map(df_to_search_data)
