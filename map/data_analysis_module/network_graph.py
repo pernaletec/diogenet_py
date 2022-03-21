@@ -318,7 +318,6 @@ class diogenetGraph:
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
-        print("loclalizafo",destiny_in_traveled_to)
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(
             self.located_nodes.Name
         )

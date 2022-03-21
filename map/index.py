@@ -614,137 +614,169 @@ def get_map_map_custom(
                 return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
 
 
-# @app.callback(
-#     Output('table-map', 'data'),
-#     Input('table-map', "page_current"),
-#     Input('table-map', "page_size"),
-#     Input('table-map', 'sort_by'),
-#     Input('dataset_selection_map', 'value'),
-#     Input('traveler_map','value'),
-# )
-# def update_table(
-#                 page_current, 
-#                 page_size, 
-#                 sort_by,
-#                 dataset_selection,
-#                 traveler,
-# ):
-#     map_graph = diogenetGraph(
-#         "map",
-#         dataset_selection,
-#         dataset_selection,
-#         'locations_data.csv',
-#         'travels_blacklist.csv'
-#     )
+@app.callback(
+    Output('table-map', 'data'),
+    Input('table-map', "page_current"),
+    Input('table-map', "page_size"),
+    Input('table-map', 'sort_by'),
+    Input('dataset_selection_map', 'value'),
+    Input('traveler_map','value'),
+)
+def update_table(
+                page_current, 
+                page_size, 
+                sort_by,
+                dataset_selection,
+                traveler,
+):
+    map_graph = diogenetGraph(
+        "map",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+    )
 
-#     if traveler == "All":
-#         all_travelers = sorted(list(set(map_graph.get_edges_names())))
-#         map_graph.edges_filter = []
-#         for m_filter in all_travelers:
-#             map_graph.set_edges_filter(m_filter)
-#         map_graph.create_subgraph()
-#     elif traveler == []:
-#         all_travelers = sorted(list(set(map_graph.get_edges_names())))
-#         map_graph.edges_filter = []
-#         for m_filter in all_travelers:
-#             map_graph.set_edges_filter(m_filter)
-#         map_graph.create_subgraph()
-#     else:
-#         map_graph.edges_filter = []
-#         for m_filter in traveler:
-#             map_graph.set_edges_filter(m_filter)
-#         map_graph.create_subgraph()
+    if traveler == "All":
+        all_travelers = sorted(list(set(map_graph.get_edges_names())))
+        map_graph.edges_filter = []
+        for m_filter in all_travelers:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
+    elif traveler == []:
+        all_travelers = sorted(list(set(map_graph.get_edges_names())))
+        map_graph.edges_filter = []
+        for m_filter in all_travelers:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
+    else:
+        map_graph.edges_filter = []
+        for m_filter in traveler:
+            map_graph.set_edges_filter(m_filter)
+        map_graph.create_subgraph()
 
-#     def round_list_values(list_in):
-#         return [round(value, 4) for value in list_in]
+    def round_list_values(list_in):
+        return [round(value, 4) for value in list_in]
 
-#     calculated_degree = [round(value) for value in map_graph.calculate_degree()]
-#     calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
-#     calculated_closeness = round_list_values(map_graph.calculate_closeness())
-#     calculated_eigenvector = round_list_values(map_graph.calculate_eigenvector())
+    calculated_degree = [round(value) for value in map_graph.calculate_degree()]
+    calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
+    calculated_closeness = round_list_values(map_graph.calculate_closeness())
+    calculated_eigenvector = round_list_values(map_graph.calculate_eigenvector())
 
-#     dict_map_data_tables ={
-#         "City": map_graph.get_vertex_names(),
-#         "Degree": calculated_degree,
-#         "Betweeness": calculated_betweenness,
-#         "Closeness": calculated_betweenness,
-#         "Eigenvector": calculated_eigenvector 
-#     }
-#     df_map_data_tables = pd.DataFrame(dict_map_data_tables)
+    dict_map_data_tables ={
+        "City": map_graph.get_vertex_names(),
+        "Degree": calculated_degree,
+        "Betweeness": calculated_betweenness,
+        "Closeness": calculated_betweenness,
+        "Eigenvector": calculated_eigenvector 
+    }
+    df_map_data_tables = pd.DataFrame(dict_map_data_tables)
     
-#     print(sort_by)
-#     if len(sort_by):
-#         dff = df_map_data_tables.sort_values(
-#             sort_by[0]['column_id'],
-#             ascending=sort_by[0]['direction'] == 'desc',
-#             inplace=False
-#         )
-#     else:
-#         # No sort is applied
-#         dff = df_map_data_tables
+    #print(sort_by)
+    if len(sort_by):
+        dff = df_map_data_tables.sort_values(
+            sort_by[0]['column_id'],
+            ascending=sort_by[0]['direction'] == 'desc',
+            inplace=False
+        )
+    else:
+        # No sort is applied
+        dff = df_map_data_tables
 
-#     return dff.iloc[
-#         page_current*page_size:(page_current+ 1)*page_size
-#     ].to_dict('records')
+    return dff.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
 
-# @app.callback(
-#     Output("download-dataframe-csv-map", "data"),
-#     Input("btn_csv_map", "n_clicks"),
-#     Input('dataset_selection_map', 'value'),
-#     Input('traveler_map','value'),
-#     Input('centrality_type_map', 'value'),
-#     Input('label_size_map', 'value'),
-#     Input('node_size_map', 'value'),
-#     prevent_initial_call=True,
-# )
-# def download_handler(n_clicks, 
-#                     dataset_selection,
-#                     traveler,
-#                     centrality_index,
-#                     label_size,  
-#                     node_size):
+@app.callback(
+    Output("download-dataframe-csv-map", "data"),
+    Input("btn_csv_map", "n_clicks"),
+    Input('dataset_selection_map', 'value'),
+    Input('traveler_map','value'),
+    Input('centrality_type_map', 'value'),
+    Input('label_size_map', 'value'),
+    Input('node_size_map', 'value'),
+    Input('memory-output', 'data'),
+    prevent_initial_call=True,
+)
+def download_handler(n_clicks, 
+                    dataset_selection,
+                    traveler,
+                    centrality_index,
+                    label_size,  
+                    node_size,
+                    dataframe_upload):
 
-#     map_graph = diogenetGraph(
-#     "map",
-#     dataset_selection,
-#     dataset_selection,
-#     'locations_data.csv',
-#     'travels_blacklist.csv'
-#     )
+    if dataset_selection == 'custom':
+        map_graph = diogenetGraph(
+        "map",
+        "diogenes",
+        "diogenes",
+        'locations_data.csv',
+        'travels_blacklist.csv'
+        )
 
-#     if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_map.n_clicks':
+        df_to_search_data = pd.DataFrame.from_dict(dataframe_upload)
 
-#         data = None
-#         df = None
-#         map_graph.current_centrality_index = centrality_index
-#         if traveler == "All":
-#             map_graph.edges_filter = []
-#         elif traveler == []:
-#             map_graph.edges_filter = []
-#         else:
-#             for m_filter in traveler:
-#                 map_graph.set_edges_filter(m_filter)
+        if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_map.n_clicks':
+            if n_clicks is None:
+                raise PreventUpdate
+            else:
+                if traveler == "All" or len(traveler)==0:
+                    df = map_graph.create_edges_for_custom_map(df_to_search_data)
+                    header= ["name", "source", "target", "lat_source", "lon_source", "lat_target", "lon_target"]
+                    return dcc.send_data_frame(df.to_csv, 'travel_edges_graph.csv', columns=header)
+                else:
+                    df_prev_filter = map_graph.create_edges_for_custom_map(df_to_search_data)
+                    df_prev_filter_copy = df_prev_filter.copy()
+                    df = df_prev_filter_copy.loc[df_prev_filter_copy['name'].isin(list(traveler))].reset_index(drop=True)
+                    header= ["name", "source", "target", "lat_source", "lon_source", "lat_target", "lon_target"]
+                    return dcc.send_data_frame(df.to_csv, 'travel_edges_graph.csv', columns=header)
+        else:
+            pass
+            
 
-#         map_graph.create_subgraph()
-#         data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
+    if dataset_selection != 'custom':
+        map_graph = diogenetGraph(
+        "map",
+        dataset_selection,
+        dataset_selection,
+        'locations_data.csv',
+        'travels_blacklist.csv'
+        )
 
-#         df = pd.DataFrame(data)
-#         if n_clicks is None:
-#             raise PreventUpdate
-#         else:
-#             if traveler == "All":
-#                 all_travelers = sorted(list(set(map_graph.get_edges_names())))
-#                 df_to_save = df[df["Philosopher"].isin(all_travelers)]
-#             elif traveler == []:
-#                 all_travelers = sorted(list(set(map_graph.get_edges_names())))
-#                 df_to_save = df[df["Philosopher"].isin(all_travelers)]
-#             else:
-#                 df_to_save = df[df["Philosopher"].isin(traveler)]
-                
-#             header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']    
-#             return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
-#     else:
-#         pass
+        if dash.callback_context.triggered[0]['prop_id'] == 'btn_csv_map.n_clicks':
+
+            data = None
+            df = None
+            map_graph.current_centrality_index = centrality_index
+            if traveler == "All":
+                map_graph.edges_filter = []
+            elif traveler == []:
+                map_graph.edges_filter = []
+            else:
+                for m_filter in traveler:
+                    map_graph.set_edges_filter(m_filter)
+
+            map_graph.create_subgraph()
+            data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
+
+            df = pd.DataFrame(data)
+            if n_clicks is None:
+                raise PreventUpdate
+            else:
+                if traveler == "All":
+                    all_travelers = sorted(list(set(map_graph.get_edges_names())))
+                    df_to_save = df[df["Philosopher"].isin(all_travelers)]
+                elif traveler == []:
+                    all_travelers = sorted(list(set(map_graph.get_edges_names())))
+                    df_to_save = df[df["Philosopher"].isin(all_travelers)]
+                else:
+                    df_to_save = df[df["Philosopher"].isin(traveler)]
+
+                header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']    
+                return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
+        else:
+            pass
 
     
 
