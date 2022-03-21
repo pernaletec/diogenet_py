@@ -142,9 +142,11 @@ class diogenetGraph:
     edges_graph_data = pd.DataFrame()
     locations_graph_data = pd.DataFrame()
     travels_graph_data = None
+    travels_missing_data  = None
     travels_subgraph_data = pd.DataFrame()
 
     located_nodes = None
+    not_located_nodes = None
 
     # This is used only when local graph is plotted
     local_phylosopher = None
@@ -231,6 +233,7 @@ class diogenetGraph:
             self.validate_nodes_locations()
             self.validate_phylosopher_origin()
             self.validate_travels_locations()
+            self.validate_travels_locations_missing()
 
         self.create_edges_for_graph()
         self.update_graph()
@@ -315,16 +318,44 @@ class diogenetGraph:
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
+        print("loclalizafo",destiny_in_traveled_to)
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(
             self.located_nodes.Name
         )
         names_in_traveled_to = names_in_traveled_to[located_destiny_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_destiny_in_traveled_to]
         list_of_tuples = list(zip(names_in_traveled_to, destiny_in_traveled_to))
-
         self.travels_graph_data = pd.DataFrame(
             list_of_tuples, columns=["Source", "Target"]
         )
+
+    def validate_travels_locations_missing(self):
+        traveled_to_edges = self.edges_raw_data.Relation == "traveled to"
+        names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Source"]
+        destiny_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Target"]
+
+        names_in_traveled_to_blacklisted = names_in_traveled_to.isin(
+            self.blacklist_raw_data
+        )
+        names_in_missing_traveled_to = names_in_traveled_to[names_in_traveled_to_blacklisted]
+        destiny_not_in_traveled_to = destiny_in_traveled_to = destiny_in_traveled_to[
+            names_in_traveled_to_blacklisted
+        ]
+        
+        pko = np.array(self.phylosophers_known_origin.name)
+        ntt = np.array(names_in_traveled_to)
+        located_names_in_traveled_to = names_in_traveled_to.isin(pko)
+        names_not_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to == False]
+        located_destiny_in_traveled_to = destiny_not_in_traveled_to.isin(
+            self.located_nodes.Name
+        )
+        list_of_tuples = list(zip(names_not_in_traveled_to, destiny_not_in_traveled_to))
+
+        df = pd.DataFrame.from_dict({"names and destiny not in traveled to": list_of_tuples})
+
+        self.travels_missing_data = df
+
+        df.to_csv(os.path.join(os.path.dirname( __file__ ), '..', 'data', 'names_and_destiny_not_in_traveled_to.csv'))
 
     def validate_phylosopher_origin(self):
         """Filter "is from" edges where the target (place) is unidentified (no coordinates)
@@ -441,6 +472,54 @@ class diogenetGraph:
             self.travels_graph_data = list_of_tuples_
 
         return self.travels_graph_data
+
+    def create_edges_for_custom_map(self, travels_graph_data):
+        travels_graph_data = travels_graph_data
+        travels_graph_data_for_graph = travels_graph_data.copy()
+        lat_source = []
+        lon_source = []
+        lat_target = []
+        lon_target = []
+        color_source = []
+        color_target = []
+
+        for idx, cell in enumerate(travels_graph_data.source):
+            lat_source.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lat[self.location_raw_data.name == travels_graph_data.source[idx]]
+                )    
+            )
+
+            lon_source.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lon[self.location_raw_data.name == travels_graph_data.source[idx]]
+                )    
+            )
+
+            lat_target.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lat[self.location_raw_data.name == travels_graph_data.target[idx]]
+                )    
+            )
+
+            lon_target.append(
+                pd.Series.to_list(
+                    self.location_raw_data.lon[self.location_raw_data.name == travels_graph_data.target[idx]]
+                )    
+            )
+            
+            color_source.append("#440154")
+            color_target.append("#482878")
+
+
+        travels_graph_data_for_graph["lat_source"] = [item for sublist in lat_source for item in sublist]
+        travels_graph_data_for_graph["lon_source"] = [item for sublist in lon_source for item in sublist]
+        travels_graph_data_for_graph["lat_target"] = [item for sublist in lat_target for item in sublist]
+        travels_graph_data_for_graph["lon_target"] = [item for sublist in lon_target for item in sublist]
+        travels_graph_data_for_graph["color_source"] = color_source
+        travels_graph_data_for_graph["color_target"] = color_target
+
+        return(travels_graph_data_for_graph)
 
     def update_graph(self):
         """Create graph once defined source data
