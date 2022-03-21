@@ -23,6 +23,7 @@ from flask import (
 import base64
 import datetime
 import io
+import networkx as nx
 
 from data_analysis_module.network_graph import diogenetGraph
 
@@ -539,6 +540,7 @@ def get_map_map_custom(
                 for m_filter in all_travelers:
                     map_graph.set_edges_filter(m_filter)
                 map_graph.create_subgraph()
+
             else:
                 map_graph.edges_filter = []
                 for m_filter in traveler:
@@ -548,6 +550,14 @@ def get_map_map_custom(
             def round_list_values(list_in):
                 return [round(value, 4) for value in list_in]
 
+            #print(nx.betweenness_centrality(map_graph.networkx_subgraph))
+            #df = 
+            
+            calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
+            calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
+            calculated_network_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(map_graph.networkx_subgraph).items())[1])
+            calculated_network_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])
+
             calculated_degree = [round(value) for value in map_graph.calculate_degree()]
             calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
             calculated_closeness = round_list_values(map_graph.calculate_closeness())
@@ -555,10 +565,10 @@ def get_map_map_custom(
 
             dict_map_data_tables ={
                 "City": map_graph.get_vertex_names(),
-                "Degree": calculated_degree,
-                "Betweeness": calculated_betweenness,
-                "Closeness": calculated_betweenness,
-                "Eigenvector": calculated_eigenvector 
+                "Degree": round_list_values(calculated_network_degree),
+                "Betweeness": round_list_values(calculated_network_eigenvector),
+                "Closeness": round_list_values(calculated_network_closeness),
+                "Eigenvector": round_list_values(calculated_network_eigenvector), 
             }
 
             df_map_data_tables = pd.DataFrame(dict_map_data_tables)
@@ -658,6 +668,11 @@ def update_table(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_network_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_network_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])
+    
     calculated_degree = [round(value) for value in map_graph.calculate_degree()]
     calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
     calculated_closeness = round_list_values(map_graph.calculate_closeness())
@@ -665,11 +680,12 @@ def update_table(
 
     dict_map_data_tables ={
         "City": map_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": round_list_values(calculated_network_degree),
+        "Betweeness": round_list_values(calculated_network_eigenvector),
+        "Closeness": round_list_values(calculated_network_closeness),
+        "Eigenvector": round_list_values(calculated_network_eigenvector), 
     }
+    
     df_map_data_tables = pd.DataFrame(dict_map_data_tables)
     
     #print(sort_by)

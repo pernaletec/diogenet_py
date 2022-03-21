@@ -20,6 +20,7 @@ import random
 import os
 import tempfile
 import pathlib
+import networkx as nx
 
 
 ############
@@ -113,6 +114,7 @@ class diogenetGraph:
     blacklist_raw_data = None
     igraph_graph = None
     igraph_subgraph = None
+    networkx_subgraph = None
     igraph_localgraph = None
 
     phylosophers_known_origin = None
@@ -561,6 +563,13 @@ class diogenetGraph:
         if self.igraph_graph is not None:
             actual_graph = self.create_subgraph()
             return actual_graph.betweenness()
+
+    # def calculate_networkx_betweenness(self):
+    #     """Calculate betweenness for the networkx graph
+    #     """
+    #     if self.networkx_subgraph is not None:
+    #         actual_graph = self.create_subgraph_network()
+    #         return nx.betweenness_centrality(actual_graph)
 
     def calculate_eigenvector(self):
         """Create degree for the graph
@@ -1087,6 +1096,9 @@ class diogenetGraph:
             subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
 
             self.igraph_subgraph = subgraph
+            
+            self.networkx_subgraph = nx.DiGraph(subgraph.to_networkx())
+            #print(nx.betweenness_centrality(nx.DiGraph(subgraph.to_networkx())))
 
             """Create local subgraph depending on vertex selected (i.e phylosophers)
             """
@@ -1103,6 +1115,31 @@ class diogenetGraph:
                     subgraph = subgraph.induced_subgraph(neighbour_vertex)
                 self.igraph_subgraph = subgraph
         return subgraph
+
+    # def create_subgraph_network(self):
+    #     if self.igraph_graph is not None:
+    #         edges = self.igraph_graph.es
+    #         edge_names = self.igraph_graph.es["edge_name"]
+    #         # print('edge_names')
+    #         # print(edge_names)
+    #         if not self.edges_filter:
+    #             if self.graph_type == "map":
+    #                 edges_filter = edge_names
+    #             else:
+    #                 edges_filter = "is teacher of"
+    #         else:
+    #             # if not self.edges_filter:
+    #             edges_filter = self.edges_filter
+    #             # print("travellers")
+    #             # print(travellers)
+    #         edge_indexes = [
+    #             j.index for i, j in zip(edge_names, edges) if i in edges_filter
+    #         ]
+    #         subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
+    #         networkx_subgraph = nx.DiGraph(subgraph.to_networkx())
+
+    #         self.networkx_subgraph = networkx_subgraph
+    #     return networkx_subgraph
 
     def get_subgraph(self):
         subgraph = None
