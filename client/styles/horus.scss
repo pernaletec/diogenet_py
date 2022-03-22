@@ -1,0 +1,36 @@
+@import "./bootstrap";
+
+.main-container {
+  height: 97%;
+}
+
+.tab-container {
+  height: 97%;
+}
+
+#global-graph {
+  height: 100%;
+}
+
+iframe {
+  border: 0px;
+  height: 97%;
+}
+
+h3 {
+    font-size: medium;
+    font-weight: bold;
+}
+
+h4 {
+    font-size: small;
+    font-weight: bold;
+}
+
+th {
+    font-size: 12px;
+}
+
+td {
+    font-size: 10px;
+}
