@@ -5,11 +5,13 @@
 
 # Visual Studio Code project configuration
 .vscode/
+.vscode.code-workspace
 
 ## Node, JavaScript and TypeScript client
 
 # Dependencies of the module
 node_modules/
+package-lock.json
 
 # Webpack bundle
 #
@@ -88,6 +90,7 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+app_flask_backup.py
 
 # Scrapy stuff:
 .scrapy
@@ -165,3 +168,9 @@ cython_debug/
 # Value files
 *.val
 *.graphml
+
+test.py
+test.ipynb
+*.html
+
+.DS_Store
