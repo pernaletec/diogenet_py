@@ -28,9 +28,10 @@ from flask import (
 from data_analysis_module.network_graph import diogenetGraph
 
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus")
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus", url_base_pathname = '/diogenet_horus/')
-app.config.suppress_callback_exceptions = True
+
+#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus") #For develop mode uncomment this lines
+app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus", url_base_pathname = '/diogenet_horus/') #for develop mode comment this lines
+#app.config.suppress_callback_exceptions = True # for show callback exceptions in develop mode uncomment this line
 server = app.server
 
 ################################################### Generic Layout #######################################################
@@ -926,8 +927,10 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/diogenet_horus/':
-        return layout_global_graph
+    # if pathname == '/': #for develop mode uncomment this line
+    #     return layout_global_graph #for develop mode uncomment this line
+    if pathname == '/diogenet_horus/': # for develop mode comment this line
+        return layout_global_graph # for develop mode comment this line
     if pathname == '/apps/global_network_graph':
         return layout_global_graph
     if pathname == '/apps/global_network_graph_centrality':
@@ -2190,4 +2193,5 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 ############################################ End Callbacks Communities Treemap #####################################################
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8051)
+    #app.run_server(debug=True, port=8051) # For develop mode uncomment this line
+    app.run_server(debug=False, port=8051) # For develop mode comment this line

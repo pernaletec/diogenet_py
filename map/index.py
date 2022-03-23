@@ -26,9 +26,9 @@ import io
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/')
-app.config.suppress_callback_exceptions = True
+#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map") #For develop mode uncomment this lines
+app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/') #for develop mode comment this lines
+#app.config.suppress_callback_exceptions = True # for show callback exceptions in develop mode uncomment this line
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -191,8 +191,10 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/diogenet_map/':
-        return layout
+    # if pathname == '/': #for develop mode uncomment this line
+    #     return layout #for develop mode uncomment this line
+    if pathname == '/diogenet_map/':  #for develop mode comment this line
+        return layout  #for develop mode comment this line
     else:
         return '404'
 
@@ -487,7 +489,7 @@ def update_table(
     }
     df_map_data_tables = pd.DataFrame(dict_map_data_tables)
     
-    print(sort_by)
+    #print(sort_by)
     if len(sort_by):
         dff = df_map_data_tables.sort_values(
             sort_by[0]['column_id'],
@@ -566,4 +568,5 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8050)
+    #app.run_server(debug=True, port=8050)  #for develop mode uncomment this line
+    app.run_server(debug=False, port=8050)  #for develop mode comment this line
