@@ -93,7 +93,7 @@ GRAPHML_SUFFIX = ".graphml"
 def get_graphml_temp_file():
     temp_file_name = next(tempfile._get_candidate_names()) + GRAPHML_SUFFIX
     full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'assets',temp_file_name))
-    print(full_filename)
+    #print(full_filename)
     return full_filename
 
 
@@ -251,7 +251,7 @@ class diogenetGraph:
         :param igraph_graph: Python igraph graph object
 
         """
-        print("def know_locations(self): Not implemented")
+        #print("def know_locations(self): Not implemented")
         return pd.DataFrame()
 
     # Now all the functions that implement data treatment should be implemented
@@ -320,7 +320,7 @@ class diogenetGraph:
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
-        print("loclalizafo",destiny_in_traveled_to)
+        #print("loclalizafo",destiny_in_traveled_to)
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(
             self.located_nodes.Name
         )
@@ -668,7 +668,7 @@ class diogenetGraph:
             # self.create_subgraph()
             edges_names = []
             for edges in self.igraph_subgraph.es:
-                print(edges)
+                #print(edges)
                 edges_names.append(edges["edge_name"])
             return edges_names
 

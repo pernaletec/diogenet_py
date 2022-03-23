@@ -27,9 +27,9 @@ import networkx as nx
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map")
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/map_private/')
-#app.config.suppress_callback_exceptions = True
+#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map") # for develop mode uncomment this line
+app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/map_private/') # for develop mode comment this line
+#app.config.suppress_callback_exceptions = True # for develop mode uncomment this line
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -219,8 +219,10 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/map_private/':
-        return layout
+    # if pathname == '/': # for develop mode uncomment this line
+    #     return layout # for develop mode uncomment this line
+    if pathname == '/map_private/': # for develop mode comment this line
+        return layout # for develop mode comment this line
     else:
         return '404'
 
@@ -799,4 +801,5 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8060)
+    app.run_server(debug=False, port=8060) # for develop mode comment this line
+    #app.run_server(debug=True, port=8060) # for develop mode uncomment this line
