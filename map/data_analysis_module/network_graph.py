@@ -320,7 +320,6 @@ class diogenetGraph:
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
-        #print("loclalizafo",destiny_in_traveled_to)
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(
             self.located_nodes.Name
         )
@@ -332,28 +331,28 @@ class diogenetGraph:
         )
 
     def validate_travels_locations_missing(self):
+        #Muestra los ejes con relacion "traveled to"
         traveled_to_edges = self.edges_raw_data.Relation == "traveled to"
+        #Muestra los nombres de filosofos con relacion "traveled to"
         names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Source"]
+        #Muestra los nombres de cuidades con relacion "traveled to"
         destiny_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Target"]
 
-        names_in_traveled_to_blacklisted = names_in_traveled_to.isin(
-            self.blacklist_raw_data
-        )
-        names_in_missing_traveled_to = names_in_traveled_to[names_in_traveled_to_blacklisted]
-        destiny_not_in_traveled_to = destiny_in_traveled_to = destiny_in_traveled_to[
-            names_in_traveled_to_blacklisted
-        ]
-        
-        pko = np.array(self.phylosophers_known_origin.name)
-        ntt = np.array(names_in_traveled_to)
-        located_names_in_traveled_to = names_in_traveled_to.isin(pko)
-        names_not_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to == False]
-        located_destiny_in_traveled_to = destiny_not_in_traveled_to.isin(
-            self.located_nodes.Name
-        )
-        list_of_tuples = list(zip(names_not_in_traveled_to, destiny_not_in_traveled_to))
+        #Muestra el valor booleano de los nombres de filosofos con relacion "traveled to" que estan en lista negra
+        names_in_traveled_to_blacklisted = names_in_traveled_to.isin(self.blacklist_raw_data)
 
-        df = pd.DataFrame.from_dict({"names and destiny not in traveled to": list_of_tuples})
+        #Muestra los nombres de filosofos con relacion "traveled to" que estan en lista negra
+        names_with_relation_traveled_to_blacklisted = names_in_traveled_to[names_in_traveled_to_blacklisted == True]
+        
+        #Muestra los nombres de ciudades con relacion "traveled to" que estan en lista negra
+        travels_with_relation_traveled_to_blacklisted = destiny_in_traveled_to[names_in_traveled_to_blacklisted == True]
+
+        df = pd.DataFrame({
+            "names_with_relation_traveled_to_blacklisted": list(names_with_relation_traveled_to_blacklisted),
+            "travels_with_relation_traveled_to_blacklisted": list(travels_with_relation_traveled_to_blacklisted),
+        })
+
+        print(df)
 
         self.travels_missing_data = df
 
