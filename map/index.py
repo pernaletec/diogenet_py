@@ -60,8 +60,14 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Traveler", style=STYLE_A_ITEM),
             ],
             className="d-flex",
-
         ),
+        dbc.NavLink(
+            [
+                html.I(className="bi bi-house-fill me-2 text-white")
+            ], 
+            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+            target="blank"
+        )
     ],
     color="#000000",
     className="d-flex justify-content-between",

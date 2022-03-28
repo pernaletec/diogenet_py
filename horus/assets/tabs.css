@@ -53,3 +53,26 @@ h1,h2,h3,h4,h5 {
 .rc-slider-track {
     background-color: #716450;
 }
+
+.dropdown-toggle{
+    border-color: #000000;
+    font-size: 16px;
+    letter-spacing: 4px;
+}
+
+.btn-primary:active, .dropdown-toggle:hover, .dropdown-toggle:active, .dropdown-toggle:focus, .show>.btn-primary.dropdown-toggle{
+    border-color: #ffffff;
+    box-shadow: none;
+}
+
+.btn-primary:active:focus, .show>.btn-primary.dropdown-toggle:focus{
+    border-color: #ffffff;
+    background-color: #000000;
+    box-shadow: none;
+}
+
+.nav-link{
+    display: flex;
+    align-items: center;
+    
+}
