@@ -566,9 +566,7 @@ def get_map_map_custom(
 
             def round_list_values(list_in):
                 return [round(value, 4) for value in list_in]
-
-            #print(nx.betweenness_centrality(map_graph.networkx_subgraph))
-            #df = 
+ 
             
             calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
             calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])

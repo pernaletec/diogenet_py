@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
 from igraph import plot
+import networkx as nx
 from flask import (
     Flask,
     render_template,
@@ -1228,6 +1229,13 @@ def horus_get_global_graph_centrality(
         def round_list_values(list_in):
             return [round(value, 4) for value in list_in]
 
+        #Networkx Metrics
+        calculated_networkx_global_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(global_graph.networkx_subgraph).items())[1])
+
+        # Igraph Metrics
         calculated_degree = [round(value) for value in global_graph.calculate_degree()]
         calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
         calculated_closeness = round_list_values(global_graph.calculate_closeness())
@@ -1235,10 +1243,10 @@ def horus_get_global_graph_centrality(
 
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
-            "Degree": calculated_degree,
-            "Betweeness": calculated_betweenness,
-            "Closeness": calculated_betweenness,
-            "Eigenvector": calculated_eigenvector 
+            "Degree": calculated_networkx_global_betweenness,
+            "Betweeness": calculated_networkx_global_degree,
+            "Closeness": calculated_networkx_global_closeness,
+            "Eigenvector": calculated_networkx_global_eigenvector 
         }
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1260,8 +1268,9 @@ def horus_get_global_graph_centrality(
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
-        
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt]
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-global-graph', 'data'),
@@ -1319,17 +1328,22 @@ def update_table_global_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    calculated_networkx_global_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(global_graph.networkx_subgraph).items())[1])
+
     calculated_degree = [round(value) for value in global_graph.calculate_degree()]
     calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
     calculated_closeness = round_list_values(global_graph.calculate_closeness())
     calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
-
+    
     dict_global_data_tables ={
         "Phylosopher": global_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": calculated_networkx_global_betweenness,
+        "Betweeness": calculated_networkx_global_degree,
+        "Closeness": calculated_networkx_global_closeness,
+        "Eigenvector": calculated_networkx_global_eigenvector 
     }
 
     df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1688,6 +1702,13 @@ def horus_get_local_graph_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    #Networkx Metrics
+    calculated_networkx_local_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(local_graph.networkx_subgraph).items())[1])
+
+    # igraph Metrics
     calculated_degree = [round(value) for value in local_graph.calculate_degree()]
     calculated_betweenness = round_list_values(local_graph.calculate_betweenness())
     calculated_closeness = round_list_values(local_graph.calculate_closeness())
@@ -1695,10 +1716,10 @@ def horus_get_local_graph_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": calculated_networkx_local_degree,
+        "Betweeness": calculated_networkx_local_betweenness,
+        "Closeness": calculated_networkx_local_closeness,
+        "Eigenvector": calculated_networkx_local_eigenvector 
     }
 
     if tab == "graph_local_cetrality":
@@ -1815,7 +1836,10 @@ def horus_get_local_graph_centrality(
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt]
+        
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-local-graph', 'data'),
@@ -1854,6 +1878,13 @@ def update_table_local_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    #Networkx Metrics
+    calculated_networkx_local_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(local_graph.networkx_subgraph).items())[1])
+
+    # igraph Metrics
     calculated_degree = [round(value) for value in local_graph.calculate_degree()]
     calculated_betweenness = round_list_values(local_graph.calculate_betweenness())
     calculated_closeness = round_list_values(local_graph.calculate_closeness())
@@ -1861,10 +1892,10 @@ def update_table_local_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": calculated_networkx_local_degree,
+        "Betweeness": calculated_networkx_local_betweenness,
+        "Closeness": calculated_networkx_local_closeness,
+        "Eigenvector": calculated_networkx_local_eigenvector 
     }
 
     df_local_data_tables = pd.DataFrame(dict_local_data_tables)
