@@ -42,7 +42,7 @@ server = app.server
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
-    'color':'#ffffff',
+    'color':'#000000',
     'textDecoration': 'none',
     'marginRight': '12px',
     'marginLeft': '12px',
@@ -69,7 +69,7 @@ navbar = dbc.Navbar(
             target="blank"
         )
     ],
-    color="#000000",
+    color="#ffffff",
     className="d-flex justify-content-between",
     style={'color':'#ffffff', 'border-bottom': '1px black solid'},
     id='navbar-map'
@@ -184,7 +184,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
