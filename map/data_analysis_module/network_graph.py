@@ -372,7 +372,7 @@ class diogenetGraph:
             "cities_with_relation_is_from_with_unknown_origin_in_node": list(names_in_is_from)
         })
 
-        print(df_2)
+        #print(df_2)
 
         self.travels_missing_data = df
 
