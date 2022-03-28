@@ -416,7 +416,8 @@ def get_map_map(
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
         
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map]
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map, foot_note]
     
     if tab == "map_graphs":
 
