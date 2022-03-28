@@ -20,6 +20,7 @@ import random
 import os
 import tempfile
 import pathlib
+import networkx as nx
 
 
 ############
@@ -114,6 +115,7 @@ class diogenetGraph:
     igraph_graph = None
     igraph_subgraph = None
     igraph_localgraph = None
+    networkx_subgraph = None
 
     phylosophers_known_origin = None
     multi_origin_phylosophers = None
@@ -1088,6 +1090,8 @@ class diogenetGraph:
             subgraph = self.igraph_graph.subgraph_edges(edge_indexes)
 
             self.igraph_subgraph = subgraph
+
+            self.networkx_subgraph = nx.DiGraph(subgraph.to_networkx())
 
             """Create local subgraph depending on vertex selected (i.e phylosophers)
             """
