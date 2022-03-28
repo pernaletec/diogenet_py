@@ -34,7 +34,7 @@ app = dash.Dash(__name__,
         title="Map", url_base_pathname = '/map_private/') 
 
 # for develop mode uncomment this line
-app.config.suppress_callback_exceptions = True 
+#app.config.suppress_callback_exceptions = True 
 
 server = app.server
 
@@ -814,9 +814,9 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 # for develop mode uncomment this lines
-if __name__ == '__main__':
-    app.run_server(debug=True, port=8060) 
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8060) 
 
 # for develop mode comment this line
-# if __name__ == '__main__':
-#     app.run_server(debug=False, port=8060) 
+if __name__ == '__main__':
+    app.run_server(debug=False, port=8060) 
