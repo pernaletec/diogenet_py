@@ -32,6 +32,10 @@ app = dash.Dash(__name__,
         dbc.icons.BOOTSTRAP,
         "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
         title="Map", url_base_pathname = '/map/') 
+
+# for develop mode uncomment this line
+#app.config.suppress_callback_exceptions = True 
+        
 server = app.server
 
 ############################################# Map graph layout###################################
@@ -595,9 +599,9 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 # for develop mode uncomment this lines
-if __name__ == '__main__':
-    app.run_server(debug=True, port=8050) 
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8050) 
 
 # for develop mode comment this line
-# if __name__ == '__main__':
-#     app.run_server(debug=False, port=8050) 
+if __name__ == '__main__':
+    app.run_server(debug=False, port=8050) 
