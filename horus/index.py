@@ -1243,10 +1243,10 @@ def horus_get_global_graph_centrality(
 
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
-            "Degree": calculated_networkx_global_betweenness,
-            "Betweeness": calculated_networkx_global_degree,
-            "Closeness": calculated_networkx_global_closeness,
-            "Eigenvector": calculated_networkx_global_eigenvector 
+            "Degree": round_list_values(calculated_networkx_global_degree),
+            "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+            "Closeness": round_list_values(calculated_networkx_global_closeness),
+            "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
         }
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1340,10 +1340,10 @@ def update_table_global_centrality(
     
     dict_global_data_tables ={
         "Phylosopher": global_graph.get_vertex_names(),
-        "Degree": calculated_networkx_global_betweenness,
-        "Betweeness": calculated_networkx_global_degree,
-        "Closeness": calculated_networkx_global_closeness,
-        "Eigenvector": calculated_networkx_global_eigenvector 
+        "Degree": round_list_values(calculated_networkx_global_degree),
+        "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+        "Closeness": round_list_values(calculated_networkx_global_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
     }
 
     df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1716,10 +1716,10 @@ def horus_get_local_graph_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_networkx_local_degree,
-        "Betweeness": calculated_networkx_local_betweenness,
-        "Closeness": calculated_networkx_local_closeness,
-        "Eigenvector": calculated_networkx_local_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     if tab == "graph_local_cetrality":
@@ -1892,10 +1892,10 @@ def update_table_local_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_networkx_local_degree,
-        "Betweeness": calculated_networkx_local_betweenness,
-        "Closeness": calculated_networkx_local_closeness,
-        "Eigenvector": calculated_networkx_local_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     df_local_data_tables = pd.DataFrame(dict_local_data_tables)
