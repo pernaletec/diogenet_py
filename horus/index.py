@@ -35,16 +35,18 @@ app = dash.Dash(__name__,
                     dbc.icons.BOOTSTRAP, 
                     "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
                 title="Horus",
-                url_base_pathname = '/horus_private/') # for develop mode comment this line
+                url_base_pathname = '/horus_private/')
 
-#app.config.suppress_callback_exceptions = True # for develop mode uncomment this line
+# for develop mode uncomment this line
+#app.config.suppress_callback_exceptions = True 
+
 server = app.server
 
 ################################################### Generic Layout #######################################################
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
-    'color':'#ffffff',
+    'color':'black',
     'textDecoration': 'none',
     'marginRight': '12px',
     'marginLeft': '12px',
@@ -53,7 +55,6 @@ STYLE_A_ITEM = {
     'font-weight':'400',
     'padding': '12px',
     'paddinTop': '10px',
-
 }
 
 navbar = dbc.Navbar(
@@ -68,7 +69,7 @@ navbar = dbc.Navbar(
                     ],
                     label="Global Network",
                     style=STYLE_A_ITEM,
-                    color="#000000"
+                    color="#ffffff"
                 ),
                 dbc.DropdownMenu(
                     [
@@ -77,7 +78,7 @@ navbar = dbc.Navbar(
                     ],
                     label="Local Network",
                     style=STYLE_A_ITEM,
-                    color="#000000"
+                    color="#ffffff"
                 ),
                 dbc.DropdownMenu(
                     [
@@ -86,7 +87,7 @@ navbar = dbc.Navbar(
                     ],
                     label="Communities",
                     style=STYLE_A_ITEM,
-                    color="#000000"
+                    color="#ffffff"
                 )
             ],
             className="d-flex",
@@ -101,7 +102,7 @@ navbar = dbc.Navbar(
         ),
             
     ],
-    color="#000000",
+    color="#ffffff",
     className="d-flex justify-content-between",
     style={'color':'#ffffff', 'border-bottom': '1px black solid'},
     id='Navbar'
@@ -211,7 +212,7 @@ row_global_graph = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
@@ -376,7 +377,7 @@ row_global_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div([tabs_global_centrality, html.Div(id="content", style={'height': '100vh'})]), id='main_global_centrality'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-centrality',
@@ -517,7 +518,7 @@ row_local = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main_local_netowrk_graph'),
                 dcc.ConfirmDialog(
                         id='confirm_warning_tie_local',
@@ -688,7 +689,7 @@ row_local_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs_local_centrality, html.Div(id="content_local_centrality", style={'height': '100vh'}, children=[])]), id='main_local_centrality'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-local-centrality',
@@ -835,7 +836,7 @@ row_communnities = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph-communities', children=[]),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-coomunities',
@@ -911,7 +912,7 @@ row_communities_treemap = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#eee", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph-communities-treemap'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-treemap',
@@ -1243,10 +1244,10 @@ def horus_get_global_graph_centrality(
 
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
-            "Degree": calculated_networkx_global_betweenness,
-            "Betweeness": calculated_networkx_global_degree,
-            "Closeness": calculated_networkx_global_closeness,
-            "Eigenvector": calculated_networkx_global_eigenvector 
+            "Degree": round_list_values(calculated_networkx_global_degree),
+            "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+            "Closeness": round_list_values(calculated_networkx_global_closeness),
+            "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
         }
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1340,10 +1341,10 @@ def update_table_global_centrality(
     
     dict_global_data_tables ={
         "Phylosopher": global_graph.get_vertex_names(),
-        "Degree": calculated_networkx_global_betweenness,
-        "Betweeness": calculated_networkx_global_degree,
-        "Closeness": calculated_networkx_global_closeness,
-        "Eigenvector": calculated_networkx_global_eigenvector 
+        "Degree": round_list_values(calculated_networkx_global_degree),
+        "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+        "Closeness": round_list_values(calculated_networkx_global_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
     }
 
     df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1716,10 +1717,10 @@ def horus_get_local_graph_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_networkx_local_degree,
-        "Betweeness": calculated_networkx_local_betweenness,
-        "Closeness": calculated_networkx_local_closeness,
-        "Eigenvector": calculated_networkx_local_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     if tab == "graph_local_cetrality":
@@ -1892,10 +1893,10 @@ def update_table_local_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_networkx_local_degree,
-        "Betweeness": calculated_networkx_local_betweenness,
-        "Closeness": calculated_networkx_local_closeness,
-        "Eigenvector": calculated_networkx_local_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     df_local_data_tables = pd.DataFrame(dict_local_data_tables)
@@ -2236,8 +2237,8 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 
 # for develop mode uncomment this lines
 # if __name__ == '__main__':
-#     app.run_server(debug=True, port=8061) 
+#     app.run_server(debug=True, port=8051) 
 
 # for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8061)
+    app.run_server(debug=False, port=8051)
