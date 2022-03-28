@@ -352,7 +352,7 @@ class diogenetGraph:
             "travels_with_relation_traveled_to_blacklisted": list(travels_with_relation_traveled_to_blacklisted),
         })
 
-        print(df)
+        #print(df)
 
         self.travels_missing_data = df
 
