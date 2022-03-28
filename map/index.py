@@ -804,7 +804,7 @@ def download_handler(n_clicks,
                 else:
                     df_to_save = df[df["Philosopher"].isin(traveler)]
 
-                header = ['source', 'target', 'name', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']    
+                header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']
                 return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
         else:
             pass
