@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
 from igraph import plot
+import networkx as nx
 from flask import (
     Flask,
     render_template,
@@ -28,17 +29,32 @@ from flask import (
 from data_analysis_module.network_graph import diogenetGraph
 
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus") # for develop mode uncomment this line
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Horus", url_base_pathname = '/diogenet_horus_private/') # for develop mode comment this line
-#app.config.suppress_callback_exceptions = True # for develop mode uncomment this line
+app = dash.Dash(__name__,
+                external_stylesheets= [
+                    dbc.themes.BOOTSTRAP, 
+                    dbc.icons.BOOTSTRAP, 
+                    "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
+                title="Horus",
+                url_base_pathname = '/horus_private/')
+
+# for develop mode uncomment this line
+#app.config.suppress_callback_exceptions = True 
+
 server = app.server
 
 ################################################### Generic Layout #######################################################
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
-    'color':'#ffffff',
-    'textDecoration': 'none'
+    'color':'black',
+    'textDecoration': 'none',
+    'marginRight': '12px',
+    'marginLeft': '12px',
+    'fontSize': '16px',
+    'letterSpacing':'4px',
+    'font-weight':'400',
+    'padding': '12px',
+    'paddinTop': '10px',
 }
 
 navbar = dbc.Navbar(
@@ -48,30 +64,30 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Horus", style=STYLE_A_ITEM),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="global_network_graph"), 
-                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/global_network_graph_centrality")
+                        dbc.DropdownMenuItem("Graph", href="/global_network_graph/"), 
+                        dbc.DropdownMenuItem("Graph + centrality", href="/global_network_graph_centrality/")
                     ],
                     label="Global Network",
                     style=STYLE_A_ITEM,
-                    color="secondary"
+                    color="#ffffff"
                 ),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/local_network_graph"),
-                        dbc.DropdownMenuItem("Graph + centrality", href="/apps/local_network_graph_centrality")
+                        dbc.DropdownMenuItem("Graph", href="/local_network_graph/"),
+                        dbc.DropdownMenuItem("Graph + centrality", href="/local_network_graph_centrality/")
                     ],
                     label="Local Network",
                     style=STYLE_A_ITEM,
-                    color="secondary"
+                    color="#ffffff"
                 ),
                 dbc.DropdownMenu(
                     [
-                        dbc.DropdownMenuItem("Graph", href="/apps/communities_graph"),
-                        dbc.DropdownMenuItem("Treemap", href="/apps/communities_treemap")
+                        dbc.DropdownMenuItem("Graph", href="/communities_graph/"),
+                        dbc.DropdownMenuItem("Treemap", href="/communities_treemap/")
                     ],
                     label="Communities",
                     style=STYLE_A_ITEM,
-                    color="secondary"
+                    color="#ffffff"
                 )
             ],
             className="d-flex",
@@ -86,9 +102,9 @@ navbar = dbc.Navbar(
         ),
             
     ],
-    color="#6c757d",
+    color="#ffffff",
     className="d-flex justify-content-between",
-    style={'color':'#ffffff'},
+    style={'color':'#ffffff', 'border-bottom': '1px black solid'},
     id='Navbar'
 )
 ################################################### End Generic Layout ###################################################
@@ -187,7 +203,7 @@ sidebar_content_global_graph = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv", color="secondary", className="ml-3", n_clicks=0),
+    dbc.Button("Download Data", id="btn_csv", style={'backgroundColor': '#716450'}, className="ml-3", n_clicks=0),
     dcc.Download(id="download-dataframe-csv"),
 ]
 
@@ -196,7 +212,7 @@ row_global_graph = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
@@ -324,7 +340,7 @@ sidebar_content_global_centrality = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_global", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_global", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download-dataframe-csv-global"),
 ]
 
@@ -361,7 +377,7 @@ row_global_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div([tabs_global_centrality, html.Div(id="content", style={'height': '100vh'})]), id='main_global_centrality'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-centrality',
@@ -493,7 +509,7 @@ sidebar_content_local = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_local", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_local", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_local"),
 ]
 
@@ -502,7 +518,7 @@ row_local = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main_local_netowrk_graph'),
                 dcc.ConfirmDialog(
                         id='confirm_warning_tie_local',
@@ -637,7 +653,7 @@ sidebar_content_local_centrality = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_local_centrality", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_local_centrality", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_local_centrality"),
 ]
 
@@ -673,7 +689,7 @@ row_local_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs_local_centrality, html.Div(id="content_local_centrality", style={'height': '100vh'}, children=[])]), id='main_local_centrality'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-local-centrality',
@@ -811,7 +827,7 @@ sidebar_content_communnities = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_community_graph", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_community_graph", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_community_graph"),
 ]
 
@@ -820,7 +836,7 @@ row_communnities = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph-communities', children=[]),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-coomunities',
@@ -887,7 +903,7 @@ sidebar_content_communities_treemap = [
         searchable=False,
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_community_treemap", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_community_treemap", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_community_treemap"),
 ]
 
@@ -896,7 +912,7 @@ row_communities_treemap = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(id='main-netowrk-graph-communities-treemap'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-treemap',
@@ -926,21 +942,19 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    # if pathname == '/': # for develop mode comment this line
-    #     return layout_global_graph # for develop mode comment this line
-    if pathname == '/diogenet_horus_private/': # for develop mode comment this line
-        return layout_global_graph # for develop mode comment this line
-    if pathname == '/apps/global_network_graph':
+    if pathname == '/horus_private/' or pathname == '/':
         return layout_global_graph
-    if pathname == '/apps/global_network_graph_centrality':
+    if pathname == '/horus_private/global_network_graph/' or pathname == '/global_network_graph/':
+        return layout_global_graph
+    if pathname == '/horus_private/global_network_graph_centrality/' or pathname == '/global_network_graph_centrality/':
         return layout_global_centrality
-    if pathname == '/apps/local_network_graph':
+    if pathname == '/horus_private/local_network_graph/' or pathname == '/local_network_graph/':
         return layout_local
-    if pathname == '/apps/local_network_graph_centrality':
+    if pathname == '/horus_private/local_network_graph_centrality/' or pathname == '/local_network_graph_centrality/':
         return layout_local_centrality
-    if pathname == '/apps/communities_graph':
+    if pathname == '/horus_private/communities_graph/' or pathname == '/communities_graph/':
         return layout_communnities
-    if pathname == '/apps/communities_treemap':
+    if pathname == '/horus_private/communities_treemap/' or pathname == '/communities_treemap/':
         return layout_communities_treemap
     else:
         return '404'
@@ -1216,6 +1230,13 @@ def horus_get_global_graph_centrality(
         def round_list_values(list_in):
             return [round(value, 4) for value in list_in]
 
+        #Networkx Metrics
+        calculated_networkx_global_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(global_graph.networkx_subgraph).items())[1])
+        calculated_networkx_global_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(global_graph.networkx_subgraph).items())[1])
+
+        # Igraph Metrics
         calculated_degree = [round(value) for value in global_graph.calculate_degree()]
         calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
         calculated_closeness = round_list_values(global_graph.calculate_closeness())
@@ -1223,10 +1244,10 @@ def horus_get_global_graph_centrality(
 
         dict_global_data_tables ={
             "Phylosopher": global_graph.get_vertex_names(),
-            "Degree": calculated_degree,
-            "Betweeness": calculated_betweenness,
-            "Closeness": calculated_betweenness,
-            "Eigenvector": calculated_eigenvector 
+            "Degree": round_list_values(calculated_networkx_global_degree),
+            "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+            "Closeness": round_list_values(calculated_networkx_global_closeness),
+            "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
         }
 
         df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1248,8 +1269,9 @@ def horus_get_global_graph_centrality(
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
-        
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt]
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-global-graph', 'data'),
@@ -1307,17 +1329,22 @@ def update_table_global_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    calculated_networkx_global_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(global_graph.networkx_subgraph).items())[1])
+    calculated_networkx_global_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(global_graph.networkx_subgraph).items())[1])
+
     calculated_degree = [round(value) for value in global_graph.calculate_degree()]
     calculated_betweenness = round_list_values(global_graph.calculate_betweenness())
     calculated_closeness = round_list_values(global_graph.calculate_closeness())
     calculated_eigenvector = round_list_values(global_graph.calculate_eigenvector())
-
+    
     dict_global_data_tables ={
         "Phylosopher": global_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": round_list_values(calculated_networkx_global_degree),
+        "Betweeness": round_list_values(calculated_networkx_global_betweenness),
+        "Closeness": round_list_values(calculated_networkx_global_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_global_eigenvector) 
     }
 
     df_global_data_tables = pd.DataFrame(dict_global_data_tables)
@@ -1676,6 +1703,13 @@ def horus_get_local_graph_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    #Networkx Metrics
+    calculated_networkx_local_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(local_graph.networkx_subgraph).items())[1])
+
+    # igraph Metrics
     calculated_degree = [round(value) for value in local_graph.calculate_degree()]
     calculated_betweenness = round_list_values(local_graph.calculate_betweenness())
     calculated_closeness = round_list_values(local_graph.calculate_closeness())
@@ -1683,10 +1717,10 @@ def horus_get_local_graph_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     if tab == "graph_local_cetrality":
@@ -1803,7 +1837,10 @@ def horus_get_local_graph_centrality(
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt]
+        
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-local-graph', 'data'),
@@ -1842,6 +1879,13 @@ def update_table_local_centrality(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    #Networkx Metrics
+    calculated_networkx_local_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(local_graph.networkx_subgraph).items())[1])
+    calculated_networkx_local_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(local_graph.networkx_subgraph).items())[1])
+
+    # igraph Metrics
     calculated_degree = [round(value) for value in local_graph.calculate_degree()]
     calculated_betweenness = round_list_values(local_graph.calculate_betweenness())
     calculated_closeness = round_list_values(local_graph.calculate_closeness())
@@ -1849,10 +1893,10 @@ def update_table_local_centrality(
 
     dict_local_data_tables ={
         "Phylosopher": local_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": round_list_values(calculated_networkx_local_degree),
+        "Betweeness": round_list_values(calculated_networkx_local_betweenness),
+        "Closeness": round_list_values(calculated_networkx_local_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_local_eigenvector) 
     }
 
     df_local_data_tables = pd.DataFrame(dict_local_data_tables)
@@ -2191,6 +2235,10 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
         pass
 ############################################ End Callbacks Communities Treemap #####################################################
 
+# for develop mode uncomment this lines
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8051) 
+
+# for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8061) # for develop mode comment this line
-    #app.run_server(debug=True, port=8061) # for develop mode uncomment this line
+    app.run_server(debug=False, port=8051)

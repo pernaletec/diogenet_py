@@ -27,17 +27,29 @@ import networkx as nx
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map") # for develop mode uncomment this line
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/map_private/') # for develop mode comment this line
-#app.config.suppress_callback_exceptions = True # for develop mode uncomment this line
+app = dash.Dash(__name__,
+        external_stylesheets= [dbc.themes.BOOTSTRAP, 
+        dbc.icons.BOOTSTRAP,
+        "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
+        title="Map", url_base_pathname = '/map_private/') 
+
+# for develop mode uncomment this line
+#app.config.suppress_callback_exceptions = True 
+
 server = app.server
 
 ############################################# Map graph layout###################################
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus', 'Custom Dataset': 'custom'}
 
 STYLE_A_ITEM = {
-    'color':'#ffffff',
-    'textDecoration': 'none'
+    'color':'#000000',
+    'textDecoration': 'none',
+    'marginRight': '12px',
+    'marginLeft': '12px',
+    'fontSize': '16px',
+    'letterSpacing':'4px',
+    'font-weight':'400',
+    'padding': '12px'
 }
 
 navbar = dbc.Navbar(
@@ -48,12 +60,18 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Traveler", style=STYLE_A_ITEM),
             ],
             className="d-flex",
-
         ),
+        dbc.NavLink(
+            [
+                html.I(className="bi bi-house-fill me-2 text-white")
+            ], 
+            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+            target="blank"
+        )
     ],
-    color="#6c757d",
+    color="#ffffff",
     className="d-flex justify-content-between",
-    style={'color':'#ffffff'},
+    style={'color':'#ffffff', 'border-bottom': '1px black solid'},
     id='navbar-map'
 )
 
@@ -130,12 +148,13 @@ sidebar_content = [
         value=[4, 6]
     ),
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_map", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download-dataframe-csv-map"),
     html.H6('Upload travel dataset',className="mt-5 mb-3"),
     dcc.Upload(
             id='upload-data',
-            children = dbc.Button('Upload File', id="btn_upload_csv_map", color="secondary", className="ml-3"),
+            children = dbc.Button('Upload File', id="btn_upload_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
+
             multiple=False
         ),
     html.Div(id='output-data-upload',children=[]),
@@ -154,8 +173,6 @@ def parse_contents(contents, filename, date):
             return df.to_dict('records')
     else: 
         pass
-
-     
         
 
 tabs = dcc.Tabs(
@@ -193,7 +210,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
@@ -219,11 +236,9 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    # if pathname == '/': # for develop mode uncomment this line
-    #     return layout # for develop mode uncomment this line
-    if pathname == '/map_private/': # for develop mode comment this line
-        return layout # for develop mode comment this line
-    else:
+    if pathname == '/' or pathname == '/map_private/':
+        return layout
+    elif pathname != '/' or pathname != '/map_private/':
         return '404'
 
 ############################################# map graph callbacks ######################################
@@ -551,9 +566,7 @@ def get_map_map_custom(
 
             def round_list_values(list_in):
                 return [round(value, 4) for value in list_in]
-
-            #print(nx.betweenness_centrality(map_graph.networkx_subgraph))
-            #df = 
+ 
             
             calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
             calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
@@ -592,8 +605,8 @@ def get_map_map_custom(
                 sort_mode='single',
                 sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
             )
-            
-            return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map]
+            foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+            return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map, foot_note]
         
         if tab == "map_graphs":
 
@@ -791,7 +804,7 @@ def download_handler(n_clicks,
                 else:
                     df_to_save = df[df["Philosopher"].isin(traveler)]
 
-                header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']    
+                header = ['Source', 'Destination', 'Philosopher', 'SourceLatitude','SourceLongitude', 'DestLatitude', 'DestLongitude']
                 return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
         else:
             pass
@@ -800,6 +813,10 @@ def download_handler(n_clicks,
 
     ################################################## end graph map callbacks ##############################################
 
+# for develop mode uncomment this lines
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8060) 
+
+# for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8060) # for develop mode comment this line
-    #app.run_server(debug=True, port=8060) # for develop mode uncomment this line
+    app.run_server(debug=False, port=8060) 

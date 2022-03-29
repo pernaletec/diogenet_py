@@ -320,7 +320,6 @@ class diogenetGraph:
         located_names_in_traveled_to = names_in_traveled_to.isin(pko)
         names_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to]
         destiny_in_traveled_to = destiny_in_traveled_to[located_names_in_traveled_to]
-        #print("loclalizafo",destiny_in_traveled_to)
         located_destiny_in_traveled_to = destiny_in_traveled_to.isin(
             self.located_nodes.Name
         )
@@ -332,32 +331,53 @@ class diogenetGraph:
         )
 
     def validate_travels_locations_missing(self):
+        #Muestra los ejes con relacion "traveled to"
         traveled_to_edges = self.edges_raw_data.Relation == "traveled to"
+        #Muestra los nombres de filosofos con relacion "traveled to"
         names_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Source"]
+        #Muestra los nombres de cuidades con relacion "traveled to"
         destiny_in_traveled_to = self.edges_raw_data.loc[traveled_to_edges, "Target"]
 
-        names_in_traveled_to_blacklisted = names_in_traveled_to.isin(
-            self.blacklist_raw_data
-        )
-        names_in_missing_traveled_to = names_in_traveled_to[names_in_traveled_to_blacklisted]
-        destiny_not_in_traveled_to = destiny_in_traveled_to = destiny_in_traveled_to[
-            names_in_traveled_to_blacklisted
-        ]
-        
-        pko = np.array(self.phylosophers_known_origin.name)
-        ntt = np.array(names_in_traveled_to)
-        located_names_in_traveled_to = names_in_traveled_to.isin(pko)
-        names_not_in_traveled_to = names_in_traveled_to[located_names_in_traveled_to == False]
-        located_destiny_in_traveled_to = destiny_not_in_traveled_to.isin(
-            self.located_nodes.Name
-        )
-        list_of_tuples = list(zip(names_not_in_traveled_to, destiny_not_in_traveled_to))
+        #Muestra el valor booleano de los nombres de filosofos con relacion "traveled to" que estan en lista negra
+        names_in_traveled_to_blacklisted = names_in_traveled_to.isin(self.blacklist_raw_data)
 
-        df = pd.DataFrame.from_dict({"names and destiny not in traveled to": list_of_tuples})
+        #Muestra los nombres de filosofos con relacion "traveled to" que estan en lista negra
+        names_with_relation_traveled_to_blacklisted = names_in_traveled_to[names_in_traveled_to_blacklisted == True]
+        
+        #Muestra los nombres de ciudades con relacion "traveled to" que estan en lista negra
+        travels_with_relation_traveled_to_blacklisted = destiny_in_traveled_to[names_in_traveled_to_blacklisted == True]
+
+        # Muestra los ejes con relacion "is from"
+        is_from_edges = self.edges_raw_data.Relation == "is from"
+        #Muestra los nombres de filosofos con relacion "is from"
+        names_in_is_from = self.edges_raw_data.loc[is_from_edges, "Source"]
+        #Muestra los nombres de cuidades con relacion "is from"
+        origin_in_is_from = self.edges_raw_data.loc[is_from_edges, "Target"]
+
+        #Muestra el valor booleano de los nombres de cuidades con relacion "is from" que estan en nodos
+        located_origin_in_is_from = origin_in_is_from.isin(self.located_nodes.Name)
+
+        # Muestra los filosofos cuyos nombres no estan en los nodos localizados
+        origin_in_is_from = origin_in_is_from[located_origin_in_is_from == False]
+        # Muestra las ciudades cuyos nombres no estan en los nodos localizados
+        names_in_is_from = names_in_is_from[located_origin_in_is_from == False]
+
+        df = pd.DataFrame({
+            "names_with_relation_traveled_to_blacklisted": list(names_with_relation_traveled_to_blacklisted),
+            "travels_with_relation_traveled_to_blacklisted": list(travels_with_relation_traveled_to_blacklisted),
+        })
+
+        df_2 = pd.DataFrame({
+            "names_with_relation_is_from_with_unknown_origin_in_node": list(origin_in_is_from),
+            "cities_with_relation_is_from_with_unknown_origin_in_node": list(names_in_is_from)
+        })
+
+        #print(df_2)
 
         self.travels_missing_data = df
 
         df.to_csv(os.path.join(os.path.dirname( __file__ ), '..', 'data', 'names_and_destiny_not_in_traveled_to.csv'))
+        df_2.to_csv(os.path.join(os.path.dirname( __file__ ), '..', 'data', 'names_and_destiny_not_in_is_from.csv'))
 
     def validate_phylosopher_origin(self):
         """Filter "is from" edges where the target (place) is unidentified (no coordinates)
