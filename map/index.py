@@ -23,20 +23,33 @@ from flask import (
 import base64
 import datetime
 import io
+import networkx as nx
 
 from data_analysis_module.network_graph import diogenetGraph
 
-#app = dash.Dash(__name__, external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map") #For develop mode uncomment this lines
-app = dash.Dash(__name__,external_stylesheets= [dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP], title="Map", url_base_pathname = '/diogenet_map/') #for develop mode comment this lines
-#app.config.suppress_callback_exceptions = True # for show callback exceptions in develop mode uncomment this line
+app = dash.Dash(__name__,
+        external_stylesheets= [dbc.themes.BOOTSTRAP, 
+        dbc.icons.BOOTSTRAP,
+        "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
+        title="Map", url_base_pathname = '/map/') 
+
+# for develop mode uncomment this line
+#app.config.suppress_callback_exceptions = True 
+        
 server = app.server
 
 ############################################# Map graph layout###################################
 dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
-    'color':'#ffffff',
-    'textDecoration': 'none'
+    'color':'#000000',
+    'textDecoration': 'none',
+    'marginRight': '12px',
+    'marginLeft': '12px',
+    'fontSize': '16px',
+    'letterSpacing':'4px',
+    'font-weight':'400',
+    'padding': '12px'
 }
 
 navbar = dbc.Navbar(
@@ -47,12 +60,18 @@ navbar = dbc.Navbar(
                 dbc.NavLink("Traveler", style=STYLE_A_ITEM),
             ],
             className="d-flex",
-
         ),
+        dbc.NavLink(
+            [
+                html.I(className="bi bi-house-fill me-2 text-white")
+            ], 
+            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+            target="blank"
+        )
     ],
-    color="#6c757d",
+    color="#ffffff",
     className="d-flex justify-content-between",
-    style={'color':'#ffffff'},
+    style={'color':'#ffffff', 'border-bottom': '1px black solid'},
     id='navbar-map'
 )
 
@@ -129,7 +148,7 @@ sidebar_content = [
         value=[4, 6]
     ),
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_map", color="secondary", className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download-dataframe-csv-map"),
 ]
 
@@ -165,7 +184,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#ced4da", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
@@ -191,11 +210,9 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    # if pathname == '/': #for develop mode uncomment this line
-    #     return layout #for develop mode uncomment this line
-    if pathname == '/diogenet_map/':  #for develop mode comment this line
-        return layout  #for develop mode comment this line
-    else:
+    if pathname == '/' or pathname == '/map/':
+        return layout
+    elif pathname != '/' or pathname != '/map/':
         return '404'
 
 ############################################# map graph callbacks ######################################
@@ -365,17 +382,22 @@ def get_map_map(
         def round_list_values(list_in):
             return [round(value, 4) for value in list_in]
 
+        calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
+        calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
+        calculated_network_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(map_graph.networkx_subgraph).items())[1])
+        calculated_network_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])
+        
         calculated_degree = [round(value) for value in map_graph.calculate_degree()]
         calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
         calculated_closeness = round_list_values(map_graph.calculate_closeness())
         calculated_eigenvector = round_list_values(map_graph.calculate_eigenvector())
-
+    
         dict_map_data_tables ={
             "City": map_graph.get_vertex_names(),
-            "Degree": calculated_degree,
-            "Betweeness": calculated_betweenness,
-            "Closeness": calculated_betweenness,
-            "Eigenvector": calculated_eigenvector 
+            "Degree": round_list_values(calculated_network_degree),
+            "Betweeness": round_list_values(calculated_network_eigenvector),
+            "Closeness": round_list_values(calculated_network_closeness),
+            "Eigenvector": round_list_values(calculated_network_eigenvector), 
         }
 
         df_map_data_tables = pd.DataFrame(dict_map_data_tables)
@@ -398,7 +420,8 @@ def get_map_map(
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
         
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map]
+        foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
+        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map, foot_note]
     
     if tab == "map_graphs":
 
@@ -475,6 +498,13 @@ def update_table(
     def round_list_values(list_in):
         return [round(value, 4) for value in list_in]
 
+    #Networkx Metrics
+    calculated_networkx_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_networkx_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_networkx_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(map_graph.networkx_subgraph).items())[1])
+    calculated_networkx_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])
+
+    # igraph Metrics
     calculated_degree = [round(value) for value in map_graph.calculate_degree()]
     calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
     calculated_closeness = round_list_values(map_graph.calculate_closeness())
@@ -482,11 +512,12 @@ def update_table(
 
     dict_map_data_tables ={
         "City": map_graph.get_vertex_names(),
-        "Degree": calculated_degree,
-        "Betweeness": calculated_betweenness,
-        "Closeness": calculated_betweenness,
-        "Eigenvector": calculated_eigenvector 
+        "Degree": round_list_values(calculated_networkx_degree),
+        "Betweeness": round_list_values(calculated_networkx_eigenvector),
+        "Closeness": round_list_values(calculated_networkx_closeness),
+        "Eigenvector": round_list_values(calculated_networkx_eigenvector), 
     }
+
     df_map_data_tables = pd.DataFrame(dict_map_data_tables)
     
     #print(sort_by)
@@ -567,6 +598,10 @@ def download_handler(n_clicks,
 
     ################################################## end graph map callbacks ##############################################
 
+# for develop mode uncomment this lines
+# if __name__ == '__main__':
+#     app.run_server(debug=True, port=8050) 
+
+# for develop mode comment this line
 if __name__ == '__main__':
-    #app.run_server(debug=True, port=8050)  #for develop mode uncomment this line
-    app.run_server(debug=False, port=8050)  #for develop mode comment this line
+    app.run_server(debug=False, port=8050) 
