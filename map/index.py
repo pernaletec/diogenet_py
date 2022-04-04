@@ -371,75 +371,82 @@ def get_map_map_custom(
                 df_prev_filter_copy = df_prev_filter.copy()
                 df = df_prev_filter_copy.loc[df_prev_filter_copy['name'].isin(list(traveler))].reset_index(drop=True)
 
-            fig = go.Figure()
-            list_text_from=[]
-            list_text_to=[]
-            list_text_line=[]
+            #Folium base map configurations
+            url = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'
+            attribution = '&copy; <a href="https://developers.arcgis.com/">ArcGIS</a> '
 
-            for i in range(len(df)):
-                list_text_from.append(f'{df["source"][i]} ({round(df["lat_source"][i],2)}°, {round(df["lon_source"][i],2)}°)')
+            base_map = folium.Map(location=[35, 30],
+                       min_zoom=4, 
+                       max_zoom=7, 
+                       zoom_start=6,
+                       tiles=None,
+                       attr=attribution)
 
-                list_text_to.append(f'{df["target"][i]} ({round(df["lat_target"][i],2)}°, {round(df["lon_target"][i],2)}°)')
+            folium.TileLayer(
+                    tiles = url,
+                    show=True,
+                    attr=attribution,
+                    min_zoom=3, 
+                    max_zoom=8, 
+                    name="USGS - The National Map",
+                ).add_to(base_map)
 
-                list_text_line.append(f'{df["name"][i]} travel from {df["source"][i]} to {df["target"][i]}')
+            markers_source = folium.FeatureGroup(name='source').add_to(base_map)
+            markers_target = folium.FeatureGroup(name='target').add_to(base_map)
 
-            fig.add_trace(go.Scattermapbox(
-                lat=df["lat_source"],
-                lon=df["lon_source"],
-                mode='markers+text',
-                marker=go.scattermapbox.Marker(
-                    size = 4*3.5,
-                    color = df["color_source"]
-                ),
-                text=list_text_from,
-                hoverinfo="text",
-                showlegend=False
-            ))
 
-            fig.add_trace(go.Scattermapbox(
-                lon=df["lon_target"],
-                lat=df["lat_target"],
-                mode='markers+text',
-                marker=go.scattermapbox.Marker(
-                    size = 4*3.5,
-                    color = df["color_target"]
-                ),
-                text=list_text_to,
-                hoverinfo="text",
-                showlegend=False
-            ))
+            for i in range(len(df['source'])):
+                popup_source = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['source'][i], df["lat_source"][i], df["lon_source"][i])),parse_html=True, max_width=450)
+                tooltip_source = "{} (lat = {:.1f}, lon={:.1f})".format(df['source'][i], df["lat_source"][i], df["lon_source"][i])
 
-            for i in range(len(df["target"])):
+                markers_source.add_child(
+                    folium.CircleMarker(
+                        location=(float(df["lat_source"][i]), float(df["lon_source"][i])),
+                        popup = popup_source,
+                        tooltip=tooltip_source,
+                        fill=True,
+                        color=df["color_source"][i],  
+                        fill_color=df["color_source"][i], 
+                        radius=int(4 * 2)
+                    )
+                )
+                
+                popup_target = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['target'][i], df["lat_target"][i], df["lon_target"][i])),parse_html=True, max_width=450)
+                tooltip_target = "{} (lat = {:.1f}, lon={:.1f})".format(df['target'][i], df["lat_target"][i], df["lon_target"][i])
 
-                fig.add_trace(
-                    go.Scattermapbox(
-                        mode = "lines",
-                        lon = [round(df["lon_source"][i],2), round(df["lon_target"][i],3)],
-                        lat = [round(df["lat_source"][i],2), round(df["lat_target"][i],3)],
-                        text=f'{df["name"][i]} travel from {df["source"][i]} to {df["target"][i]}',
-                        hoverinfo='text',
-                        showlegend=False,
-                        line = dict(width = 1,color = '#ced4da'),
+                markers_target.add_child(
+                    folium.CircleMarker(
+                        location=(float(df["lat_target"][i]), float(df["lon_target"][i])),
+                        popup=popup_target,
+                        tooltip=tooltip_target,
+                        fill=True,
+                        color=df["color_target"][i],  
+                        fill_color=df["color_target"][i], 
+                        radius=int(4 * 2)
                     )
                 )
 
-            fig.update_layout(
-                mapbox_style="white-bg",
-                mapbox = {
-                    'center': {'lon': 35, 'lat': 30},
-                    'zoom': 3.2},
-                mapbox_layers=[
-                    {
-                        "below": 'traces',
-                        "sourcetype": "raster",
-                        "sourceattribution": "United States Geological Survey",
-                        "source": [
-                            "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
-                        ]
-                    }
-                ])
-            fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-            return dcc.Graph(figure=fig, style={"height": "100%", "width": "100%"})
+                folium.PolyLine(
+                        [
+                            [df["lat_source"][i], df["lon_source"][i]], 
+                            [df["lat_target"][i], df["lon_target"][i]]
+                        ], 
+                        popup = folium.Popup(str("{} travel from {} to  {}".format(df['name'][i], df["source"][i], df["target"][i])),
+                        parse_html=True, max_width=450),
+                        tooltip= "{} travel from {} to  {}".format(df['name'][i], df["source"][i], df["target"][i]),
+                        color='#ced4da',
+                        weight=1.5,
+                    ).add_to(base_map)
+            
+            suffix = ".html"
+            temp_file_name = next(tempfile._get_candidate_names()) + suffix
+            full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
+
+            #saving folium .html file
+            folium.LayerControl().add_to(base_map)
+            base_map.save(full_filename)
+
+            return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
             
         
     if dataset_selection != 'custom':
@@ -451,130 +458,79 @@ def get_map_map_custom(
         'travels_blacklist.csv'
         )    
 
-        def get_folium_map(df, full_filename):  
-                url = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'
-                attribution = '&copy; <a href="https://developers.arcgis.com/">ArcGIS</a> '
-
-                m = folium.Map(location=[35, 30],
-                       min_zoom=4, 
-                       max_zoom=7, 
-                       zoom_start=6,
-                       tiles=None,
-                       attr=attribution)
-
-                folium.TileLayer(
-                    tiles = url,
-                    show=True,
-                    attr=attribution,
-                    min_zoom=3, 
-                    max_zoom=8, 
-                    name="USGS - The National Map",
-                ).add_to(m)
-
-                folium.LayerControl().add_to(m)
-
-                for i in range(len(df['Source'])):
-                    folium.CircleMarker(
-                        location=[float(df["SourceLatitude"][i]), float(df["SourceLongitude"][i])],
-                        popup = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])),parse_html=True, max_width=450),
-                        tooltip = "{} (lat = {:.1f}, lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i]),
-                        fill=True,
-                        color=df["SourceColor"][i],  
-                        fill_color=df["SourceColor"][i], 
-                        radius=int(df["SourceSize"][i] * 1.3)
-                    ).add_to(m)
-
-                    folium.CircleMarker(
-                        location=[float(df["DestLatitude"][i]), float(df["DestLongitude"][i])],
-                        popup = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i])),parse_html=True, max_width=450),
-                        tooltip = "{} (lat = {:.1f}, lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i]),
-                        fill=True,
-                        color=df["DestinationColor"][i],  
-                        fill_color=df["DestinationColor"][i], 
-                        radius=int(df["DestinationSize"][i] * 1.3)
-                    ).add_to(m)
-
-                    folium.PolyLine(
-                        [
-                            [df["SourceLatitude"][i], df["SourceLongitude"][i]], 
-                            [df["DestLatitude"][i], df["DestLongitude"][i]]
-                        ], 
-                        popup = folium.Popup(str("{} travel from {} to  {}".format(df['Philosopher'][i], df["Source"][i], df["Destination"][i])),
-                        parse_html=True, max_width=450),
-                        tooltip= "{} travel from {} to  {}".format(df['Philosopher'][i], df["Source"][i], df["Destination"][i]),
-                        color='#ced4da',
-                        weight=1.5,
-                    ).add_to(m)
-
-                return m
-
         if tab == "map_maps":
 
             all_data = {}
             data = None
             mapa = None
             map_graph.current_centrality_index = centrality_index
-            if traveler == "All":
-                map_graph.edges_filter = []
-            elif traveler == []:
+            if traveler == "All" or traveler == []:
                 map_graph.edges_filter = []
             else:
                 for m_filter in traveler:
                     map_graph.set_edges_filter(m_filter)
+                map_graph.create_subgraph()
 
-            map_graph.create_subgraph()
+            
             data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
-            all_data = map_graph.get_max_min()
-            if data:
-                all_data["data"] = data
-
             df = pd.DataFrame(data)
-            #print(df)
-        
-            def get_folium_map(df, full_filename):  
-                url = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'
-                attribution = '&copy; <a href="https://developers.arcgis.com/">ArcGIS</a> '
 
-                m = folium.Map(location=[35, 30],
+            #Folium base map configurations 
+            url = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'
+            attribution = '&copy; <a href="https://developers.arcgis.com/">ArcGIS</a> '
+
+            base_map = folium.Map(location=[35, 30],
                        min_zoom=4, 
                        max_zoom=7, 
                        zoom_start=6,
                        tiles=None,
                        attr=attribution)
 
-                folium.TileLayer(
+            folium.TileLayer(
                     tiles = url,
                     show=True,
                     attr=attribution,
                     min_zoom=3, 
                     max_zoom=8, 
                     name="USGS - The National Map",
-                ).add_to(m)
+                ).add_to(base_map)
 
-                folium.LayerControl().add_to(m)
+            markers_source = folium.FeatureGroup(name='Source').add_to(base_map)
+            markers_target = folium.FeatureGroup(name='Target').add_to(base_map)
 
-                for i in range(len(df['Source'])):
+
+            for i in range(len(df['Source'])):
+                popup_source = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])),parse_html=True, max_width=450)
+                tooltip_source = "{} (lat = {:.1f}, lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])
+
+                markers_source.add_child(
                     folium.CircleMarker(
-                        location=[float(df["SourceLatitude"][i]), float(df["SourceLongitude"][i])],
-                        popup = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])),parse_html=True, max_width=450),
-                        tooltip = "{} (lat = {:.1f}, lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i]),
+                        location=(float(df["SourceLatitude"][i]), float(df["SourceLongitude"][i])),
+                        popup = popup_source,
+                        tooltip=tooltip_source,
                         fill=True,
                         color=df["SourceColor"][i],  
                         fill_color=df["SourceColor"][i], 
                         radius=int(df["SourceSize"][i] * 1.3)
-                    ).add_to(m)
+                    )
+                )
+                
+                popup_target = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i])),parse_html=True, max_width=450)
+                tooltip_target = "{} (lat = {:.1f}, lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i])
 
+                markers_target.add_child(
                     folium.CircleMarker(
-                        location=[float(df["DestLatitude"][i]), float(df["DestLongitude"][i])],
-                        popup = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i])),parse_html=True, max_width=450),
-                        tooltip = "{} (lat = {:.1f}, lon={:.1f})".format(df['Destination'][i], df["DestLatitude"][i], df["DestLongitude"][i]),
+                        location=(float(df["DestLatitude"][i]), float(df["DestLongitude"][i])),
+                        popup=popup_target,
+                        tooltip=tooltip_target,
                         fill=True,
                         color=df["DestinationColor"][i],  
                         fill_color=df["DestinationColor"][i], 
                         radius=int(df["DestinationSize"][i] * 1.3)
-                    ).add_to(m)
+                    )
+                )
 
-                    folium.PolyLine(
+                folium.PolyLine(
                         [
                             [df["SourceLatitude"][i], df["SourceLongitude"][i]], 
                             [df["DestLatitude"][i], df["DestLongitude"][i]]
@@ -584,46 +540,17 @@ def get_map_map_custom(
                         tooltip= "{} travel from {} to  {}".format(df['Philosopher'][i], df["Source"][i], df["Destination"][i]),
                         color='#ced4da',
                         weight=1.5,
-                    ).add_to(m)
-
-                return m
+                    ).add_to(base_map)
             
             suffix = ".html"
-            temp_file_name = "mapa" + suffix
-            print(temp_file_name)
-
+            temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
             
+            #saving folium .html file
+            folium.LayerControl().add_to(base_map)
+            base_map.save(full_filename)
 
-            return [html.Iframe(id = 'map', srcDoc=open(temp_file_name, 'r').read(),style={"height":"100%", "width": "100%"})]
-
-            map_graph.current_centrality_index = centrality_index
-            
-            graph_layout = "fr"
-            pvis_graph = None
-
-            if traveler == "All" or traveler == []:
-                #map_graph.edges_filter = []
-                pvis_graph = map_graph.get_pyvis(
-                    min_weight=node_size[0],
-                    max_weight=node_size[1],
-                    min_label_size=label_size[0],
-                    max_label_size=label_size[1],
-                    layout=graph_layout,
-                )
-                mapa = get_folium_map(df, full_filename)
-            else:
-    
-                pvis_graph = map_graph.get_pyvis()
-                mapa = get_folium_map(df, full_filename)
-
-            if pvis_graph:
-                suffix = ".html"
-                temp_file_name = next(tempfile._get_candidate_names()) + suffix
-                full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
-
-                mapa.save(full_filename)
-                return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
+            return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
 
         if tab == "map_metrics":
             
