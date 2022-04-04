@@ -38,7 +38,7 @@ app = dash.Dash(__name__,
                 url_base_pathname = '/horus_private/')
 
 # for develop mode uncomment this line
-#app.config.suppress_callback_exceptions = True 
+app.config.suppress_callback_exceptions = True 
 
 server = app.server
 
@@ -2236,9 +2236,9 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 ############################################ End Callbacks Communities Treemap #####################################################
 
 # for develop mode uncomment this lines
-# if __name__ == '__main__':
-#     app.run_server(debug=True, port=8051) 
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8051) 
 
 # for develop mode comment this line
-if __name__ == '__main__':
-    app.run_server(debug=False, port=8051)
+# if __name__ == '__main__':
+#     app.run_server(debug=False, port=8051)
