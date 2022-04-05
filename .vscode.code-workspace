@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.pythonPath": "/home/elinarezv/.pyenv/versions/diogenet/bin/python"
+	}
+}

@@ -5,26 +5,24 @@
 
 # Visual Studio Code project configuration
 .vscode/
+.vscode.code-workspace
 
 ## Node, JavaScript and TypeScript client
 
 # Dependencies of the module
 node_modules/
+package-lock.json
 
 # Webpack bundle
 #
 # Notice how it is inside of the Python package, this is so that
 # it can locate it regardless of the operating system.
-/diogenet_py/static/client/bundle.js
-/diogenet_py/static/client/bundle.js.map
-/diogenet_py/static/client/bundle.min.js
-/diogenet_py/static/client/bundle.min.js.map
-/diogenet_py/static/client/*.bundle.js
-/diogenet_py/static/client/*.bundle.js.map
-/diogenet_py/static/client/*.bundle.min.js
-/diogenet_py/static/client/*.bundle.min.js.map
+/diogenet_py/static/client/*
 
 ## Python:
+#
+# Pyvis temporary files
+/diogenet_py/temp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -92,6 +90,7 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+app_flask_backup.py
 
 # Scrapy stuff:
 .scrapy
@@ -164,3 +163,14 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+.python-version
+
+# Value files
+*.val
+*.graphml
+
+test.py
+test.ipynb
+*.html
+
+.DS_Store
