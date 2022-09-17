@@ -5,10 +5,13 @@ matplotlib==3.4.3
 networkx==2.6.3
 numpy==1.19.0
 pandas==1.0.5
-plotly==4.12.0
+plotly>=5.0.0
 python_igraph==0.9.9
 pyvis==0.1.8.2
 requests==2.23.0
 setuptools==58.0.4
 Sphinx==3.0
 folium==0.12.1
+Jinja2==3.0.3
+itsdangerous==2.0.1
+werkzeug==2.0.3
