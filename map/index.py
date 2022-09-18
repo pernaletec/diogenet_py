@@ -35,7 +35,7 @@ app = dash.Dash(__name__,
         title="Map", url_base_pathname = '/map_private/') 
 
 # for develop mode uncomment this line
-#app.config.suppress_callback_exceptions = True 
+app.config.suppress_callback_exceptions = True 
 
 server = app.server
 
@@ -45,35 +45,88 @@ dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblic
 STYLE_A_ITEM = {
     'color':'#000000',
     'textDecoration': 'none',
-    'marginRight': '12px',
-    'marginLeft': '12px',
+    'paddingRight': '12px',
+    'paddingLeft': '12px',
     'fontSize': '16px',
     'letterSpacing':'4px',
     'font-weight':'400',
-    'padding': '12px'
+    'margin': '0'
 }
 
 navbar = dbc.Navbar(
     children=[
         html.Div(
             [
-                dbc.NavLink("Map", style=STYLE_A_ITEM),
-                dbc.NavLink("Traveler", style=STYLE_A_ITEM),
+                html.Img(
+                    src="https://i0.wp.com/diogenet.ucsd.edu/wp-content/uploads/2021/02/Logo-Gego-v2-BN.png?ssl=1",
+                    style={
+                        'width': '80px',
+                        'height': '94px'
+                    }
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink(
+                            "DIOGENET",
+                            style= {
+                                'color':'black',
+                                'textDecoration': 'none',
+                                'marginRight': '12px',
+                                'marginLeft': '12px',
+                                'fontSize': '22px',
+                                'letterSpacing':'4px',
+                                'font-weight':'400',
+                                'padding': '0px',
+                                'margin': '2px',
+                                'fontWeight': '700'
+                            }
+                        ),
+                    ] 
+                )
+            ],
+            className="d-flex"
+        ),
+        html.Div(
+            [   
+                
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("HOME", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("HORUS", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("MAP", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("DOCS", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
             ],
             className="d-flex",
-        ),
-        dbc.NavLink(
-            [
-                html.I(className="bi bi-house-fill me-2 text-white")
-            ], 
-            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
-            target="blank"
+
         )
+            
     ],
     color="#ffffff",
     className="d-flex justify-content-between",
     style={'color':'#ffffff', 'border-bottom': '1px black solid'},
-    id='navbar-map'
+    id='Navbar'
 )
 
 sidebar_content = [
@@ -823,9 +876,9 @@ def download_handler(n_clicks,
     ################################################## end graph map callbacks ##############################################
 
 # for develop mode uncomment this lines
-# if __name__ == '__main__':
-#     app.run_server(debug=True, port=8060) 
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8060) 
 
 #for develop mode comment this line
-if __name__ == '__main__':
-    app.run_server(debug=False, port=8060) 
+# if __name__ == '__main__':
+#     app.run_server(debug=False, port=8060)

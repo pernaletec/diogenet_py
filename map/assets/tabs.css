@@ -55,20 +55,21 @@ h1,h2,h3,h4,h5 {
 }
 
 .dropdown-toggle{
-    border-color: #000000;
+    border-color: #FFFFFF;
     color: #000000;
     font-size: 16px;
     letter-spacing: 4px;
+    padding: 2;
 }
 
 .btn-primary:active, .dropdown-toggle:hover, .dropdown-toggle:active, .dropdown-toggle:focus, .show>.btn-primary.dropdown-toggle{
-    border-color: #000000;
+    border-color: #FFFFFF;
     color: #000000;
     box-shadow: none;
 }
 
 .btn-primary:active:focus, .show>.btn-primary.dropdown-toggle:focus{
-    border-color: #000000;
+    border-color: #FFFFFF;
     color: #000000;
     background-color: #FFFFFF;
     box-shadow: none;
@@ -77,5 +78,10 @@ h1,h2,h3,h4,h5 {
 .nav-link{
     display: flex;
     align-items: center;
-    
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+#react-aria3184038141-3 {
+    border-color: #FFFFFF;
 }

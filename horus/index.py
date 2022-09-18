@@ -1,3 +1,4 @@
+from turtle import heading, width
 import dash
 from dash import dcc
 from dash import html
@@ -53,21 +54,59 @@ STYLE_A_ITEM = {
     'fontSize': '16px',
     'letterSpacing':'4px',
     'font-weight':'400',
-    'padding': '12px',
-    'paddinTop': '10px',
+    'padding': '0px',
+    'margin': '2px'
 }
 
 navbar = dbc.Navbar(
     children=[
         html.Div(
             [
-                dbc.NavLink("Horus", style=STYLE_A_ITEM),
+                html.Img(
+                    src="https://i0.wp.com/diogenet.ucsd.edu/wp-content/uploads/2021/02/Logo-Gego-v2-BN.png?ssl=1",
+                    style={
+                        'width': '80px',
+                        'height': '94px'
+                    }
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink(
+                            "DIOGENET",
+                            style= {
+                                'color':'black',
+                                'textDecoration': 'none',
+                                'marginRight': '12px',
+                                'marginLeft': '12px',
+                                'fontSize': '22px',
+                                'letterSpacing':'4px',
+                                'font-weight':'400',
+                                'padding': '0px',
+                                'margin': '2px',
+                                'fontWeight': '700'
+                            }
+                        ),
+                    ] 
+                )
+            ],
+            className="d-flex"
+        ),
+        html.Div(
+            [   
+                
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("HOME", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
                 dbc.DropdownMenu(
                     [
                         dbc.DropdownMenuItem("Graph", href="/global_network_graph/"), 
                         dbc.DropdownMenuItem("Graph + centrality", href="/global_network_graph_centrality/")
                     ],
-                    label="Global Network",
+                    label="GLOBAL NETWORK",
                     style=STYLE_A_ITEM,
                     color="#ffffff"
                 ),
@@ -76,7 +115,7 @@ navbar = dbc.Navbar(
                         dbc.DropdownMenuItem("Graph", href="/local_network_graph/"),
                         dbc.DropdownMenuItem("Graph + centrality", href="/local_network_graph_centrality/")
                     ],
-                    label="Local Network",
+                    label="LOCAL NETWORK",
                     style=STYLE_A_ITEM,
                     color="#ffffff"
                 ),
@@ -85,21 +124,14 @@ navbar = dbc.Navbar(
                         dbc.DropdownMenuItem("Graph", href="/communities_graph/"),
                         dbc.DropdownMenuItem("Treemap", href="/communities_treemap/")
                     ],
-                    label="Communities",
+                    label="COMMUNITIES",
                     style=STYLE_A_ITEM,
                     color="#ffffff"
                 )
             ],
             className="d-flex",
 
-        ),
-        dbc.NavLink(
-            [
-                html.I(className="bi bi-house-fill me-2 text-white")
-            ], 
-            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
-            target="blank"
-        ),
+        )
             
     ],
     color="#ffffff",
