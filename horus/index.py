@@ -1,3 +1,5 @@
+from pydoc import classname
+from tkinter.ttk import Style
 from turtle import heading, width
 import dash
 from dash import dcc
@@ -244,7 +246,7 @@ row_global_graph = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin": "4px"}),
                 dbc.Col(id='main-netowrk-graph'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
@@ -277,7 +279,8 @@ sidebar_content_global_centrality = [
         ],
         searchable=False,
         placeholder="Select a dataset",
-        value='diogenes'
+        value='diogenes',
+        className="rounded-select"
     ),
     html.H5('Network ties', className="mt-5 mb-3"),
     dcc.Checklist( 

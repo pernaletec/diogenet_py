@@ -85,3 +85,9 @@ h1,h2,h3,h4,h5 {
 #react-aria3184038141-3 {
     border-color: #FFFFFF;
 }
+
+.rounded-select {
+    border-radius: 75%;
+}
+
+ /* <div class="Select-control"><div class="Select-multi-value-wrapper" id="react-select-2--value"><div class="Select-value"><span class="Select-value-label" role="option" aria-selected="true" id="react-select-2--value-item">Diogenes Laertius</span></div><div autocomplete="off" aria-expanded="false" aria-owns="" aria-activedescendant="react-select-2--value" aria-disabled="false" class="Select-input" role="combobox" tabindex="0" style="border: 0px; width: 1px; display: inline-block;"></div></div><span aria-label="Clear value" class="Select-clear-zone" title="Clear value"><span class="Select-clear">×</span></span><span class="Select-arrow-zone"><span class="Select-arrow"></span></span></div> */
