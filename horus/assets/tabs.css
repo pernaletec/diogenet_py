@@ -6,14 +6,14 @@
 .custom-tabs {
     border-top-left-radius: 3px;
     font-size: 16px;
-    background-color: #f9f9f9;
+    background-color: #e7e6e6;
     padding: 0px;
     margin-top: 5px;
     border-bottom: 1px solid #d6d6d6;
 }
 
 .custom-tab {
-    color:#586069;
+    color: black;
     font-size: 16px;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
@@ -21,7 +21,7 @@
     border-left: 0px !important;
     border-right: 0px !important;
     border-bottom: 0px !important;
-    background-color: #fafbfc;
+    background-color: #e7e6e6 !important;
     padding: 10px !important;
     font-family: "system-ui";
     display: flex !important;
@@ -32,6 +32,7 @@
     color: black;
     font-size: 16px;
     box-shadow: 1px 1px 0px white;
+    background-color: #fdfdfd !important;
     border-left: 1px solid #fdfdfd !important;
     border-right: 1px solid #fdfdfd !important;
     border-top: 3px solid #716450 !important;
@@ -90,4 +91,117 @@ h1,h2,h3,h4,h5 {
     border-radius: 75%;
 }
 
+#graph_filter_global > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_global > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_global_centrality > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+#graph_filter_global_centrality > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_local > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_local > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_local_centrality > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_local_centrality > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_communities > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_communities > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+
+
+#graph_filter_communities_treemap > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#graph_filter_communities_treemap > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_global_centrality > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_global_centrality > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_local > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_local > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_local_centrality > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_local_centrality > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_communities > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#show_gender_communities > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#crossing_ties_communities > label:nth-child(odd) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+#crossing_ties_communities > label:nth-child(even) > input[type=checkbox] {
+    accent-color: #716450;
+}
+
+
+
+
+.rc-slider-handle {
+    border-color: #716450;
+}
+
+.rc-slider-dot-active {
+    border-color: #716450;
+}
+
+#tabs_local_cetrality-parent{
+    margin-top: 0px;
+    margin-left: 1px;
+    padding-left: 1px;
+}
  /* <div class="Select-control"><div class="Select-multi-value-wrapper" id="react-select-2--value"><div class="Select-value"><span class="Select-value-label" role="option" aria-selected="true" id="react-select-2--value-item">Diogenes Laertius</span></div><div autocomplete="off" aria-expanded="false" aria-owns="" aria-activedescendant="react-select-2--value" aria-disabled="false" class="Select-input" role="combobox" tabindex="0" style="border: 0px; width: 1px; display: inline-block;"></div></div><span aria-label="Clear value" class="Select-clear-zone" title="Clear value"><span class="Select-clear">×</span></span><span class="Select-arrow-zone"><span class="Select-arrow"></span></span></div> */

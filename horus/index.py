@@ -169,7 +169,7 @@ sidebar_content_global_graph = [
         ],
         value=['is teacher of'],
         labelStyle={'display': 'flex', 'flexDirection':'row','alingItem':'center'},
-        inputStyle={'margin':'0px 5px'},
+        inputStyle={'margin':'0px 5px'}
     ),
     html.H5('Graph layout',className="mt-5 mb-3"),
     dcc.Dropdown(
@@ -237,7 +237,7 @@ sidebar_content_global_graph = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv", style={'backgroundColor': '#716450'}, className="ml-3", n_clicks=0),
+    dbc.Button("Download Data", id="btn_csv", style={'backgroundColor': '#716450', 'borderColor': '#716450'}, className="ml-3", n_clicks=0),
     dcc.Download(id="download-dataframe-csv"),
 ]
 
@@ -247,7 +247,7 @@ row_global_graph = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(sidebar_content_global_graph), id='sidebar', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin": "4px"}),
-                dbc.Col(id='main-netowrk-graph'),
+                dbc.Col(id='main-netowrk-graph', style={"padding":"0px", "margin":"0px"}),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie',
                         message='You must select at least one tie',
@@ -412,8 +412,8 @@ row_global_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(html.Div([tabs_global_centrality, html.Div(id="content", style={'height': '100vh'})]), id='main_global_centrality'),
+                dbc.Col(html.Div(sidebar_content_global_centrality), id='sidebar_global_centrality', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px"}),
+                dbc.Col(html.Div([tabs_global_centrality, html.Div(id="content", style={'height': '200%', "padding": "0px", "margin": "0px"})]), id='main_global_centrality', style={"padding": "0px", "margin-left":"2px",  "background-color":"#E6E6E6"}),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-centrality',
                         message='You must select at least one tie',
@@ -544,7 +544,7 @@ sidebar_content_local = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_local", style={'backgroundColor': '#716450'}, className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_local", style={'backgroundColor': '#716450', 'borderColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_local"),
 ]
 
@@ -553,8 +553,8 @@ row_local = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(id='main_local_netowrk_graph'),
+                dbc.Col(html.Div(sidebar_content_local), id='sidebar_local', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px"}),
+                dbc.Col(id='main_local_netowrk_graph', style={"background-color":"#E6E6E6", "padding": "0px", "margin": "2px"}),
                 dcc.ConfirmDialog(
                         id='confirm_warning_tie_local',
                         message='You must select at least one tie',
@@ -688,7 +688,7 @@ sidebar_content_local_centrality = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_local_centrality", style={'backgroundColor': '#716450'}, className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_local_centrality", style={'backgroundColor': '#716450', 'borderColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_local_centrality"),
 ]
 
@@ -724,18 +724,18 @@ row_local_centrality = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
-                dbc.Col(html.Div(children=[tabs_local_centrality, html.Div(id="content_local_centrality", style={'height': '100vh'}, children=[])]), id='main_local_centrality'),
+                dbc.Col(html.Div(sidebar_content_local_centrality), id='sidebar_local_centrality', width=3, style={"padding":'30px 10px 10px 10px', "fonSize": "20px"}),
+                dbc.Col(html.Div([tabs_local_centrality, html.Div(id="content_local_centrality", style={'height': '100vh', "backgroundColor": "#e6e6e6", "margin-left":"2px", "margin-top":"0px"})]), id='main_local_centrality', style={'height': '100%', "backgroundColor": "#e6e6e6", "padding":"0px"}),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-local-centrality',
                         message='You must select at least one tie',
                     ),
             ],
-            className='h-100'
+            style={'height': '190vh', "backgroundColor": "#e6e6e6",}
         ),
     ],
     className='h-100',
-    style={'padding':'0px 10px'}
+    style={'padding':'0px 10px', "backgroundColor":"white"}
 )
 
 layout_local_centrality = html.Div(
@@ -862,7 +862,7 @@ sidebar_content_communnities = [
         value=[4, 6]
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_community_graph", style={'backgroundColor': '#716450'}, className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_community_graph", style={'backgroundColor': '#716450', 'borderColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_community_graph"),
 ]
 
@@ -871,7 +871,7 @@ row_communnities = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communnities), id='sidebar', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px"}),
                 dbc.Col(id='main-netowrk-graph-communities', children=[]),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-coomunities',
@@ -938,7 +938,7 @@ sidebar_content_communities_treemap = [
         searchable=False,
     ),
     html.H6('Download current dataset',className="mt-5 mb-3"),
-    dbc.Button("Download Data", id="btn_csv_community_treemap", style={'backgroundColor': '#716450'}, className="ml-3"),
+    dbc.Button("Download Data", id="btn_csv_community_treemap", style={'backgroundColor': '#716450', 'borderColor': '#716450'}, className="ml-3"),
     dcc.Download(id="download_dataframe_csv_community_treemap"),
 ]
 
@@ -947,7 +947,7 @@ row_communities_treemap = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content_communities_treemap), id='sidebar', width=3, style={"backgroundColor": "#e6e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin": "4px"} ),
                 dbc.Col(id='main-netowrk-graph-communities-treemap'),
                 dcc.ConfirmDialog(
                         id='confirm-warning-tie-treemap',
@@ -1060,7 +1060,7 @@ def horus_get_global_graph(dataset_selection,
         temp_file_name = next(tempfile._get_candidate_names()) + suffix
         full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
         pvis_graph.write_html(full_filename)
-        return [html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})]
+        return html.Div([html.H6('Global Network',className="mt-1 mb-2 text-center"), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"150vh", "width": "100%", "padding": "0px", "margin": "0px"})], style={"background-color":"#E6E6E6"})
 
 @app.callback(
     Output("download-dataframe-csv", "data"),
@@ -1588,7 +1588,7 @@ def horus_get_local_graph(dataset_selection,
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return [html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})]
+            return html.Div([html.H6('Local Network',className="mt-1 mb-2 text-center"), html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"95%", "width": "100%", "padding": "0px", "margin": "0px"})], style={"background-color":"#E6E6E6", "padding": "0px", "margin": "0px", "height":"100%"})
 
 @app.callback(Output('confirm_warning_tie_local', 'displayed'),
               Input('graph_filter_local', 'value'))
