@@ -1184,7 +1184,7 @@ def horus_get_global_graph_centrality(
             temp_file_name = next(tempfile._get_candidate_names()) + suffix
             full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
             pvis_graph.write_html(full_filename)
-            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height": "900px", "width": "100%"})
+            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height": "950px", "width": "100%"})
 
     if tab == "heatmap_global_cetrality":
         plotly_graph = None
@@ -1251,7 +1251,7 @@ def horus_get_global_graph_centrality(
             legend_font_size=12, legend_title_font_size=12, font_size=8
         )
         
-        return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
+        return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "950px", "width": "auto"})
 
     if tab == "metrics_global_cetrality":
         if not graph_filter:
@@ -1296,17 +1296,17 @@ def horus_get_global_graph_centrality(
                     'backgroundColor': 'rgb(220, 220, 220)',
                 }
             ],
-            style_cell={'textAlign': 'center'}, 
+            style_cell={'textAlign': 'center', 'border': '1px solid grey'}, 
             style_header={'textAlign': 'center'},
             page_current=0,
-            page_size=20,
+            page_size=30,
             page_action='custom',
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
         )
         foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
 
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
+        return [html.H6('Centrality Scores',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-global-graph', 'data'),
@@ -1808,7 +1808,7 @@ def horus_get_local_graph_centrality(
                 temp_file_name = next(tempfile._get_candidate_names()) + suffix
                 full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
                 pvis_graph.write_html(full_filename)
-                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1050px", "width": "100%"})
+                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"1100px", "width": "100%"})
 
     if tab == "heatmap_local_cetrality":
 
@@ -1850,7 +1850,7 @@ def horus_get_local_graph_centrality(
             legend_font_size=12, legend_title_font_size=12, font_size=8
         )
         
-        return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "100%", "width": "100%"})
+        return html.Div([dcc.Graph(figure=plotly_graph, style={"height": "100%", "width": "100%"})], style={"height": "1100px", "width": "auto"})
     
     if tab == "metrics_local_cetrality":
         df_local_data_tables = pd.DataFrame(dict_local_data_tables)
@@ -1864,10 +1864,10 @@ def horus_get_local_graph_centrality(
                     'backgroundColor': 'rgb(220, 220, 220)',
                 }
             ],
-            style_cell={'textAlign': 'center'}, 
+            style_cell={'textAlign': 'center','border': '1px solid grey'}, 
             style_header={'textAlign': 'center'},
             page_current=0,
-            page_size=20,
+            page_size=30,
             page_action='custom',
             sort_mode='single',
             sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
@@ -1875,7 +1875,7 @@ def horus_get_local_graph_centrality(
         
         foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
 
-        return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt, foot_note]
+        return [html.H6('Centrality Scores',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
     Output('table-local-graph', 'data'),
@@ -2272,7 +2272,7 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 
 # for develop mode uncomment this lines
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051) 
+    app.run_server(debug=True, port=8051, threaded=True) 
 
 # for develop mode comment this line
 # if __name__ == '__main__':
