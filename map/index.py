@@ -40,7 +40,7 @@ app = dash.Dash(__name__,
 server = app.server
 
 ############################################# Map graph layout###################################
-dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus', 'Custom Dataset': 'custom'}
+dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblichus': 'iamblichus'}
 
 STYLE_A_ITEM = {
     'color':'#000000',
@@ -203,14 +203,14 @@ sidebar_content = [
     ),
     html.H6('Download travel edges graph data',className="mt-5 mb-3"),
     dbc.Button("Download Data", id="btn_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
-    dcc.Download(id="download-dataframe-csv-map"),
-    html.H6('Upload travel dataset',className="mt-5 mb-3"),
-    dcc.Upload(
-            id='upload-data',
-            children = dbc.Button('Upload File', id="btn_upload_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
+    # dcc.Download(id="download-dataframe-csv-map"),
+    # html.H6('Upload travel dataset',className="mt-5 mb-3"),
+    # dcc.Upload(
+    #         id='upload-data',
+    #         children = dbc.Button('Upload File', id="btn_upload_csv_map", style={'backgroundColor': '#716450'}, className="ml-3"),
 
-            multiple=False
-        ),
+    #         multiple=False
+    #     ),
     html.Div(id='output-data-upload',children=[]),
     dcc.Store(id='memory-output')
 ]
@@ -264,7 +264,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin": "4px"}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin-right": "4px"}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
@@ -603,7 +603,7 @@ def get_map_map_custom(
             folium.LayerControl().add_to(base_map)
             base_map.save(full_filename)
 
-            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"800px", "width": "100%"})
+            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"650px", "width": "100%"})
 
         if tab == "map_metrics":
             
@@ -662,7 +662,7 @@ def get_map_map_custom(
                 style_cell={'textAlign': 'center', 'border': '1px solid grey'}, 
                 style_header={'textAlign': 'center'},
                 page_current=0,
-                page_size=20,
+                page_size=17,
                 page_action='custom',
                 sort_mode='single',
                 sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
@@ -698,7 +698,7 @@ def get_map_map_custom(
                 full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
 
                 pvis_graph.write_html(full_filename)
-                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"800px", "width": "100%"})
+                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"650px", "width": "100%"})
 
 
 @app.callback(
