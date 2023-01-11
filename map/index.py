@@ -119,7 +119,6 @@ navbar = dbc.Navbar(
                 ),
             ],
             className="d-flex",
-
         )
             
     ],
@@ -524,6 +523,45 @@ def get_map_map_custom(
                     map_graph.set_edges_filter(m_filter)
                 map_graph.create_subgraph()
 
+        #Folium base map configurations 
+        url = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'
+        attribution = '&copy; <a href="https://developers.arcgis.com/">ArcGIS</a> '
+
+        base_map = folium.Map(location=[35, 30],
+                   min_zoom=4, 
+                   max_zoom=7, 
+                   zoom_start=6,
+                   tiles=None,
+                   attr=attribution)
+
+        folium.TileLayer(
+                tiles = url,
+                show=True,
+                attr=attribution,
+                min_zoom=3, 
+                max_zoom=8, 
+                name="USGS - The National Map",
+            ).add_to(base_map)
+
+        markers_source = folium.FeatureGroup(name='Source').add_to(base_map)
+        markers_target = folium.FeatureGroup(name='Target').add_to(base_map)
+
+        for i in range(len(df['Source'])):
+            #source marker
+            popup_source = folium.Popup(str("{} \n (lat = {:.1f}, \n lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])),parse_html=True, max_width=450)
+            tooltip_source = "{} (lat = {:.1f}, lon={:.1f})".format(df['Source'][i], df["SourceLatitude"][i], df["SourceLongitude"][i])
+
+            markers_source.add_child(
+                folium.CircleMarker(
+                    location=(float(df["SourceLatitude"][i]), float(df["SourceLongitude"][i])),
+                    popup = popup_source,
+                    tooltip=tooltip_source,
+                    fill=True,
+                    color=df["SourceColor"][i],  
+                    fill_color=df["SourceColor"][i], 
+                    radius=int(df["SourceSize"][i] * 1.3)
+                )
+            )
             
             data = map_graph.get_map_data(min_weight=node_size[0], max_weight=node_size[1])
             df = pd.DataFrame(data)
@@ -619,7 +657,6 @@ def get_map_map_custom(
                 for m_filter in all_travelers:
                     map_graph.set_edges_filter(m_filter)
                 map_graph.create_subgraph()
-
             else:
                 map_graph.edges_filter = []
                 for m_filter in traveler:
@@ -671,7 +708,6 @@ def get_map_map_custom(
             return [html.H6('Centrality Scores',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), dt_map, foot_note]
         
         if tab == "map_graphs":
-
             map_graph.current_centrality_index = centrality_index
             
             graph_layout = "fr"
@@ -748,8 +784,7 @@ def update_table(
     calculated_network_betweenness = list(pd.DataFrame.from_dict(nx.betweenness_centrality(map_graph.networkx_subgraph).items())[1])
     calculated_network_degree = list(pd.DataFrame.from_dict(nx.degree_centrality(map_graph.networkx_subgraph).items())[1])
     calculated_network_closeness = list(pd.DataFrame.from_dict(nx.closeness_centrality(map_graph.networkx_subgraph).items())[1])
-    calculated_network_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])
-    
+    calculated_network_eigenvector = list(pd.DataFrame.from_dict(nx.eigenvector_centrality(map_graph.networkx_subgraph).items())[1])    
     calculated_degree = [round(value) for value in map_graph.calculate_degree()]
     calculated_betweenness = round_list_values(map_graph.calculate_betweenness())
     calculated_closeness = round_list_values(map_graph.calculate_closeness())
@@ -870,8 +905,6 @@ def download_handler(n_clicks,
                 return dcc.send_data_frame(df_to_save.to_csv, 'travel_edges_graph.csv', columns=header)
         else:
             pass
-
-    
 
     ################################################## end graph map callbacks ##############################################
 

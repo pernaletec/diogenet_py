@@ -1874,7 +1874,6 @@ def horus_get_local_graph_centrality(
         )
         
         foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
-
         return [html.H6('Centrality Scores',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), dt, foot_note]
 
 @app.callback(
