@@ -2276,4 +2276,4 @@ def download_handler_communities_treemap(n_clicks, dataset_selection, graph_filt
 
 # for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8051)
+    app.run_server(debug=False, port=8061)
