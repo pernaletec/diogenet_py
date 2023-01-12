@@ -32,7 +32,7 @@ app = dash.Dash(__name__,
         external_stylesheets= [dbc.themes.BOOTSTRAP, 
         dbc.icons.BOOTSTRAP,
         "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
-        title="Map", url_base_pathname = '/map_private/') 
+        title="Map", url_base_pathname = '/map/') 
 
 # for develop mode uncomment this line
 # app.config.suppress_callback_exceptions = True 
