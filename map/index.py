@@ -290,9 +290,9 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content-map', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/' or pathname == '/map_private/':
+    if pathname == '/' or pathname == '/map/':
         return layout
-    elif pathname != '/' or pathname != '/map_private/':
+    elif pathname != '/' or pathname != '/map/':
         return '404'
 
 ############################################# map graph callbacks ######################################
