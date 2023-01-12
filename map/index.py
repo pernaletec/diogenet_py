@@ -881,4 +881,4 @@ def download_handler(n_clicks,
 
 # for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8060)
+    app.run_server(debug=False, port=8050)
