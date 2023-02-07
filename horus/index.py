@@ -38,7 +38,7 @@ app = dash.Dash(__name__,
                     dbc.icons.BOOTSTRAP, 
                     "https://fonts.googleapis.com/css2?family=Roboto&display=swap"], 
                 title="Horus",
-                url_base_pathname = '/horus_private/')
+                url_base_pathname = '/horus/')
 
 # for develop mode uncomment this line
 # app.config.suppress_callback_exceptions = True 
@@ -977,19 +977,19 @@ app.layout = html.Div([
 # Update the index
 @app.callback(Output('page-content', 'children'), [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/horus_private/' or pathname == '/':
+    if pathname == '/horus/' or pathname == '/':
         return layout_global_graph
-    if pathname == '/horus_private/global_network_graph/' or pathname == '/global_network_graph/':
+    if pathname == '/horus/global_network_graph/' or pathname == '/global_network_graph/':
         return layout_global_graph
-    if pathname == '/horus_private/global_network_graph_centrality/' or pathname == '/global_network_graph_centrality/':
+    if pathname == '/horus/global_network_graph_centrality/' or pathname == '/global_network_graph_centrality/':
         return layout_global_centrality
-    if pathname == '/horus_private/local_network_graph/' or pathname == '/local_network_graph/':
+    if pathname == '/horus/local_network_graph/' or pathname == '/local_network_graph/':
         return layout_local
-    if pathname == '/horus_private/local_network_graph_centrality/' or pathname == '/local_network_graph_centrality/':
+    if pathname == '/horus/local_network_graph_centrality/' or pathname == '/local_network_graph_centrality/':
         return layout_local_centrality
-    if pathname == '/horus_private/communities_graph/' or pathname == '/communities_graph/':
+    if pathname == '/horus/communities_graph/' or pathname == '/communities_graph/':
         return layout_communnities
-    if pathname == '/horus_private/communities_treemap/' or pathname == '/communities_treemap/':
+    if pathname == '/horus/communities_treemap/' or pathname == '/communities_treemap/':
         return layout_communities_treemap
     else:
         return '404'
