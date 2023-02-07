@@ -35,7 +35,7 @@ app = dash.Dash(__name__,
         title="Map", url_base_pathname = '/map_private/') 
 
 # for develop mode uncomment this line
-#app.config.suppress_callback_exceptions = True 
+# app.config.suppress_callback_exceptions = True 
 
 server = app.server
 
@@ -45,35 +45,88 @@ dict_of_datasets = {'Diogenes Laertius': 'diogenes', 'Life of Pythagoras Iamblic
 STYLE_A_ITEM = {
     'color':'#000000',
     'textDecoration': 'none',
-    'marginRight': '12px',
-    'marginLeft': '12px',
+    'paddingRight': '12px',
+    'paddingLeft': '12px',
     'fontSize': '16px',
     'letterSpacing':'4px',
     'font-weight':'400',
-    'padding': '12px'
+    'margin': '0'
 }
 
 navbar = dbc.Navbar(
     children=[
         html.Div(
             [
-                dbc.NavLink("Map", style=STYLE_A_ITEM),
-                dbc.NavLink("Traveler", style=STYLE_A_ITEM),
+                html.Img(
+                    src="https://i0.wp.com/diogenet.ucsd.edu/wp-content/uploads/2021/02/Logo-Gego-v2-BN.png?ssl=1",
+                    style={
+                        'width': '80px',
+                        'height': '94px'
+                    }
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink(
+                            "DIOGENET",
+                            style= {
+                                'color':'black',
+                                'textDecoration': 'none',
+                                'marginRight': '12px',
+                                'marginLeft': '12px',
+                                'fontSize': '22px',
+                                'letterSpacing':'4px',
+                                'font-weight':'400',
+                                'padding': '0px',
+                                'margin': '2px',
+                                'fontWeight': '700'
+                            }
+                        ),
+                    ] 
+                )
+            ],
+            className="d-flex"
+        ),
+        html.Div(
+            [   
+                
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("HOME", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("HORUS", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("MAP", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
+                dbc.NavLink(
+                    [
+                        dbc.NavLink("DOCS", style=STYLE_A_ITEM),
+                    ], 
+                    href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
+                    target="blank"
+                ),
             ],
             className="d-flex",
-        ),
-        dbc.NavLink(
-            [
-                html.I(className="bi bi-house-fill me-2 text-white")
-            ], 
-            href="https://diogenet.ucsd.edu/", style=STYLE_A_ITEM,
-            target="blank"
+
         )
+            
     ],
     color="#ffffff",
     className="d-flex justify-content-between",
     style={'color':'#ffffff', 'border-bottom': '1px black solid'},
-    id='navbar-map'
+    id='Navbar'
 )
 
 sidebar_content = [
@@ -211,7 +264,7 @@ row = html.Div(
         dbc.Row(navbar),
         dbc.Row(
             [
-                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#fdfdfd", "padding":'30px 10px 10px 10px'}),
+                dbc.Col(html.Div(sidebar_content), id='sidebar_map', width=3, style={"backgroundColor": "#e7e6e6", "padding":'30px 10px 10px 10px', "fonSize": "20px", "margin": "4px"}),
                 dbc.Col(html.Div(children=[tabs, html.Div(id="content_map", style={'height': '100vh'}, children=[])]), id='main_map'),
             ],
             className='h-100'
@@ -550,7 +603,7 @@ def get_map_map_custom(
             folium.LayerControl().add_to(base_map)
             base_map.save(full_filename)
 
-            return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
+            return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"800px", "width": "100%"})
 
         if tab == "map_metrics":
             
@@ -606,7 +659,7 @@ def get_map_map_custom(
                         'backgroundColor': 'rgb(220, 220, 220)',
                     }
                 ],
-                style_cell={'textAlign': 'center'}, 
+                style_cell={'textAlign': 'center', 'border': '1px solid grey'}, 
                 style_header={'textAlign': 'center'},
                 page_current=0,
                 page_size=20,
@@ -615,7 +668,7 @@ def get_map_map_custom(
                 sort_by=[{'column_id': 'Degree', 'direction': 'asc'}]
             )
             foot_note = html.Div(children=[html.Span('Metrics obtained using the algorithms of '), html.A('Networkx', href='https://networkx.org/documentation/stable/', target='_blank')])
-            return [html.H6('Centrality Scores',className="mt-1 mb-2"), html.Hr(className='py-0'), dt_map, foot_note]
+            return [html.H6('Centrality Scores',className="mt-1 mb-2 text-center"), html.Hr(className='py-0'), dt_map, foot_note]
         
         if tab == "map_graphs":
 
@@ -645,7 +698,7 @@ def get_map_map_custom(
                 full_filename = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '.', 'assets',temp_file_name))
 
                 pvis_graph.write_html(full_filename)
-                return [html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"100%", "width": "100%"})]
+                return html.Iframe(src=app.get_asset_url(f'{temp_file_name}'),style={"height":"800px", "width": "100%"})
 
 
 @app.callback(
@@ -826,6 +879,6 @@ def download_handler(n_clicks,
 # if __name__ == '__main__':
 #     app.run_server(debug=True, port=8060) 
 
-#for develop mode comment this line
+# for develop mode comment this line
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8060) 
+    app.run_server(debug=False, port=8060)
