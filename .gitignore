@@ -172,5 +172,6 @@ cython_debug/
 test.py
 test.ipynb
 *.html
+test.ipynb
 
 .DS_Store
